@@ -182,7 +182,7 @@ class TraductorLatexTest {
             "\\ln^2x-4                         | (ln(x) + 2)·(ln(x) - 2)    | x > 0",
             "\\tan^2x-1                        | (tan(x) + 1)·(tan(x) - 1)  | x ≠ π/2 + kπ",
             "\\cos(2x)+\\cos x                  | (cos(x) + 1)·(2cos(x) - 1) | ",
-            "x+\\operatorname{\\mathrm{sen}}x   | No se puede factorizar: no es polinómica en una sola función | "
+            "x+\\operatorname{\\mathrm{sen}}x   | No se puede factorizar: no es polinómica en una sola función (RN32) | "
     })
     void funcionesDelEditorSeFactorizan(String latex, String formula, String restriccion) {
         var r = new FactorizadorFunciones(new OrquestadorFactorizacion())

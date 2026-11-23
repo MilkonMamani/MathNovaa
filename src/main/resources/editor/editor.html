@@ -130,6 +130,10 @@
   // Los nombres de función los convierte atajos() más abajo.
   mf.inlineShortcuts = {};
   mf.smartMode = false;
+  // MathLive saca el cursor del exponente tras una cifra (x^2x es x²·x, como en la gramática). Eso vale
+  // para un ^ tecleado, pero no para la casilla de una plantilla: con la tecla e^□, "2x" es e^(2x) y no
+  // e²·x. Se apaga aquí y salirDelExponenteTecleado() lo hace solo para el ^ tecleado.
+  mf.smartSuperscript = false;
   if (window.mathVirtualKeyboard) { window.mathVirtualKeyboard.hide(); }
 
   function aJava(metodo, a, b, c) {
@@ -154,9 +158,14 @@
   var ATAJOS = {
     sen: '\\operatorname{sen}', cos: '\\cos', tan: '\\tan', cot: '\\cot', sec: '\\sec', csc: '\\csc',
     cosec: '\\operatorname{cosec}', arcsen: '\\operatorname{arcsen}', arccos: '\\arccos', arctan: '\\arctan',
-    ln: '\\ln', log: '\\log', exp: '\\exp'
+    ln: '\\ln', log: '\\log', exp: '\\exp',
+    // Las operaciones con nombre también van en letra recta; el traductor las lee como extremos(…), grad(…), Du(…).
+    extremos: '\\operatorname{extremos}', grad: '\\operatorname{grad}', Du: '\\operatorname{Du}'
   };
-  var LARGO_ATAJO = 6;
+  var LARGO_ATAJO = 8;
+  // Inline shortcuts que se vuelven plantilla (los pasa Java, Plantillas.ATAJOS): √, sqrt y raiz
+  // insertan \sqrt{#?}. Sin esto, MathLive guarda el carácter √ como \surd, que no tiene casilla.
+  var plantillas = {};
   // Lo tecleado seguido, sin espacio ni otro signo en medio: [{texto, latex}], uno por átomo.
   var tecleo = [];
   var convirtiendo = false;
@@ -185,6 +194,18 @@
     for (var i = 0; i < tecleo.length; i++) {
       var palabra = '';
       for (var j = i; j < tecleo.length; j++) { palabra += tecleo[j].texto; }
+      var plantilla = palabra.length > 1 && plantillas.hasOwnProperty(palabra) ? plantillas[palabra] : null;
+      if (plantilla) {
+        convirtiendo = true;
+        try {
+          for (var q = i; q < tecleo.length; q++) { mf.executeCommand('deleteBackward'); }
+          insertarPlantilla(plantilla);
+        } finally {
+          convirtiendo = false;
+        }
+        tecleo = [];
+        return;
+      }
       var latex = ATAJOS[palabra];
       if (latex) {
         convirtiendo = true;
@@ -216,15 +237,108 @@
     } catch (e) {}
   }
 
+  // El átomo cuyo exponente se abrió tecleando ^ (no con una plantilla), o null.
+  var exponenteTecleado = null;
+
+  function recordarExponenteTecleado() {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      var atomo = modelo && modelo.at(modelo.position);
+      exponenteTecleado = atomo && atomo.parentBranch === 'superscript' ? atomo.parent : null;
+    } catch (e) { exponenteTecleado = null; }
+  }
+
+  // Una cifra sola en un exponente recién abierto con ^: el cursor sale (x^2x es x²·x). true si salió.
+  function salirDelExponenteTecleado() {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      if (!modelo || !exponenteTecleado) { return false; }
+      var atomo = modelo.at(modelo.position);
+      if (atomo && atomo.parentBranch === 'superscript' && atomo.parent === exponenteTecleado
+          && atomo.leftSibling && atomo.leftSibling.type === 'first' && atomo.isLastSibling) {
+        exponenteTecleado = null;
+        mf.executeCommand('moveAfterParent');
+        return true;
+      }
+    } catch (e) {}
+    exponenteTecleado = null;
+    return false;
+  }
+
+  // Tecla ∬ (\int_c^d\int_a^b f dx dy): al salir con → del límite de la ∫ de fuera, el cursor queda entre las
+  // dos ∫. Si la ∫ que sigue tiene una casilla vacía en sus límites, se entra ahí, como de una casilla a otra.
+  function entrarEnLaIntegralSiguiente() {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      if (!modelo) { return; }
+      var atomo = modelo.at(modelo.position);
+      var sig = atomo && atomo.rightSibling;
+      if (!sig || !/^\\i*int$/.test(sig.command || '')) { return; }
+      var ramas = ['subscript', 'superscript'];
+      for (var i = 0; i < ramas.length; i++) {
+        var hijos = sig.branch(ramas[i]) || [];
+        for (var j = 0; j < hijos.length; j++) {
+          if (hijos[j].type === 'placeholder') { mf.executeCommand('moveToNextPlaceholder'); return; }
+        }
+      }
+    } catch (e) {}
+  }
+
+  function insertarPlantilla(latex) {
+    mf.executeCommand(['insert', latex, { selectionMode: 'placeholder', focus: true }]);
+  }
+
   // e^(2x): al cerrar el paréntesis que es todo el exponente, el cursor sale (como x^(n + 1) en texto).
+  // El paréntesis puede ser un \left(…\right) o dos caracteres sueltos "(" y ")": los dos casos.
   function salirDelExponenteConParentesis() {
     try {
       var modelo = mf._mathfield && mf._mathfield.model;
       if (!modelo) { return; }
       var atomo = modelo.at(modelo.position);
-      if (atomo && atomo.type === 'leftright' && atomo.parentBranch === 'superscript'
-          && atomo.leftSibling && atomo.leftSibling.type === 'first' && atomo.isLastSibling) {
+      if (!atomo || atomo.parentBranch !== 'superscript' || !atomo.isLastSibling) { return; }
+      if (atomo.type === 'leftright') {
+        if (atomo.leftSibling && atomo.leftSibling.type === 'first') { mf.executeCommand('moveAfterParent'); }
+        return;
+      }
+      if (atomo.value !== ')' || !atomo.parent) { return; }
+      var hermanos = atomo.parent.branch('superscript') || [];
+      var nivel = 0;
+      var empezo = false;
+      for (var i = 0; i < hermanos.length; i++) {
+        var h = hermanos[i];
+        if (h.type === 'first') { continue; }
+        if (!empezo) {
+          if (h.value !== '(') { return; }
+          empezo = true;
+        }
+        if (h.value === '(') { nivel++; }
+        else if (h.value === ')') {
+          nivel--;
+          if (nivel === 0 && h !== atomo) { return; } // (a)(b): el primero cerró antes del final
+        }
+      }
+      if (empezo && nivel === 0) { mf.executeCommand('moveAfterParent'); }
+    } catch (e) {}
+  }
+
+  // e^x+2: como en el texto, el + (o −, =) que sigue a un exponente de una sola letra lo cierra:
+  // es e^x + 2, no e^{x+2}. Para un exponente compuesto se usan paréntesis: e^(x+2).
+  function salirDelExponenteConOperador(op) {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      if (!modelo) { return; }
+      var atomo = modelo.at(modelo.position);
+      if (!atomo || atomo.parentBranch !== 'superscript' || !atomo.isLastSibling) { return; }
+      var previo = atomo.leftSibling;
+      if (!previo || previo.type === 'first' || !previo.leftSibling || previo.leftSibling.type !== 'first') { return; }
+      if (!/^[a-zA-Z]$/.test(previo.value || '')) { return; }
+      convirtiendo = true;
+      try {
+        mf.executeCommand('deleteBackward');
         mf.executeCommand('moveAfterParent');
+        mf.executeCommand(['typedText', op]);
+      } finally {
+        convirtiendo = false;
       }
     } catch (e) {}
   }
@@ -236,8 +350,21 @@
     if (typeof d === 'string' && d.length === 1) {
       if (/^[a-zA-Z]$/.test(d)) { letraTecleada(d); return; }
       cortarTecleo();
-      if (/^[0-9]$/.test(d)) { salirDelExponenteDeFuncion(); }
+      if (plantillas.hasOwnProperty(d)) {
+        // √ tecleado: se cambia por la plantilla, con el cursor en su casilla.
+        convirtiendo = true;
+        try {
+          mf.executeCommand('deleteBackward');
+          insertarPlantilla(plantillas[d]);
+        } finally {
+          convirtiendo = false;
+        }
+        return;
+      }
+      if (d === '^') { recordarExponenteTecleado(); return; }
+      if (/^[0-9]$/.test(d)) { if (!salirDelExponenteTecleado()) { salirDelExponenteDeFuncion(); } }
       else if (d === ')' || d === ']') { salirDelExponenteConParentesis(); }
+      else if (d === '+' || d === '-' || d === '=') { salirDelExponenteConOperador(d); }
       return;
     }
     cortarTecleo();
@@ -329,7 +456,40 @@
     window.editor.insertar(item.latex);
   }
 
+  // ---------------------------------------------------------------- casilla que falta
+  // Java dice cuál (su número entre todas, en el orden del LaTeX): el cursor va ahí y se ve con borde
+  // naranja hasta el próximo cambio. El orden del LaTeX es: índice y radicando en la raíz; el resto,
+  // cuerpo, numerador, denominador, subíndice y exponente (\int_{a}^{b}).
+  function casillasEnOrden() {
+    var modelo = mf._mathfield && mf._mathfield.model;
+    var r = [];
+    if (!modelo) { return r; }
+    function visitar(atomo) {
+      if (!atomo) { return; }
+      if (atomo.type === 'placeholder') { r.push(atomo); }
+      var ramas = atomo.type === 'surd' ? ['above', 'body'] : ['body', 'above', 'below', 'subscript', 'superscript'];
+      for (var i = 0; i < ramas.length; i++) {
+        var hijos = typeof atomo.branch === 'function' ? atomo.branch(ramas[i]) : null;
+        if (hijos) { for (var j = 0; j < hijos.length; j++) { visitar(hijos[j]); } }
+      }
+    }
+    visitar(modelo.root);
+    return r;
+  }
+
+  function instalarEstiloFalta() {
+    if (!mf.shadowRoot || mf.shadowRoot.getElementById('estilo-falta')) { return; }
+    var estilo = document.createElement('style');
+    estilo.id = 'estilo-falta';
+    estilo.textContent = ':host(.falta) .ML__placeholder-selected {'
+        + ' outline: 2px solid #f97316; outline-offset: 1px; border-radius: 3px; }';
+    mf.shadowRoot.appendChild(estilo);
+  }
+
+  function quitarResaltado() { mf.classList.remove('falta'); }
+
   mf.addEventListener('input', function (ev) {
+    quitarResaltado();
     buscarSugerencias();
     aJava('onCambio', mf.getValue());
     avisarAltura();
@@ -366,6 +526,8 @@
       ev.preventDefault(); ev.stopImmediatePropagation();
       aJava('onEnter', mf.getValue());
     }
+    // La flecha del teclado físico, igual que la del teclado en pantalla: después de que MathLive la mueva.
+    if (ev.key === 'ArrowRight' && !ev.shiftKey) { setTimeout(entrarEnLaIntegralSiguiente, 0); }
   }, true);
 
   // ---------------------------------------------------------------- API que llama Java
@@ -376,9 +538,10 @@
       mf.focus();
     },
     izquierda: function () { mf.focus(); mf.executeCommand('moveToPreviousChar'); },
-    derecha: function () { mf.focus(); mf.executeCommand('moveToNextChar'); },
+    derecha: function () { mf.focus(); mf.executeCommand('moveToNextChar'); entrarEnLaIntegralSiguiente(); },
     borrar: function () { mf.focus(); mf.executeCommand('deleteBackward'); },
     limpiar: function () {
+      quitarResaltado();
       cerrar();
       cortarTecleo();
       mf.setValue('');
@@ -387,6 +550,7 @@
       avisarAltura();
     },
     poner: function (latex) {
+      quitarResaltado();
       cerrar();
       cortarTecleo();
       mf.setValue(latex);
@@ -408,6 +572,18 @@
     },
     enfocar: function () { mf.focus(); },
     configurarSugerencias: function (json) { sugerencias = JSON.parse(json); },
+    configurarPlantillas: function (json) { plantillas = JSON.parse(json); },
+    // n: el número de la casilla entre todas (TraductorLatex.CasillaVacia.indice). Devuelve si la encontró.
+    resaltarCasilla: function (n) {
+      instalarEstiloFalta();
+      mf.focus();
+      var c = casillasEnOrden();
+      var hallada = n >= 0 && n < c.length;
+      if (hallada) { mf.position = mf._mathfield.model.offsetOf(c[n]); }
+      mf.classList.add('falta');
+      return hallada;
+    },
+    casillas: function () { return casillasEnOrden().length; },
     aceptarSugerencia: function (posicion) { aceptar(posicion); mf.focus(); },
     cerrarSugerencias: function () { cerrar(); }
   };

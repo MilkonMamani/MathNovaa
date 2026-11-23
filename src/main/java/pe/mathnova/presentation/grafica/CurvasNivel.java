@@ -69,6 +69,11 @@ public final class CurvasNivel extends Region {
         return ventana;
     }
 
+    /** Lo que se dibuja: las curvas de nivel, las trayectorias, las marcas. */
+    public DatosCurvasNivel datos() {
+        return datos;
+    }
+
     /** Vuelve a la vista inicial (también con doble clic). */
     public void restablecer() {
         ventana = datos.ventana();

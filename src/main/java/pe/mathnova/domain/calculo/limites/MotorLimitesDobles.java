@@ -384,17 +384,17 @@ public final class MotorLimitesDobles {
         Trayectoria primera = null;
         for (Trayectoria t : ts) {
             if (t.valor() == null) {
-                return "Por " + t.nombre() + " f crece sin cota: el límite no existe";
+                return "Por " + t.nombre() + " f crece sin cota: el límite no existe (RN38)";
             }
             if (t.dependeDeM()) {
                 return "Con " + t.nombre() + " da " + p(t.valor()) + ", que depende de " + t.parametro()
-                        + ": cada recta da un valor distinto, así que el límite no existe";
+                        + ": cada recta da un valor distinto, así que el límite no existe (RN38)";
             }
             if (primera == null) {
                 primera = t;
             } else if (!iguales(primera.valor(), t.valor())) {
                 return "Por " + primera.nombre() + " da " + p(primera.valor()) + " y por " + t.nombre() + " da "
-                        + p(t.valor()) + ": dos trayectorias dan valores distintos, así que el límite no existe";
+                        + p(t.valor()) + ": dos trayectorias dan valores distintos, así que el límite no existe (RN38)";
             }
         }
         return null;

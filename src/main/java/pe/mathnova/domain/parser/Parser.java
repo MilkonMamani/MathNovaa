@@ -469,7 +469,8 @@ public final class Parser {
     }
 
     /**
-     * {@code <integral_multiple> ::= ("∬" | "∭") "(" <expresion> { "," <variable> "," <expresion> "," <expresion> } ")"},
+     * {@code <integral_multiple> ::= ("∬" | "∭") "(" <expresion> { "," <variable> "," <rango> } [ ";" <coordenadas> ] ")"},
+     * {@code <rango> ::= <expresion> "," <expresion> | "[" <expresion> "," <expresion> "]"},
      * con 2 rangos para ∬ y 3 para ∭.
      */
     private Expresion integralMultiple() {
@@ -489,9 +490,17 @@ public final class Parser {
                 }
             }
             esperar(',');
+            // Gramática v2: "x, a, b". También "x, [a, b]", la forma de antes: dan el mismo árbol.
+            boolean corchete = esOperador('[');
+            if (corchete) {
+                avanzar();
+            }
             Expresion inferior = cuerpo("del límite inferior");
             esperar(',');
             Expresion superior = cuerpo("del límite superior");
+            if (corchete) {
+                esperar(']');
+            }
             rangos.add(new Rango(variable, inferior, superior));
         }
         if (rangos.size() != rangosEsperados) {

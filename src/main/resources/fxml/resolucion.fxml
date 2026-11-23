@@ -38,11 +38,12 @@
                    styleClass="subtitulo-pantalla"/>
         </VBox>
 
-        <VBox spacing="6">
-            <HBox styleClass="barra-entrada" alignment="CENTER_LEFT" fillHeight="false">
+        <VBox fx:id="zonaEntrada" spacing="6">
+            <!-- En una ventana angosta, ResolucionController pasa el selector y el botón a una segunda fila -->
+            <HBox fx:id="barraEntrada" styleClass="barra-entrada" alignment="CENTER_LEFT" fillHeight="false">
                 <!-- ResolucionController pone aquí el EditorMatematico -->
-                <StackPane fx:id="zonaEditor" HBox.hgrow="ALWAYS"/>
-                <HBox styleClass="selector-campo">
+                <StackPane fx:id="zonaEditor" HBox.hgrow="ALWAYS" minWidth="0"/>
+                <HBox fx:id="selectorCampo" styleClass="selector-campo" minWidth="-Infinity">
                     <ToggleButton fx:id="campoQ" text="Q" selected="true" styleClass="opcion-campo"
                                   accessibleText="Resolver en los racionales">
                         <tooltip>
@@ -67,11 +68,13 @@
                     </StackPane>
                 </HBox>
                 <Button fx:id="botonResolver" text="Resolver" styleClass="boton-primario" onAction="#resolver"
-                        disable="true" focusTraversable="false"/>
+                        disable="true" focusTraversable="false" minWidth="120"/>
             </HBox>
             <!-- HU37: el resultado en gris, 400 ms después de la última tecla -->
             <Label fx:id="resultadoEnVivo" styleClass="resultado-en-vivo" wrapText="true" visible="false" managed="false"/>
             <Label fx:id="avisoEntrada" styleClass="mensaje-error" wrapText="true" visible="false" managed="false"/>
+            <!-- Los paneles muestran el resultado de lo que había antes en el editor -->
+            <Label fx:id="notaActualizar" styleClass="nota-actualizar" wrapText="true" visible="false" managed="false"/>
         </VBox>
 
         <GridPane fx:id="columnas" hgap="20" vgap="20">
@@ -106,19 +109,16 @@
 
                             <StackPane>
                                 <VBox fx:id="cuerpoSolucion" spacing="12">
-                                    <HBox styleClass="recuadro-formula">
-                                        <ScrollPane fx:id="marcoFormula" HBox.hgrow="ALWAYS" fitToHeight="true"
-                                                    vbarPolicy="NEVER" hbarPolicy="AS_NEEDED" focusTraversable="false"
-                                                    styleClass="marco-formula">
-                                            <ImageView fx:id="formula" preserveRatio="true"/>
-                                        </ScrollPane>
+                                    <!-- ResolucionController pone aquí la fórmula (FormulaAjustable: 28 → 18 px y,
+                                         si no cabe, dos líneas) con "Verificado" al costado o debajo -->
+                                    <StackPane fx:id="recuadroFormula" styleClass="recuadro-formula" minWidth="0">
                                         <Label fx:id="etiquetaVerificado" text="Verificado" styleClass="etiqueta-verificado"
                                                minWidth="-Infinity">
                                             <graphic>
                                                 <SVGPath fx:id="marcaVerificado" content="M0 4 L3 7 L9 1" styleClass="check-marca"/>
                                             </graphic>
                                         </Label>
-                                    </HBox>
+                                    </StackPane>
                                     <VBox fx:id="irreducibles" spacing="4"/>
                                     <FlowPane fx:id="alternativas" styleClass="alternativas" hgap="8" vgap="6"/>
                                 </VBox>

@@ -41,10 +41,14 @@ class PropiedadesYFilaTest {
         assertEquals("x = −2, x = 1 (doble)", propiedades("x^3 - 3x + 2").filas().get(2).valor());
     }
 
+    /** Antes se desplazaba al llegar a 14 px; ahora pasa a dos líneas y nunca se corta. */
     @Test
-    void laFormulaSeReduceHastaCatorcePxYLuegoSeDesplaza() {
-        assertEquals(300, FilaPaso.anchoAjustado(300, 400), 1e-9, "cabe: su tamaño");
-        assertEquals(340, FilaPaso.anchoAjustado(400, 340), 1e-9, "no cabe: se reduce hasta caber");
-        assertEquals(400 * 14.0 / 18.0, FilaPaso.anchoAjustado(400, 200), 1e-9, "no más chica que 14 px: se desplaza");
+    void laFormulaSeReduceHastaCatorcePxYLuegoPasaADosLineas() {
+        FormulaAjustable.Disposicion cabe = FormulaAjustable.elegir(300, 200, 0, 400, 18, 14);
+        assertEquals(new FormulaAjustable.Disposicion(false, 18, 1, false), cabe, "cabe: su tamaño");
+        FormulaAjustable.Disposicion reducida = FormulaAjustable.elegir(400, 250, 0, 340, 18, 14);
+        assertEquals(new FormulaAjustable.Disposicion(false, 14, 1, false), reducida, "no cabe: se reduce hasta caber");
+        FormulaAjustable.Disposicion partida = FormulaAjustable.elegir(400, 250, 0, 200, 18, 14);
+        assertEquals(new FormulaAjustable.Disposicion(true, 14, 1, false), partida, "a 14 px tampoco: dos líneas");
     }
 }

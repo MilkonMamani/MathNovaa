@@ -5,7 +5,6 @@ import javafx.geometry.Pos;
 import javafx.scene.AccessibleRole;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -26,15 +25,16 @@ import pe.mathnova.presentation.pizarra.Pizarra;
 
 /**
  * Un paso del procedimiento (HU04): círculo numerado y nombre del método en una línea, y debajo, a
- * todo el ancho, el "Después" en LaTeX. Si la fórmula no cabe, se reduce (hasta el equivalente a
- * 14 px) y después se puede desplazar en horizontal. Con un clic, Enter o Espacio se despliega y
+ * todo el ancho, el "Después" en LaTeX. Si la fórmula no cabe, se reduce de 18 px hasta 14 px y, si
+ * aun así no cabe, pasa a dos líneas (ver {@link FormulaAjustable}); nunca se corta ni se desplaza. Con un clic, Enter o Espacio se despliega y
  * muestra Por qué aplica, Antes, Trabajo y Después.
  */
 public final class FilaPaso {
 
     private static final PseudoClass ABIERTA = PseudoClass.getPseudoClass("abierta");
     /** Las fórmulas de los pasos se dibujan a 18 px y se reducen como mucho hasta 14 px. */
-    static final double ESCALA_MINIMA = 14.0 / 18.0;
+    static final double TAMANO = 18;
+    static final double TAMANO_MINIMO = 14;
 
     private final VistaPaso paso;
     private final RenderizadorLatex renderizador;
@@ -126,36 +126,12 @@ public final class FilaPaso {
         return numero;
     }
 
-    /**
-     * El ancho con que se dibuja una fórmula de {@code anchoImagen} px en un espacio de
-     * {@code disponible} px: su tamaño si cabe; si no, reducida hasta caber, pero nunca por debajo de
-     * {@link #ESCALA_MINIMA} (de ahí en adelante se desplaza).
-     */
-    static double anchoAjustado(double anchoImagen, double disponible) {
-        if (disponible <= 0 || anchoImagen <= disponible) {
-            return anchoImagen;
-        }
-        return Math.max(disponible, anchoImagen * ESCALA_MINIMA);
-    }
-
-    /** La fórmula a todo el ancho de la fila: se reduce si no cabe y después se desplaza. */
+    /** La fórmula a todo el ancho de la fila: se reduce si no cabe y, si hace falta, pasa a dos líneas. */
     private Node formulaAjustable(Expresion e) {
-        ImageView vista = imagen(e);
-        ScrollPane marco = new ScrollPane(vista);
-        marco.getStyleClass().addAll("marco-formula", "paso-formula");
-        marco.setFitToHeight(true);
-        marco.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        marco.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        marco.setFocusTraversable(false);
-        Image img = vista.getImage();
-        if (img != null) {
-            // +18: lugar para la barra de desplazamiento cuando hace falta
-            marco.setMinHeight(img.getHeight() * ESCALA_MINIMA);
-            marco.setPrefHeight(img.getHeight() + 18);
-            marco.viewportBoundsProperty().addListener((obs, antes, limites) ->
-                    vista.setFitWidth(anchoAjustado(img.getWidth(), limites.getWidth() - 2)));
-        }
-        return marco;
+        FormulaAjustable f = new FormulaAjustable(TAMANO, TAMANO_MINIMO);
+        f.getStyleClass().add("paso-formula");
+        f.setLatex(pe.mathnova.domain.expresion.ImpresoraLatex.imprimir(e));
+        return f;
     }
 
     private void alternar() {

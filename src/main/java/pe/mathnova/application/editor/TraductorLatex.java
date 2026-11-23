@@ -20,9 +20,13 @@ import java.util.function.IntPredicate;
  * <p>RN45: las letras sueltas siguen siendo variables. Si dos letras seguidas forman un nombre que el
  * parser leería como función ("l" "n"), se separan con un espacio ("l n").
  *
- * <p>Una casilla vacía ({@code \placeholder{}}) se escribe "□", que el parser rechaza con "Completa
- * la casilla vacía". En una integral simple las dos casillas de los límites son opcionales (RF69): si
- * las dos están vacías, la integral es indefinida.
+ * <p>Una casilla vacía ({@code \placeholder{}}) se escribe "□". {@link #casillaVacia(String)} dice cuál
+ * falta sin hablar de posiciones ("Completa el exponente", "Completa el integrando"). En una integral
+ * simple las dos casillas de los límites son opcionales (RF69): si las dos están vacías se borran antes
+ * de traducir y la integral es indefinida; si solo una está llena, falta la otra.
+ *
+ * <p>{@code \surd} (lo que deja MathLive con un √ pegado) seguido de {…} o (…) es la raíz; suelto es
+ * un error con {@link #RAIZ_SUELTA}.
  */
 public final class TraductorLatex {
 
@@ -38,13 +42,39 @@ public final class TraductorLatex {
     private TraductorLatex() {
     }
 
+    /** \surd o √ sin nada entre llaves o paréntesis después. */
+    public static final String RAIZ_SUELTA = "A la raíz le falta lo de adentro: usa la tecla √ o escribe √(…) con paréntesis";
+    /** RF69: una integral con un límite lleno y el otro vacío. */
+    public static final String OTRO_LIMITE = "Completa el otro límite o deja los dos vacíos";
+    /** Una casilla vacía de la que no se sabe qué es. */
+    public static final String CASILLA_RESALTADA = "Completa la casilla resaltada";
+
+    /**
+     * La primera casilla obligatoria vacía.
+     *
+     * @param indice  cuál es entre todas las casillas ({@code \placeholder}) del LaTeX, en el orden en
+     *                que aparecen, empezando en 0; el editor la busca con este número para resaltarla
+     * @param mensaje qué falta: "Completa el exponente", "Completa el integrando"…
+     */
+    public record CasillaVacia(int indice, String mensaje) {
+    }
+
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(TraductorLatex.class);
+
     public static String traducir(String latex) {
         if (latex == null || latex.isBlank()) {
             return "";
         }
-        Lectura l = new Lectura(normalizar(Tok.leer(latex)));
-        List<Pieza> piezas = l.secuencia(k -> false);
-        return emitir(piezas).strip();
+        try {
+            Lectura l = new Lectura(sinOpcionales(normalizar(Tok.leer(latex))));
+            List<Pieza> piezas = l.secuencia(k -> false);
+            String texto = emitir(piezas).strip();
+            LOG.debug("LaTeX {} → {}", latex, texto);
+            return texto;
+        } catch (LatexNoValido e) {
+            LOG.debug("LaTeX {} → no se traduce: {}", latex, e.getMessage());
+            throw e;
+        }
     }
 
     /**
@@ -52,42 +82,336 @@ public final class TraductorLatex {
      * simple son opcionales cuando están vacías las dos (RF69): la integral queda indefinida.
      */
     public static boolean completo(String latex) {
+        return casillaVacia(latex).isEmpty();
+    }
+
+    /**
+     * La primera casilla obligatoria que falta llenar, con un mensaje que dice cuál es (no una
+     * posición del texto). Vacío si no falta ninguna.
+     */
+    public static java.util.Optional<CasillaVacia> casillaVacia(String latex) {
         if (latex == null || latex.isBlank()) {
-            return true;
+            return java.util.Optional.empty();
         }
         List<Tok> t = normalizar(Tok.leer(latex));
+        String[] mensaje = new String[t.size()];
         boolean[] opcional = new boolean[t.size()];
+        Casillas.marcar(t, 0, t.size() - 1, CASILLA_RESALTADA, mensaje, opcional);
+        int n = 0;
         for (int i = 0; i < t.size(); i++) {
-            if (!t.get(i).esCmd("int")) {
-                continue;
+            if (t.get(i).esCmd("placeholder")) {
+                if (!opcional[i]) {
+                    return java.util.Optional.of(new CasillaVacia(n, mensaje[i] == null ? CASILLA_RESALTADA : mensaje[i]));
+                }
+                n++;
             }
+        }
+        return java.util.Optional.empty();
+    }
+
+    /** Quita los límites vacíos de las integrales simples que tienen los dos vacíos (RF69). */
+    private static List<Tok> sinOpcionales(List<Tok> t) {
+        String[] mensaje = new String[t.size()];
+        boolean[] opcional = new boolean[t.size()];
+        Casillas.marcar(t, 0, t.size() - 1, CASILLA_RESALTADA, mensaje, opcional);
+        List<Tok> r = new ArrayList<>();
+        for (int i = 0; i < t.size(); i++) {
+            if (!opcional[i]) {
+                r.add(t.get(i));
+            }
+        }
+        return r;
+    }
+
+    /** Qué es cada casilla según dónde está: el exponente, el integrando, el punto del límite… */
+    private static final class Casillas {
+
+        private Casillas() {
+        }
+
+        /**
+         * Pone en {@code mensaje} qué falta para cada \placeholder entre {@code desde} y {@code hasta}
+         * (sin incluir), y marca en {@code opcional} los tokens de los límites vacíos que se pueden quitar.
+         */
+        static void marcar(List<Tok> t, int desde, int hasta, String porDefecto, String[] mensaje, boolean[] opcional) {
+            int i = desde;
+            while (i < hasta) {
+                Tok x = t.get(i);
+                if (x.esCmd("placeholder")) {
+                    if (mensaje[i] == null) {
+                        mensaje[i] = porDefecto;
+                    }
+                    i = Math.max(i + 1, finDeArgumento(t, i));
+                } else if (x.esCmd("frac")) {
+                    i = fraccion(t, i, hasta, mensaje, opcional);
+                } else if (x.esCmd("sqrt")) {
+                    int j = i + 1;
+                    if (t.get(j).esChar('[')) {
+                        int k = j + 1;
+                        while (k < hasta && !t.get(k).esChar(']')) {
+                            k++;
+                        }
+                        marcar(t, j + 1, k, "Completa el índice de la raíz", mensaje, opcional);
+                        j = Math.min(k + 1, hasta);
+                    }
+                    int f = Math.min(finDeArgumento(t, j), hasta);
+                    marcar(t, j, f, "Completa el radicando", mensaje, opcional);
+                    i = Math.max(f, i + 1);
+                } else if (x.esCmd("int", "iint", "iiint")) {
+                    i = integral(t, i, hasta, mensaje, opcional);
+                } else if (x.esCmd("lim")) {
+                    int j = i + 1;
+                    if (j < hasta && t.get(j).tipo() == Tipo.SUB) {
+                        int f = Math.min(finDeArgumento(t, j + 1), hasta);
+                        int flecha = -1;
+                        for (int k = j + 1; k < f; k++) {
+                            if (t.get(k).esCmd("to", "rightarrow", "longrightarrow") || t.get(k).esChar('→')) {
+                                flecha = k;
+                                break;
+                            }
+                        }
+                        if (flecha < 0) {
+                            marcar(t, j + 1, f, "Completa la variable y el punto del límite", mensaje, opcional);
+                        } else {
+                            marcar(t, j + 1, flecha, "Completa la variable del límite", mensaje, opcional);
+                            marcar(t, flecha + 1, f, "Completa el punto del límite", mensaje, opcional);
+                        }
+                        j = f;
+                    }
+                    marcar(t, j, hasta, "Completa la función del límite", mensaje, opcional);
+                    i = hasta;
+                } else if (x.tipo() == Tipo.SUP) {
+                    int f = Math.min(finDeArgumento(t, i + 1), hasta);
+                    marcar(t, i + 1, f, "Completa el exponente", mensaje, opcional);
+                    i = Math.max(f, i + 1);
+                } else if (x.tipo() == Tipo.SUB) {
+                    boolean log = i > 0 && t.get(i - 1).esCmd("log");
+                    int f = Math.min(finDeArgumento(t, i + 1), hasta);
+                    marcar(t, i + 1, f, log ? "Completa la base del logaritmo" : "Completa el subíndice", mensaje, opcional);
+                    i = Math.max(f, i + 1);
+                } else if (x.esCmd("left")) {
+                    int f = finDeLeft(t, i, hasta);
+                    String rol = argumentoDeFuncion(t, i) ? "Completa el argumento de la función" : porDefecto;
+                    marcar(t, Math.min(i + 2, f), Math.max(i + 2, f - 2), rol, mensaje, opcional);
+                    i = Math.max(f, i + 1);
+                } else if (x.tipo() == Tipo.ABRE) {
+                    int f = Math.min(finDeArgumento(t, i), hasta);
+                    marcar(t, i + 1, Math.max(i + 1, f - 1), porDefecto, mensaje, opcional);
+                    i = Math.max(f, i + 1);
+                } else {
+                    i++;
+                }
+            }
+        }
+
+        /** \frac{a}{b}; si es d/dx o ∂/∂x, lo que sigue es la función que se deriva. */
+        private static int fraccion(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
+            int a = i + 1;
+            int b = Math.min(finDeArgumento(t, a), hasta);
+            int c = Math.min(finDeArgumento(t, b), hasta);
+            List<Tok> num = dentro(t, a, b);
+            boolean derivada = !num.isEmpty() && (num.getFirst().esChar('d') || num.getFirst().esCmd("partial"))
+                    && num.stream().skip(1).allMatch(y -> y.tipo() == Tipo.SUP || y.tipo() == Tipo.ABRE
+                    || y.tipo() == Tipo.CIERRA || (y.tipo() == Tipo.CHAR && Character.isDigit(y.v().charAt(0))));
+            if (!derivada) {
+                marcar(t, a, b, "Completa el numerador", mensaje, opcional);
+                marcar(t, b, c, "Completa el denominador", mensaje, opcional);
+                return Math.max(c, i + 1);
+            }
+            marcar(t, b, c, "Completa la variable de la derivada", mensaje, opcional);
+            if (c < hasta && t.get(c).esCmd("left")) {
+                int f = finDeLeft(t, c, hasta);
+                marcar(t, Math.min(c + 2, f), Math.max(c + 2, f - 2), "Completa la función que se deriva", mensaje, opcional);
+                return Math.max(f, c + 1);
+            }
+            return Math.max(c, i + 1);
+        }
+
+        /** ∫, ∬, ∭: los límites (opcionales en ∫ si están vacíos los dos), el integrando y el diferencial. */
+        private static int integral(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
+            if (t.get(i).esCmd("int")) {
+                int tras = finDeLimites(t, i + 1, hasta);
+                if (tras < hasta && t.get(tras).esCmd("int")) {
+                    return iterada(t, i, hasta, mensaje, opcional);
+                }
+            }
+            boolean simple = t.get(i).esCmd("int");
             int j = i + 1;
             int[] inferior = null;
             int[] superior = null;
-            while (t.get(j).tipo() == Tipo.SUB || t.get(j).tipo() == Tipo.SUP) {
+            int[] guionInferior = null;
+            int[] guionSuperior = null;
+            while (j < hasta && (t.get(j).tipo() == Tipo.SUB || t.get(j).tipo() == Tipo.SUP)) {
                 boolean sub = t.get(j).tipo() == Tipo.SUB;
-                int fin = finDeArgumento(t, j + 1);
+                int f = Math.min(finDeArgumento(t, j + 1), hasta);
                 if (sub) {
-                    inferior = new int[] {j + 1, fin};
+                    inferior = new int[] {j + 1, f};
+                    guionInferior = new int[] {j, f};
                 } else {
-                    superior = new int[] {j + 1, fin};
+                    superior = new int[] {j + 1, f};
+                    guionSuperior = new int[] {j, f};
                 }
-                j = fin;
+                j = Math.max(f, j + 1);
             }
-            if (inferior != null && superior != null && soloCasilla(t, inferior) && soloCasilla(t, superior)) {
-                for (int[] r : List.of(inferior, superior)) {
-                    for (int x = r[0]; x < r[1]; x++) {
-                        opcional[x] = true;
+            if (simple) {
+                boolean sinInferior = inferior == null || soloCasilla(t, inferior);
+                boolean sinSuperior = superior == null || soloCasilla(t, superior);
+                if (sinInferior && sinSuperior) {
+                    for (int[] r : java.util.Arrays.asList(guionInferior, guionSuperior)) {
+                        if (r != null) {
+                            for (int k = r[0]; k < r[1]; k++) {
+                                opcional[k] = true;
+                            }
+                        }
+                    }
+                } else {
+                    if (inferior != null && sinInferior) {
+                        marcar(t, inferior[0], inferior[1], OTRO_LIMITE, mensaje, opcional);
+                    }
+                    if (superior != null && sinSuperior) {
+                        marcar(t, superior[0], superior[1], OTRO_LIMITE, mensaje, opcional);
+                    }
+                }
+                if (inferior != null) {
+                    marcar(t, inferior[0], inferior[1], "Completa el límite inferior", mensaje, opcional);
+                }
+                if (superior != null) {
+                    marcar(t, superior[0], superior[1], "Completa el límite superior", mensaje, opcional);
+                }
+            } else {
+                for (int[] r : java.util.Arrays.asList(inferior, superior)) {
+                    if (r != null) {
+                        marcar(t, r[0], r[1], "Completa los límites de la región", mensaje, opcional);
                     }
                 }
             }
+            int k = finDeIntegrando(t, j, hasta);
+            marcar(t, j, k, "Completa el integrando", mensaje, opcional);
+            return Math.max(k, i + 1);
         }
-        for (int i = 0; i < t.size(); i++) {
-            if (t.get(i).esCmd("placeholder") && !opcional[i]) {
+
+        /** El integrando llega hasta el diferencial (d seguido de una letra) del mismo nivel. */
+        private static int finDeIntegrando(List<Tok> t, int j, int hasta) {
+            int k = j;
+            int nivel = 0;
+            while (k < hasta) {
+                Tok y = t.get(k);
+                if (y.tipo() == Tipo.ABRE || y.esCmd("left")) {
+                    nivel++;
+                } else if (y.tipo() == Tipo.CIERRA || y.esCmd("right")) {
+                    nivel--;
+                } else if (nivel == 0 && y.esChar('d') && k + 1 < hasta && Lectura.letra(t.get(k + 1)) != null) {
+                    break;
+                }
+                k++;
+            }
+            return k;
+        }
+
+        /** Índice justo después de los _{…} y ^{…} que empiezan en j. */
+        private static int finDeLimites(List<Tok> t, int j, int hasta) {
+            while (j < hasta && (t.get(j).tipo() == Tipo.SUB || t.get(j).tipo() == Tipo.SUP)) {
+                j = Math.max(Math.min(finDeArgumento(t, j + 1), hasta), j + 1);
+            }
+            return j;
+        }
+
+        /**
+         * \int_c^d\int_a^b f dx dy (la tecla ∬): todos los límites son obligatorios y cada mensaje nombra la
+         * variable, que es la del diferencial que le toca (la ∫ de dentro va con el primero).
+         */
+        private static int iterada(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
+            List<int[]> inferiores = new ArrayList<>();
+            List<int[]> superiores = new ArrayList<>();
+            int j = i;
+            while (j < hasta && t.get(j).esCmd("int")) {
+                j++;
+                int[] inf = null;
+                int[] sup = null;
+                while (j < hasta && (t.get(j).tipo() == Tipo.SUB || t.get(j).tipo() == Tipo.SUP)) {
+                    int f = Math.min(finDeArgumento(t, j + 1), hasta);
+                    if (t.get(j).tipo() == Tipo.SUB) {
+                        inf = new int[] {j + 1, f};
+                    } else {
+                        sup = new int[] {j + 1, f};
+                    }
+                    j = Math.max(f, j + 1);
+                }
+                inferiores.add(inf);
+                superiores.add(sup);
+            }
+            int k = finDeIntegrando(t, j, hasta);
+            List<Character> vars = new ArrayList<>();
+            for (int d = k; d + 1 < hasta && t.get(d).esChar('d') && Lectura.letra(t.get(d + 1)) != null; d += 2) {
+                vars.add(Lectura.letra(t.get(d + 1)));
+            }
+            int n = inferiores.size();
+            for (int m = 0; m < n; m++) {
+                // m = 0 es la ∫ de fuera, que va con el último diferencial.
+                int dif = n - 1 - m;
+                String de = dif < vars.size() ? " de " + vars.get(dif) : "";
+                if (inferiores.get(m) != null) {
+                    marcar(t, inferiores.get(m)[0], inferiores.get(m)[1], "Completa el límite inferior" + de, mensaje, opcional);
+                }
+                if (superiores.get(m) != null) {
+                    marcar(t, superiores.get(m)[0], superiores.get(m)[1], "Completa el límite superior" + de, mensaje, opcional);
+                }
+            }
+            marcar(t, j, k, "Completa el integrando", mensaje, opcional);
+            return Math.max(k, i + 1);
+        }
+
+        /** Índice justo después del delimitador del \right que cierra el \left de i. */
+        private static int finDeLeft(List<Tok> t, int i, int hasta) {
+            int nivel = 0;
+            for (int j = i; j < hasta; j++) {
+                if (t.get(j).esCmd("left")) {
+                    nivel++;
+                } else if (t.get(j).esCmd("right") && --nivel == 0) {
+                    return Math.min(j + 2, hasta);
+                }
+            }
+            return hasta;
+        }
+
+        /** El \left( de i es el argumento de sen, ln, ∇, extremos… */
+        private static boolean argumentoDeFuncion(List<Tok> t, int i) {
+            int j = i - 1;
+            // sen^{-1}( o log_{10}(: se salta el exponente o la base
+            while (j >= 0 && t.get(j).tipo() == Tipo.CIERRA) {
+                int nivel = 0;
+                while (j >= 0) {
+                    if (t.get(j).tipo() == Tipo.CIERRA) {
+                        nivel++;
+                    } else if (t.get(j).tipo() == Tipo.ABRE && --nivel == 0) {
+                        break;
+                    }
+                    j--;
+                }
+                j -= 2; // la llave que abre y el ^ o _
+            }
+            if (j < 0) {
                 return false;
             }
+            Tok p = t.get(j);
+            if (p.tipo() == Tipo.CMD && (FUNCIONES.containsKey(p.v()) || OPERADORES.contains(p.v()) || p.v().equals("nabla"))) {
+                return true;
+            }
+            // extremos(…): \operatorname{extremos} queda como letras
+            StringBuilder palabra = new StringBuilder();
+            for (int k = j; k >= 0 && t.get(k).tipo() == Tipo.CHAR && Character.isLetter(t.get(k).v().charAt(0)); k--) {
+                palabra.insert(0, t.get(k).v());
+            }
+            return palabra.toString().endsWith("extremos");
         }
-        return true;
+
+        private static List<Tok> dentro(List<Tok> t, int a, int b) {
+            List<Tok> d = new ArrayList<>(t.subList(a, b));
+            if (!d.isEmpty() && d.getFirst().tipo() == Tipo.ABRE && d.getLast().tipo() == Tipo.CIERRA) {
+                d = d.subList(1, d.size() - 1);
+            }
+            return d;
+        }
     }
 
     /** Índice justo después del argumento que empieza en i: {…}, \placeholder{} o un token. */
@@ -206,6 +530,12 @@ public final class TraductorLatex {
 
     private static final Map<String, String> INVERSAS = Map.of("sen", "arcsen", "cos", "arccos", "tan", "arctan");
 
+    /**
+     * Operaciones con nombre que el editor escribe como {@code \operatorname{extremos}} (en letra recta) y
+     * el parser lee como llamada: extremos(f), grad(f), Du(f, (v), (P)).
+     */
+    private static final Set<String> OPERADORES = Set.of("extremos", "grad", "Du");
+
     private static final Map<String, Character> GRIEGAS = Map.ofEntries(
             Map.entry("alpha", 'α'), Map.entry("beta", 'β'), Map.entry("gamma", 'γ'), Map.entry("delta", 'δ'),
             Map.entry("epsilon", 'ε'), Map.entry("varepsilon", 'ε'), Map.entry("zeta", 'ζ'), Map.entry("eta", 'η'),
@@ -254,7 +584,7 @@ public final class TraductorLatex {
                     }
                     if (j < t.size() && t.get(j).tipo() == Tipo.CIERRA && !palabra.isEmpty()) {
                         String p = palabra.toString();
-                        if (FUNCIONES.containsKey(p)) {
+                        if (FUNCIONES.containsKey(p) || OPERADORES.contains(p)) {
                             r.add(new Tok(Tipo.CMD, p));
                         } else {
                             for (char c : p.toCharArray()) {
@@ -430,6 +760,10 @@ public final class TraductorLatex {
             } else if (c == '∂') {
                 avanzar();
                 p.add(new Pieza("∂", Clase.VALOR));
+            } else if (c == '√' || c == '∛') {
+                // Un √ pegado como carácter, igual que \surd.
+                avanzar();
+                p.add(raizSuelta(c == '∛' ? "∛" : "√"));
             } else {
                 avanzar();
                 p.add(new Pieza(String.valueOf(c), Clase.OPERADOR));
@@ -538,6 +872,10 @@ public final class TraductorLatex {
                 p.add(funcion(FUNCIONES.get(n)));
                 return;
             }
+            if (OPERADORES.contains(n)) {
+                p.add(new Pieza(n + argumentoDeFuncion(), Clase.LLAMADA));
+                return;
+            }
             Character griega = GRIEGAS.get(n);
             if (griega != null) {
                 p.add(new Pieza(String.valueOf(griega), Clase.LETRA));
@@ -551,6 +889,8 @@ public final class TraductorLatex {
             switch (n) {
                 case "frac" -> p.add(fraccion(para));
                 case "sqrt" -> p.add(raiz());
+                // MathLive escribe \surd cuando √ llega como carácter (un pegado): \surd{x} o \surd(x) es la raíz.
+                case "surd" -> p.add(raizSuelta("√"));
                 case "int" -> p.add(integral(para));
                 case "iint" -> p.add(integralMultiple(para, 2));
                 case "iiint" -> p.add(integralMultiple(para, 3));
@@ -656,6 +996,29 @@ public final class TraductorLatex {
                 case "3" -> "∛";
                 default -> "√[" + indice + "]";
             };
+            return new Pieza(simbolo + r, Clase.RAIZ);
+        }
+
+        /** \surd o √ seguidos de {…}, de (…) o de \left(…\right); sin eso, es un error. */
+        private Pieza raizSuelta(String simbolo) {
+            Tok x = actual();
+            String r;
+            if (x.tipo() == Tipo.ABRE) {
+                List<Pieza> rad = piezas(argumento());
+                if (rad.isEmpty()) {
+                    throw new LatexNoValido(RAIZ_SUELTA);
+                }
+                r = envolverSalvoAtomo(rad);
+            } else if (x.esChar('(') || x.esChar('[')) {
+                avanzar();
+                r = grupo().texto();
+            } else if (x.esCmd("left") && (en(k + 1).esChar('(') || en(k + 1).esChar('['))) {
+                avanzar();
+                avanzar();
+                r = grupo().texto();
+            } else {
+                throw new LatexNoValido(RAIZ_SUELTA);
+            }
             return new Pieza(simbolo + r, Clase.RAIZ);
         }
 
@@ -903,32 +1266,68 @@ public final class TraductorLatex {
                     || sig.esChar('<') || sig.esChar('>') || sig.esCmd("le", "leq", "ge", "geq", "ne", "neq", "cdot");
         }
 
-        private Pieza integral(IntPredicate para) {
-            List<Tok> inferior = null;
-            List<Tok> superior = null;
+        /** Los límites _{a}^{b} (en cualquier orden) de una ∫: {inferior, superior}, null el que no está. */
+        @SuppressWarnings("unchecked")
+        private List<Tok>[] limitesDeIntegral() {
+            List<Tok>[] r = new List[2];
             while (actual().tipo() == Tipo.SUB || actual().tipo() == Tipo.SUP) {
                 boolean sub = avanzar().tipo() == Tipo.SUB;
-                if (sub) {
-                    inferior = argumento();
-                } else {
-                    superior = argumento();
-                }
+                r[sub ? 0 : 1] = argumento();
             }
+            return r;
+        }
+
+        /**
+         * ∫ f dx, o varias ∫ seguidas con un diferencial por cada una: la tecla ∬ escribe
+         * {@code \int_c^d\int_a^b f\,dx\,dy}, que es ∬(f, x, a, b, y, c, d): la ∫ de dentro va con el
+         * primer diferencial (RN48: en la simple, los dos límites vacíos la dejan indefinida).
+         */
+        private Pieza integral(IntPredicate para) {
+            List<List<Tok>[]> cadena = new ArrayList<>(); // de fuera hacia dentro
+            cadena.add(limitesDeIntegral());
+            while (actual().esCmd("int")) {
+                avanzar();
+                cadena.add(limitesDeIntegral());
+            }
+            int n = cadena.size();
             List<Pieza> c = secuencia(para.or(this::esDiferencial).or(this::esSeparador));
-            if (!esDiferencial(k)) {
+            List<Character> vars = new ArrayList<>();
+            while (vars.size() < n && esDiferencial(k)) {
+                avanzar();
+                vars.add(letra(avanzar()));
+            }
+            if (vars.isEmpty()) {
                 throw new LatexNoValido("A la integral le falta el diferencial, por ejemplo dx");
             }
-            avanzar();
-            char v = letra(avanzar());
             String cuerpo = c.isEmpty() ? "1" : textoDeCuerpo(c);
-            boolean sinInferior = inferior == null || vacio(inferior);
-            boolean sinSuperior = superior == null || vacio(superior);
-            if (sinInferior && sinSuperior) {
-                return new Pieza("∫(" + cuerpo + ", " + v + ")", Clase.OPERACION);
+            if (n == 1) {
+                List<Tok> inferior = cadena.getFirst()[0];
+                List<Tok> superior = cadena.getFirst()[1];
+                char v = vars.getFirst();
+                boolean sinInferior = inferior == null || vacio(inferior);
+                boolean sinSuperior = superior == null || vacio(superior);
+                if (sinInferior && sinSuperior) {
+                    return new Pieza("∫(" + cuerpo + ", " + v + ")", Clase.OPERACION);
+                }
+                String a = sinInferior ? CASILLA : texto(inferior);
+                String b = sinSuperior ? CASILLA : texto(superior);
+                return new Pieza("∫(" + cuerpo + ", " + v + ", " + a + ", " + b + ")", Clase.OPERACION);
             }
-            String a = sinInferior ? CASILLA : texto(inferior);
-            String b = sinSuperior ? CASILLA : texto(superior);
-            return new Pieza("∫(" + cuerpo + ", " + v + ", " + a + ", " + b + ")", Clase.OPERACION);
+            if (n > 3) {
+                throw new LatexNoValido("MathNova integra hasta tres veces: ∫, ∬ o ∭");
+            }
+            String simbolo = n == 2 ? "∬" : "∭";
+            if (vars.size() != n) {
+                throw new LatexNoValido(simbolo + " necesita " + n + " diferenciales, como " + (n == 2 ? "dx dy" : "dx dy dz"));
+            }
+            StringBuilder sb = new StringBuilder(simbolo).append('(').append(cuerpo);
+            for (int i = 0; i < n; i++) {
+                List<Tok>[] lim = cadena.get(n - 1 - i);
+                sb.append(", ").append(vars.get(i))
+                        .append(", ").append(lim[0] == null || vacio(lim[0]) ? CASILLA : texto(lim[0]))
+                        .append(", ").append(lim[1] == null || vacio(lim[1]) ? CASILLA : texto(lim[1]));
+            }
+            return new Pieza(sb.append(')').toString(), Clase.OPERACION);
         }
 
         /** {@code \iint_{[a, b] \times [c, d]} f \, dx \, dy}, como lo dibuja ImpresoraLatex. */
@@ -1032,7 +1431,9 @@ public final class TraductorLatex {
                 return CASILLA;
             }
             if (exp.size() == 1 && simple(exp.getFirst())) {
-                return exp.getFirst().texto();
+                Pieza p = exp.getFirst();
+                // e^{x^2} es "e^(x^2)": la gramática lo leería igual sin paréntesis, pero así se ve.
+                return p.texto().contains("^") && !p.grupo() ? "(" + p.texto() + ")" : p.texto();
             }
             if (exp.size() == 2 && (exp.getFirst().esOperador("-") || exp.getFirst().esOperador("+"))
                     && simple(exp.get(1))) {

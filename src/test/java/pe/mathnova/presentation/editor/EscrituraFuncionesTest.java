@@ -128,7 +128,7 @@ class EscrituraFuncionesTest {
         assertEquals(Parser.parse("x + sen(x)"), Parser.parse(texto));
         ResolucionFunciones r = FACTORIZACION.factorizarFunciones(texto, fase -> { });
         assertFalse(r.factorizable());
-        assertEquals("No se puede factorizar: no es polinómica en una sola función", r.mensaje());
+        assertEquals("No se puede factorizar: no es polinómica en una sola función (RN32)", r.mensaje());
         assertTrue(FACTORIZACION.sugerencias(r).isEmpty());
     }
 

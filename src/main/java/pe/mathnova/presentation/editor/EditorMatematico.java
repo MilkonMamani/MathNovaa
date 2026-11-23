@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -39,7 +40,9 @@ import pe.mathnova.application.editor.TraductorLatex;
  * <ul>
  *   <li>{@link #insertar(String)} pone una plantilla y deja el cursor en su primera casilla.</li>
  *   <li>{@link #completoProperty()} es false mientras quede una casilla obligatoria vacía; entonces se
- *       ve ⚠ a la izquierda y "Completa la casilla vacía" debajo.</li>
+ *       ve ⚠ a la izquierda. {@link #casillaVaciaProperty()} dice cuál falta ("Completa el exponente");
+ *       el mensaje lo muestra la pantalla, y {@link #resaltarCasilla(int)} lleva el cursor a esa casilla
+ *       y la marca con borde naranja.</li>
  *   <li>{@link EventoEditor#CAMBIO} y {@link EventoEditor#ENTER} avisan de cada cambio y de Enter.</li>
  *   <li>Al escribir lim, der, int, sen, cos, tan, ln, log, raiz o frac aparece una lista con la
  *       plantilla (RF70); Enter la inserta y Esc la cierra.</li>
@@ -58,6 +61,7 @@ public class EditorMatematico extends BorderPane {
             "Script-Regular", "Size1-Regular", "Size2-Regular", "Size3-Regular", "Size4-Regular",
             "Typewriter-Regular"};
     private static final double ALTO_MINIMO = 56;
+    private static final javafx.css.PseudoClass FALTA = javafx.css.PseudoClass.getPseudoClass("falta");
 
     private static Path copiaLocal;
 
@@ -67,6 +71,9 @@ public class EditorMatematico extends BorderPane {
     private final List<String> pendientes = new ArrayList<>();
     private final ReadOnlyBooleanWrapper completo = new ReadOnlyBooleanWrapper(this, "completo", true);
     private final ReadOnlyStringWrapper latex = new ReadOnlyStringWrapper(this, "latex", "");
+    private final javafx.beans.property.ReadOnlyObjectWrapper<TraductorLatex.CasillaVacia> casillaVacia =
+            new javafx.beans.property.ReadOnlyObjectWrapper<>(this, "casillaVacia");
+    private final HBox fila;
     private final ObjectProperty<EventHandler<EventoEditor>> onCambio = new SimpleObjectProperty<>(this, "onCambio");
     private final ObjectProperty<EventHandler<EventoEditor>> onEnter = new SimpleObjectProperty<>(this, "onEnter");
     private final ListaSugerencias sugerencias = new ListaSugerencias();
@@ -83,17 +90,12 @@ public class EditorMatematico extends BorderPane {
 
         Label icono = new Label("⚠");
         icono.getStyleClass().add("editor-aviso-icono");
-        Label aviso = new Label("Completa la casilla vacía");
-        aviso.getStyleClass().add("editor-aviso");
-        for (Label l : List.of(icono, aviso)) {
-            l.visibleProperty().bind(completo.not());
-            l.managedProperty().bind(l.visibleProperty());
-        }
-        HBox fila = new HBox(6, icono, web);
+        icono.visibleProperty().bind(completo.not());
+        icono.managedProperty().bind(icono.visibleProperty());
+        fila = new HBox(6, icono, web);
         fila.getStyleClass().add("editor-campo");
         fila.setFillHeight(true);
         setCenter(fila);
-        setBottom(aviso);
 
         onCambio.addListener((o, a, h) -> setEventHandler(EventoEditor.CAMBIO, h));
         onEnter.addListener((o, a, h) -> setEventHandler(EventoEditor.ENTER, h));
@@ -103,6 +105,7 @@ public class EditorMatematico extends BorderPane {
             if (estado == Worker.State.SUCCEEDED) {
                 instalarPuente();
                 engine.executeScript("window.editor.configurarSugerencias(" + Js.cadena(Plantillas.sugerenciasJson()) + ")");
+                engine.executeScript("window.editor.configurarPlantillas(" + Js.cadena(Plantillas.atajosJson()) + ")");
                 listo = true;
                 List<String> cola = List.copyOf(pendientes);
                 pendientes.clear();
@@ -187,6 +190,22 @@ public class EditorMatematico extends BorderPane {
         return completo.get();
     }
 
+    /** La casilla obligatoria que falta, con su mensaje; null si no falta ninguna. */
+    public ReadOnlyObjectProperty<TraductorLatex.CasillaVacia> casillaVaciaProperty() {
+        return casillaVacia.getReadOnlyProperty();
+    }
+
+    /** Lleva el cursor a la casilla número {@code indice} (ver CasillaVacia) y la marca con borde naranja. */
+    public void resaltarCasilla(int indice) {
+        js("window.editor.resaltarCasilla(" + indice + ")");
+        web.requestFocus();
+    }
+
+    /** Borde naranja en todo el campo: falta una casilla (o se quita con false). */
+    public void marcarFalta(boolean si) {
+        fila.pseudoClassStateChanged(FALTA, si);
+    }
+
     /** Devuelve el foco al campo; el teclado lo llama después de cada tecla. */
     public void enfocar() {
         web.requestFocus();
@@ -238,7 +257,9 @@ public class EditorMatematico extends BorderPane {
 
     private void cambio(String nuevo) {
         latex.set(nuevo);
-        completo.set(TraductorLatex.completo(nuevo));
+        TraductorLatex.CasillaVacia falta = TraductorLatex.casillaVacia(nuevo).orElse(null);
+        casillaVacia.set(falta);
+        completo.set(falta == null);
         fireEvent(new EventoEditor(EventoEditor.CAMBIO, nuevo));
     }
 

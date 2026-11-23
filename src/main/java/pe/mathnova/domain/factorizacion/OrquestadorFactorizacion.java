@@ -133,7 +133,13 @@ public final class OrquestadorFactorizacion implements Factorizador {
         String primero = proceso.pasos.isEmpty() ? null : proceso.pasos.getFirst().codigoTecnica();
         Resolucion enQ = new Resolucion(entrada, proceso.pasos, proceso.descartados, resultado, irreducibles,
                 alternativas(entrada, p, primero), forzado);
-        return campo == Campo.Q ? enQ : enQ.conExtension(ExtensionCampo.extender(enQ, campo));
+        // Los métodos de R y C (F21–F30, A5) son de una letra. Un factor en varias letras que quedó de Q
+        // ya no lo parte ninguno: en un factor lineal, como x + 2y + 3 tras el aspa doble, es irreducible.
+        boolean variasLetras = resultado.factores().stream().anyMatch(f -> f.polinomio().variables().size() > 1);
+        if (campo == Campo.Q || variasLetras) {
+            return enQ;
+        }
+        return enQ.conExtension(ExtensionCampo.extender(enQ, campo));
     }
 
     private ResultadoMetodo forzar(Expresion entrada, Polinomio p, String codigo) {

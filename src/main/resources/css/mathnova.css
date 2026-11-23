@@ -1166,3 +1166,24 @@
     -fx-font-size: 13px;
     -fx-text-fill: color-texto-2;
 }
+
+/* ===================== Estado de la pantalla Resolver ===================== */
+/* Falta una casilla: borde naranja en el campo (la casilla misma se marca dentro del editor). */
+.editor-campo:falta {
+    -fx-border-color: #f97316;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+/* Los paneles muestran el resultado de lo que había antes en el editor. */
+.nota-actualizar {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-padding: 0 0 0 16;
+}
+
+/* Ventana angosta: el selector Q/R/C y Resolver en una segunda fila, a la derecha. */
+.fila-acciones {
+    -fx-padding: 0 8 0 0;
+}

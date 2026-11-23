@@ -2,6 +2,7 @@ package pe.mathnova.presentation.editor;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -117,6 +118,59 @@ class TeclasTest {
         assertDoesNotThrow(() -> TraductorLatex.traducir(lleno), lleno);
     }
 
+    static Stream<Teclas.Tecla> todasLasTeclas() {
+        return Stream.concat(Teclas.PESTANAS.stream(), Stream.of(Teclas.GRIEGAS))
+                .flatMap(p -> Stream.of(p.izquierda(), p.derecha()))
+                .filter(java.util.Objects::nonNull)
+                .flatMap(b -> b.filas().stream())
+                .flatMap(List::stream)
+                .filter(t -> t.accion() == Teclas.Accion.INSERTAR || t.accion() == Teclas.Accion.ESCRIBIR);
+    }
+
+    /** Lo que inserta CADA tecla, con sus casillas llenas con "x", se traduce sin error. */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("todasLasTeclas")
+    void cadaTeclaConXSeTraduce(Teclas.Tecla t) {
+        // Como en MathLive, cada casilla es un grupo: \to{x} y no \tox.
+        String lleno = t.valor().replace("#@", "x").replace("#?", "{x}");
+        assertDoesNotThrow(() -> TraductorLatex.traducir(lleno), lleno);
+        assertTrue(TraductorLatex.casillaVacia(lleno).isEmpty(), lleno);
+    }
+
+    private static final List<String> ESTRUCTURAS = List.of("\\int", "\\iint", "\\iiint", "\\lim", "\\frac",
+            "\\partial", "\\nabla", "\\sum", "\\sqrt", "\\surd");
+
+    /** Ninguna tecla inserta \int, \lim, \frac, \partial, \nabla, \sum o \sqrt sueltos: van con sus casillas. */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("teclasQueInsertan")
+    void ningunaTeclaInsertaUnSimboloSuelto(Teclas.Tecla t) {
+        String v = t.valor();
+        assertFalse(v.contains("\\surd"), v);
+        if (ESTRUCTURAS.stream().anyMatch(v::contains)) {
+            assertTrue(v.contains("#?") || v.contains("#@"), "plantilla sin casillas: " + v);
+        }
+    }
+
+    /** √, sqrt y raiz escritos a mano insertan la plantilla de la raíz, nunca \surd. */
+    @Test
+    void losAtajosDeLaRaizSonPlantillas() {
+        assertEquals(Plantillas.RAIZ, Plantillas.ATAJOS.get("√"));
+        assertEquals(Plantillas.RAIZ, Plantillas.ATAJOS.get("sqrt"));
+        assertEquals(Plantillas.RAIZ, Plantillas.ATAJOS.get("raiz"));
+        assertEquals("\\sqrt{#?}", Plantillas.RAIZ);
+        assertEquals("\\sqrt[#?]{#?}", Plantillas.RAIZ_N);
+        for (String latex : Plantillas.ATAJOS.values()) {
+            assertTrue(latex.contains("#?"), latex);
+        }
+    }
+
+    /** La tecla ∂ es la derivada parcial respecto de la variable que se escriba. */
+    @Test
+    void laTeclaParcialEsPlantilla() {
+        String lleno = Plantillas.PARCIAL_EN.replaceFirst("#\\?", "y").replace("#?", "x^2 y");
+        assertEquals(Parser.parse("∂/∂y(x^2 y)"), Parser.parse(TraductorLatex.traducir(lleno)));
+    }
+
     /** Las plantillas de estructura, llenas, dan algo que el parser acepta. */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
@@ -136,7 +190,11 @@ class TeclasTest {
             "\\frac{\\partial}{\\partial x}\\left(#?\\right) | ∂/∂x(2)",
             "\\int_{#?}^{#?}#?\\,dx | ∫(2, x, 2, 2)",
             "\\iint_{[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy | ∬(2, x, 2, 2, y, 2, 2)",
-            "\\iiint_{[#?,#?]\\times[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy\\,dz | ∭(2, x, 2, 2, y, 2, 2, z, 2, 2)"
+            "\\iiint_{[#?,#?]\\times[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy\\,dz | ∭(2, x, 2, 2, y, 2, 2, z, 2, 2)",
+            // Las teclas ∬ y ∭: integrales iteradas, cada límite junto a su ∫.
+            "\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy | ∬(2, x, 2, 2, y, 2, 2)",
+            "\\int_{#?}^{#?}\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy\\,dz | ∭(2, x, 2, 2, y, 2, 2, z, 2, 2)",
+            "\\operatorname{extremos}\\left(#?\\right) | extremos(2)"
     })
     void plantillasDeEstructura(String plantilla, String texto) {
         String lleno = plantilla.replace("#@", "x").replace("#?", "2");

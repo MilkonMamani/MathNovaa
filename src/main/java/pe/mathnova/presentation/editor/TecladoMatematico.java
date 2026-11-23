@@ -35,6 +35,8 @@ public class TecladoMatematico extends VBox {
     private Node letras;
     private Node griegas;
     private final java.util.List<Button> botonesDeLetra = new java.util.ArrayList<>();
+    /** El botón de cada tecla (el primero, si la tecla está en dos pestañas). */
+    private final java.util.Map<Teclas.Tecla, Button> botones = new java.util.IdentityHashMap<>();
 
     public TecladoMatematico(EditorMatematico editor) {
         this.editor = editor;
@@ -154,11 +156,21 @@ public class TecladoMatematico extends VBox {
         // Sin foco propio: el editor conserva el cursor.
         b.setFocusTraversable(false);
         b.setOnAction(e -> pulsar(t, b));
+        botones.putIfAbsent(t, b);
         if (armandoLetras && t.accion() == Teclas.Accion.ESCRIBIR && t.valor().length() == 1 && Character.isLetter(t.valor().charAt(0))
                 && t.valor().charAt(0) < 128) {
             botonesDeLetra.add(b);
         }
         return b;
+    }
+
+    /** Pulsa la tecla como con el mouse (pruebas). */
+    void pulsar(Teclas.Tecla t) {
+        Button b = botones.get(t);
+        if (b == null) {
+            throw new IllegalArgumentException("No hay botón para " + t.etiqueta());
+        }
+        b.fire();
     }
 
     private void pulsar(Teclas.Tecla t, Button b) {

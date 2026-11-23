@@ -32,6 +32,8 @@ public final class Plantillas {
     /** Sprint 8: extremos(f), o extremos(f; g = c) con Lagrange. */
     public static final String EXTREMOS = "\\operatorname{extremos}\\left(#?\\right)";
     public static final String DERIVADA = "\\frac{d}{dx}\\left(#?\\right)";
+    /** La tecla ∂: la derivada parcial respecto de la variable que se escriba en la casilla. */
+    public static final String PARCIAL_EN = "\\frac{\\partial}{\\partial #?}\\left(#?\\right)";
     public static final String PARCIAL = "\\frac{\\partial}{\\partial x}\\left(#?\\right)";
     /** Sprint 7: ∇f, que se lee "grad(…)"; el punto es opcional: ∇(f, (1, 2)). */
     public static final String GRADIENTE = "\\nabla\\left(#?\\right)";
@@ -39,8 +41,13 @@ public final class Plantillas {
     public static final String DIRECCIONAL = "D_{\\vec u}\\left(#?,\\left(#?\\right),\\left(#?\\right)\\right)";
     /** RF69: las casillas de los límites son opcionales; vacías, la integral es indefinida. */
     public static final String INTEGRAL = "\\int_{#?}^{#?}#?\\,dx";
-    public static final String INTEGRAL_DOBLE = "\\iint_{[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy";
-    public static final String INTEGRAL_TRIPLE = "\\iiint_{[#?,#?]\\times[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy\\,dz";
+    /**
+     * ∬ como integral iterada, con cada límite en su casilla junto a su ∫ (igual que la tecla ∫): la de
+     * fuera es la de y y la de dentro la de x. Se lee ∬(f, x, a, b, y, c, d).
+     */
+    public static final String INTEGRAL_DOBLE = "\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy";
+    /** ∭ igual: de fuera hacia dentro z, y, x. */
+    public static final String INTEGRAL_TRIPLE = "\\int_{#?}^{#?}\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy\\,dz";
 
     /** Una sugerencia: al escribir {@code palabra} se ofrece {@code etiqueta}, que inserta {@code latex}. */
     public record Sugerencia(String palabra, String etiqueta, String latex) {
@@ -71,7 +78,26 @@ public final class Plantillas {
             new Sugerencia("raiz", "ⁿ√□  raíz enésima", RAIZ_N),
             new Sugerencia("frac", "□/□  fracción", FRACCION));
 
+    /**
+     * Lo que se escribe con el teclado físico y se vuelve plantilla al momento (inline shortcuts): el
+     * carácter √, o las palabras sqrt y raiz, insertan la raíz con su casilla; nunca \surd.
+     */
+    public static final java.util.Map<String, String> ATAJOS = java.util.Map.of(
+            "√", RAIZ, "∛", "\\sqrt[3]{#?}", "sqrt", RAIZ, "raiz", RAIZ);
+
     private Plantillas() {
+    }
+
+    /** Los atajos como JSON para editor.html: {"sqrt": "\sqrt{#?}", …}. */
+    static String atajosJson() {
+        StringBuilder sb = new StringBuilder("{");
+        ATAJOS.forEach((palabra, latex) -> {
+            if (sb.length() > 1) {
+                sb.append(',');
+            }
+            sb.append(Js.cadena(palabra)).append(':').append(Js.cadena(latex));
+        });
+        return sb.append('}').toString();
     }
 
     /** La lista como JSON para editor.html: [{"palabra": …, "latex": …}]. */

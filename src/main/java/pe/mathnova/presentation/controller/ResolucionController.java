@@ -66,6 +66,7 @@ import pe.mathnova.presentation.resolucion.ContenidoIntegral;
 import pe.mathnova.presentation.resolucion.ContenidoLimite;
 import pe.mathnova.presentation.resolucion.ContenidoPestanas;
 import pe.mathnova.presentation.resolucion.FilaPaso;
+import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.PanelAnalisis;
 import pe.mathnova.presentation.resolucion.PropiedadesFuncion;
 import pe.mathnova.presentation.resolucion.VistaExploracion;
@@ -82,6 +83,10 @@ import pe.mathnova.presentation.resolucion.VistaResolucion;
  *   <li>Resultado en vivo (HU37, RF71): 400 ms después de la última tecla, si la expresión está
  *       completa, se calcula en un Task y se muestra en gris. Un cambio en la entrada descarta el
  *       cálculo anterior.</li>
+ *   <li>Todo lo que se ve sale de un solo estado, {@link PantallaResolucion} ({@link EstadoResolucion}):
+ *       {@link #pintar()} dibuja los paneles con él después de cada cambio. Al tocar el editor, la línea
+ *       en vivo y "Verificado" desaparecen y la solución, la gráfica, Análisis, Exploración y los pasos
+ *       quedan atenuados con "Pulsa Resolver para actualizar".</li>
  *   <li>A la izquierda, Teclado | Gráfica | Análisis | Exploración; al resolver se pasa a Gráfica.</li>
  * </ul>
  *
@@ -94,6 +99,12 @@ public class ResolucionController {
 
     /** Por debajo de este ancho de ventana, el procedimiento pasa debajo del panel izquierdo. */
     static final double ANCHO_DOS_COLUMNAS = 1100;
+    /** Por debajo de este ancho, el selector Q/R/C y Resolver bajan a una segunda fila. */
+    static final double ANCHO_BARRA_UNA_FILA = 760;
+    /** Opacidad de los paneles que muestran el resultado de una entrada anterior. */
+    static final double OPACIDAD_ATENUADA = 0.4;
+    /** El tooltip del selector cuando el campo no cambia el cálculo. */
+    static final String CAMPO_NO_IMPORTA = "El campo no cambia este cálculo";
     /** RF71. */
     static final Duration ESPERA_EN_VIVO = Duration.millis(400);
 
@@ -113,7 +124,7 @@ public class ResolucionController {
      * @param ans       LaTeX para la tecla "ans"; null si no hay un valor que reutilizar
      */
     private record Resultado(VistaResolucion vista, ContenidoPestanas contenido, String ans,
-                             List<Sugerencia> sugerencias) {
+                             List<Sugerencia> sugerencias, Object resolucion) {
     }
 
     /** Exploración sin métodos para el ejercicio que está en pantalla (el aviso inicial es otro). */
@@ -123,7 +134,12 @@ public class ResolucionController {
     private final ResolverService resolverService;
     private final ConfiguracionService configuracion;
     private final AnimadorResolucion animador = new AnimadorResolucion();
-    private final RenderizadorLatex latexSolucion = new RenderizadorLatex(28f);
+    /** La fórmula de la tarjeta Solución: de 28 px a 18 px y, si no cabe, en dos líneas. */
+    private final FormulaAjustable formulaSolucion = new FormulaAjustable(28, 18);
+    /** Lo que se ve en pantalla: el estado único del que se dibujan todos los paneles. */
+    private final PantallaResolucion pantalla = new PantallaResolucion();
+    private final HBox filaAcciones = new HBox(8);
+    private Tooltip ayudaCampo;
     private final RenderizadorLatex latexPasos = new RenderizadorLatex(18f);
     private final RenderizadorLatex latexComparacion = new RenderizadorLatex(16f);
     private final RenderizadorLatex latexLeyenda = new RenderizadorLatex(14f);
@@ -155,6 +171,14 @@ public class ResolucionController {
     private Label resultadoEnVivo;
     @FXML
     private Label avisoEntrada;
+    @FXML
+    private Label notaActualizar;
+    @FXML
+    private VBox zonaEntrada;
+    @FXML
+    private HBox barraEntrada;
+    @FXML
+    private HBox selectorCampo;
     @FXML
     private GridPane columnas;
     @FXML
@@ -210,9 +234,7 @@ public class ResolucionController {
     @FXML
     private VBox cuerpoSolucion;
     @FXML
-    private ScrollPane marcoFormula;
-    @FXML
-    private ImageView formula;
+    private StackPane recuadroFormula;
     @FXML
     private Label etiquetaVerificado;
     @FXML
@@ -250,14 +272,8 @@ public class ResolucionController {
     @FXML
     private VBox lineasVerificacion;
 
-    /** Lo último que decidió "Resolver" sobre la entrada. */
-    private ResolverService.Plan plan = new ResolverService.Plan.Vacio();
-    /** El Task está corriendo o se está esperando el mínimo del indicador. */
-    private boolean calculando;
     /** Cambia con cada Resolver: los resultados de un ejercicio anterior se descartan. */
     private int ejecucion;
-    /** Cambia con cada tecla: el resultado en vivo de una entrada anterior se descarta. */
-    private int enVivo;
     private Task<Optional<String>> tareaEnVivo;
     /** Se pidió otro ejercicio mientras el Task corría: se resuelve apenas termine. */
     private boolean pendiente;
@@ -281,6 +297,7 @@ public class ResolucionController {
     private String textoComparacion;
     /** El texto del sinMetodos inicial, del FXML. */
     private String sinMetodosInicial;
+    private Object ultimaResolucion;
 
     public ResolucionController(FactorizacionService factorizacion, ResolverService resolverService,
                                 ConfiguracionService configuracion) {
@@ -293,7 +310,7 @@ public class ResolucionController {
     void initialize() {
         editor = new EditorMatematico();
         zonaEditor.getChildren().setAll(editor);
-        editor.setOnCambio(e -> alCambiar());
+        editor.setOnCambio(e -> alCambiar(e.getLatex()));
         editor.setOnEnter(e -> resolver());
 
         teclado = new TecladoMatematico(editor);
@@ -308,6 +325,14 @@ public class ResolucionController {
         prepararPestanas();
         codigos = configuracion.mostrarCodigos();
 
+        // La fórmula de la tarjeta Solución, con "Verificado" al costado o debajo.
+        formulaSolucion.setLateral(etiquetaVerificado);
+        recuadroFormula.getChildren().setAll(formulaSolucion);
+        filaAcciones.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        filaAcciones.getStyleClass().add("fila-acciones");
+        botonResolver.setMinWidth(120);
+        notaActualizar.setText(PantallaResolucion.PULSA_RESOLVER);
+
         // Cada tarjeta mide lo que su contenido: ninguna se estira para igualar a la de al lado.
         GridPane.setValignment(columnaIzquierda, VPos.TOP);
         GridPane.setValignment(tarjetaProcedimiento, VPos.TOP);
@@ -321,7 +346,7 @@ public class ResolucionController {
         llenarComparacion(null);
         sinPasos.setText("Escribe un ejercicio y pulsa Resolver para ver el procedimiento.");
         mostrar(sinPasos, true);
-        actualizarBoton();
+        pintar();
     }
 
     // ---------------------------------------------------------------- API para el Navegador
@@ -334,7 +359,9 @@ public class ResolucionController {
         } catch (RuntimeException e) {
             // Texto mal escrito: se resuelve igual y se muestra el aviso.
         }
-        resolverTexto(texto);
+        cancelarEnVivo();
+        pantalla.cambiar(PantallaResolucion.analizarTexto(texto, resolverService));
+        resolverActual();
     }
 
     /** El texto (sección 9) de lo que hay en el editor. */
@@ -350,6 +377,16 @@ public class ResolucionController {
         editor.enfocar();
     }
 
+    /** En qué está la pantalla. */
+    public EstadoResolucion estado() {
+        return pantalla.estado();
+    }
+
+    /** El objeto del dominio que se ve en pantalla (Resolucion, ResolucionLimite…); null si no hay (pruebas). */
+    public Object ultimaResolucion() {
+        return pantalla.hayResultado() ? ultimaResolucion : null;
+    }
+
     // ---------------------------------------------------------------- campo (HU20, HU21)
 
     /**
@@ -360,6 +397,7 @@ public class ResolucionController {
         Map<ToggleButton, Campo> botones = Map.of(campoQ, Campo.Q, campoR, Campo.R, campoC, Campo.C);
         botones.keySet().forEach(b -> b.setToggleGroup(grupoCampos));
         campoQ.setSelected(true);
+        ayudaCampo = new Tooltip(CAMPO_NO_IMPORTA);
         grupoCampos.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
                 antes.setSelected(true); // un clic en el elegido no lo deja sin campo
@@ -370,13 +408,25 @@ public class ResolucionController {
                 return;
             }
             campo = nuevo;
-            if (textoResuelto != null) {
-                resolverTexto(textoResuelto);
+            boolean estabaResuelto = pantalla.estado() == EstadoResolucion.RESUELTO;
+            cancelarEnVivo();
+            pantalla.invalidar(); // lo calculado en el campo anterior ya no es lo actual
+            if (estabaResuelto) {
+                resolverActual();
             } else {
                 espera.playFromStart(); // el resultado en vivo cambia con el campo
+                pintar();
             }
             editor.enfocar();
         });
+    }
+
+    /** El campo importa para factorizar, simplificar y resolver ecuaciones; con nada escrito, también. */
+    static boolean campoImporta(ResolverService.Plan p) {
+        return p == null || p instanceof ResolverService.Plan.Vacio || p instanceof ResolverService.Plan.Factorizar
+                || p instanceof ResolverService.Plan.FactorizarFunciones || p instanceof ResolverService.Plan.Simplificar
+                || p instanceof ResolverService.Plan.ResolverEcuacion || p instanceof ResolverService.Plan.Invalido
+                || p instanceof ResolverService.Plan.NoSoportado;
     }
 
     /** Para las pruebas y el Navegador: el campo elegido. */
@@ -416,53 +466,87 @@ public class ResolucionController {
         menu.show(teclado, Side.TOP, teclado.getWidth() - 220, 30);
     }
 
+    // ---------------------------------------------------------------- dibujo
+
+    /**
+     * Dibuja todo lo que depende del estado: la línea en vivo, el mensaje rojo, el botón, el selector de
+     * campo, "Verificado" y la atenuación de los paneles. Nada de esto se toca en otro lado.
+     */
+    private void pintar() {
+        EstadoResolucion e = pantalla.estado();
+
+        String vivo = pantalla.lineaEnVivo();
+        resultadoEnVivo.setText(vivo == null ? "" : vivo);
+        mostrar(resultadoEnVivo, vivo != null);
+
+        String mensaje = pantalla.mensaje();
+        avisoEntrada.setText(mensaje == null ? "" : mensaje);
+        mostrar(avisoEntrada, mensaje != null);
+        editor.marcarFalta(e == EstadoResolucion.INCOMPLETO);
+
+        botonResolver.setDisable(!pantalla.botonActivo());
+
+        boolean importa = campoImporta(pantalla.analisis().plan());
+        for (ToggleButton b : List.of(campoQ, campoR, campoC)) {
+            b.setDisable(!importa);
+        }
+        // Un botón desactivado no muestra su tooltip: va en el selector.
+        if (importa) {
+            Tooltip.uninstall(selectorCampo, ayudaCampo);
+        } else {
+            Tooltip.install(selectorCampo, ayudaCampo);
+        }
+
+        boolean atenuado = pantalla.atenuado();
+        double opacidad = atenuado ? OPACIDAD_ATENUADA : 1;
+        for (Node n : List.of(tarjetaSolucion, zonaGrafica, graficaNoDisponible, ayudaGrafica, analisis, sinAnalisis,
+                tarjetasMetodos, comparacion, tituloComparacion, tarjetaProcedimiento)) {
+            n.setOpacity(opacidad);
+        }
+        mostrar(notaActualizar, atenuado);
+
+        boolean etiqueta = pantalla.etiquetaVisible() && etiquetaVerificado.getText() != null
+                && !etiquetaVerificado.getText().isEmpty();
+        mostrar(etiquetaVerificado, etiqueta);
+        mostrar(iconoSolucion, pantalla.etiquetaVisible());
+    }
+
     // ---------------------------------------------------------------- entrada y resultado en vivo
 
-    /** Cada tecla: se reinicia la espera de 400 ms y se descarta el cálculo en vivo anterior. */
-    private void alCambiar() {
-        metodoForzado = null;
-        enVivo++;
+    /**
+     * Cada cambio del editor: se borra la línea en vivo, se descarta el cálculo en vivo anterior y los
+     * paneles quedan atenuados; a los 400 ms se muestra el error (si lo hay) y se calcula en vivo.
+     */
+    private void alCambiar(String latex) {
+        boolean cambio = pantalla.cambiar(PantallaResolucion.analizar(latex, resolverService));
+        if (cambio) {
+            metodoForzado = null;
+            cancelarEnVivo();
+            espera.playFromStart();
+        }
+        pintar();
+    }
+
+    /** Pasados los 400 ms: el error a la vista y el resultado en vivo. */
+    private void actualizarEntrada() {
+        int version = pantalla.version();
+        pantalla.confirmar(version);
+        if (pantalla.analisis().resoluble()) {
+            calcularEnVivo(pantalla.analisis().texto(), version);
+        }
+        pintar();
+    }
+
+    private void cancelarEnVivo() {
         if (tareaEnVivo != null) {
             tareaEnVivo.cancel();
             tareaEnVivo = null;
         }
-        if (!editor.isCompleto()) {
-            // El editor ya avisa con ⚠: no se repite el error del parser.
-            mostrar(resultadoEnVivo, false);
-            mostrar(avisoEntrada, false);
-        }
-        espera.playFromStart();
     }
 
-    /** Pasados los 400 ms: qué hará Resolver, el aviso y el resultado en vivo. */
-    private void actualizarEntrada() {
-        String texto;
-        try {
-            texto = editor.getTexto();
-            plan = resolverService.decidir(texto);
-        } catch (TraductorLatex.LatexNoValido e) {
-            texto = null;
-            plan = new ResolverService.Plan.NoSoportado(e.getMessage());
-        }
-        boolean completo = editor.isCompleto();
-        String aviso = switch (plan) {
-            case ResolverService.Plan.Invalido inv -> completo ? inv.mensaje() : "";
-            case ResolverService.Plan.Operacion op -> op.mensaje();
-            case ResolverService.Plan.NoSoportado no -> no.mensaje();
-            default -> "";
-        };
-        avisoEntrada.setText(aviso);
-        mostrar(avisoEntrada, !aviso.isEmpty());
-        actualizarBoton();
-
-        mostrar(resultadoEnVivo, false);
-        if (completo && plan.resoluble() && texto != null) {
-            calcularEnVivo(texto);
-        }
-    }
-
-    private void calcularEnVivo(String texto) {
-        int este = enVivo;
+    /** El resultado en vivo de {@code version}; si al terminar el texto ya cambió, se descarta. */
+    private void calcularEnVivo(String texto, int version) {
+        cancelarEnVivo();
         Campo enCampo = campo;
         Task<Optional<String>> tarea = new Task<>() {
             @Override
@@ -471,10 +555,9 @@ public class ResolucionController {
             }
         };
         tarea.setOnSucceeded(e -> {
-            if (este == enVivo && !tarea.isCancelled()) {
-                Optional<String> r = tarea.getValue();
-                resultadoEnVivo.setText(r.map(FormateadorTexto::pizarraConNegativos).orElse(""));
-                mostrar(resultadoEnVivo, r.isPresent());
+            if (!tarea.isCancelled()) {
+                tarea.getValue().ifPresent(r -> pantalla.enVivoListo(version, FormateadorTexto.pizarraConNegativos(r)));
+                pintar();
             }
         });
         tareaEnVivo = tarea;
@@ -483,57 +566,47 @@ public class ResolucionController {
         hilo.start();
     }
 
-    /** Descarta el resultado en vivo que haya y lo calcula para {@code texto}. */
-    private void refrescarEnVivo(String texto) {
-        enVivo++;
-        if (tareaEnVivo != null) {
-            tareaEnVivo.cancel();
-            tareaEnVivo = null;
-        }
-        mostrar(resultadoEnVivo, false);
-        if (plan.resoluble()) {
-            calcularEnVivo(texto);
-        }
-    }
-
-    private void actualizarBoton() {
-        botonResolver.setDisable(calculando || !plan.resoluble());
-    }
-
     // ---------------------------------------------------------------- Resolver
 
     /**
-     * HU04. Si había una animación en curso, se cancela y empieza el ejercicio nuevo. Mientras el
-     * Task corre, el botón queda deshabilitado; se habilita otra vez cuando empieza la cascada.
+     * HU04: el botón o Enter. Con una casilla vacía no se resuelve: el cursor va a esa casilla y se marca
+     * con borde naranja. Si había una animación en curso, se cancela y empieza el ejercicio nuevo.
      */
     @FXML
     void resolver() {
-        String texto;
-        try {
-            texto = editor.getTexto();
-        } catch (TraductorLatex.LatexNoValido e) {
-            avisoEntrada.setText(e.getMessage());
-            mostrar(avisoEntrada, true);
+        espera.stop();
+        alCambiar(editor.getLatex()); // por si el aviso del editor todavía no llegó
+        PantallaResolucion.Analisis a = pantalla.analisis();
+        pantalla.confirmar(pantalla.version());
+        if (a.tipo() == PantallaResolucion.Tipo.INCOMPLETO) {
+            if (a.casilla() >= 0) {
+                editor.resaltarCasilla(a.casilla());
+            }
+            pintar();
             return;
         }
-        resolverTexto(texto);
+        resolverActual();
     }
 
-    private void resolverTexto(String texto) {
+    /** Resuelve lo que dice el estado (el texto y el plan de la entrada actual). */
+    private void resolverActual() {
         espera.stop();
-        plan = resolverService.decidir(texto);
-        // El texto pudo llegar sin teclear (una sugerencia, el historial, Enter antes de los 400 ms): el
-        // resultado en vivo que había era del ejercicio anterior.
-        refrescarEnVivo(texto);
-        if (!plan.resoluble()) {
-            actualizarBotonYAviso();
+        int version = pantalla.version();
+        pantalla.confirmar(version);
+        PantallaResolucion.Analisis a = pantalla.analisis();
+        if (!a.resoluble()) {
+            pintar();
             return;
         }
-        if (calculando) {
+        String texto = a.texto();
+        // El texto pudo llegar sin teclear (una sugerencia, el historial, Enter antes de los 400 ms).
+        calcularEnVivo(texto, version);
+        if (pantalla.calculando()) {
             pendiente = true;
+            pintar();
             return;
         }
-        ResolverService.Plan esteplan = plan;
+        ResolverService.Plan esteplan = a.plan();
         String forzado = esteplan instanceof ResolverService.Plan.Factorizar
                 || esteplan instanceof ResolverService.Plan.ResolverEcuacion
                 || esteplan instanceof ResolverService.Plan.CalcularLimite
@@ -552,11 +625,10 @@ public class ResolucionController {
         llenarComparacion(null);
 
         limpiarResultado();
-        mostrar(avisoEntrada, false);
         pestanaGrafica.fire();
         mostrarCarga(true);
-        calculando = true;
-        actualizarBoton();
+        pantalla.empezarCalculo();
+        pintar();
 
         long inicio = System.nanoTime();
         Task<Resultado> tarea = new Task<>() {
@@ -571,11 +643,13 @@ public class ResolucionController {
             Resultado resultado = tarea.getValue();
             animador.trasCargaMinima(inicio, () -> {
                 if (esta == ejecucion && !reintentarPendiente()) {
+                    pantalla.resultado(version, resultado.vista().etiqueta() == VistaResolucion.Etiqueta.VERIFICADO);
                     mostrarResultado(resultado);
                     textoResuelto = texto;
                     if (vistaExploracion.isVisible()) {
                         pedirComparacion();
                     }
+                    pintar();
                 }
             });
         });
@@ -586,11 +660,14 @@ public class ResolucionController {
                     return;
                 }
                 if (causa instanceof MetodoNoAplicable noAplica) {
+                    pantalla.resultado(version, false);
                     mostrarNoAplica(noAplica);
                 } else {
                     String motivo = causa == null || causa.getMessage() == null ? "error desconocido" : causa.getMessage();
+                    pantalla.fallo(version, "No se pudo resolver: " + motivo);
                     mostrarError("No se pudo resolver: " + motivo);
                 }
+                pintar();
             });
         });
         Thread hilo = new Thread(tarea, "resolucion");
@@ -607,21 +684,21 @@ public class ResolucionController {
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, factorizacion.verificar(r), conCodigos);
                 yield new Resultado(v, ContenidoFactorizacion.de(r, v, texto, conCodigos), v.latexFormula(),
-                        factorizacion.sugerencias(r));
+                        factorizacion.sugerencias(r), r);
             }
             case ResolverService.Plan.Simplificar s -> {
                 Simplificacion simp = factorizacion.simplificar(texto, avance);
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(simp, factorizacion.verificar(simp), conCodigos);
                 yield new Resultado(v, ContenidoFraccion.de(simp, v, factorizacion.asintotas(simp), texto, conCodigos),
-                        v.latexFormula(), factorizacion.sugerencias(simp));
+                        v.latexFormula(), factorizacion.sugerencias(simp), simp);
             }
             case ResolverService.Plan.CalcularLimite l -> {
                 ResolucionLimite r = resolverService.resolverLimite(texto, forzado, avance);
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.resultado() instanceof ResultadoLimite.Finito f ? f.latex() : null;
-                yield new Resultado(v, ContenidoLimite.de(r, resolverService.limites(), conCodigos), ans, List.of());
+                yield new Resultado(v, ContenidoLimite.de(r, resolverService.limites(), conCodigos), ans, List.of(), r);
             }
             case ResolverService.Plan.Derivar d -> {
                 pe.mathnova.domain.calculo.derivadas.ResolucionDerivada r =
@@ -629,7 +706,7 @@ public class ResolucionController {
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.esImplicita() ? null : ImpresoraLatex.imprimir(r.resultado());
-                yield new Resultado(v, ContenidoDerivada.de(r, resolverService.caminos(r), conCodigos), ans, List.of());
+                yield new Resultado(v, ContenidoDerivada.de(r, resolverService.caminos(r), conCodigos), ans, List.of(), r);
             }
             case ResolverService.Plan.Integrar i -> {
                 pe.mathnova.domain.calculo.integrales.ResolucionIntegral r =
@@ -637,7 +714,7 @@ public class ResolucionController {
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.definida() && r.resuelta() ? ImpresoraLatex.imprimir(r.valor()) : null;
-                yield new Resultado(v, ContenidoIntegral.de(r, resolverService.caminos(r), conCodigos), ans, List.of());
+                yield new Resultado(v, ContenidoIntegral.de(r, resolverService.caminos(r), conCodigos), ans, List.of(), r);
             }
             case ResolverService.Plan.Parciales pp -> {
                 pe.mathnova.domain.calculo.parciales.ResolucionParcial r =
@@ -646,7 +723,7 @@ public class ResolucionController {
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.resultado() == null ? null : ImpresoraLatex.imprimir(r.resultado());
                 yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoParciales.de(r), ans,
-                        pe.mathnova.domain.sugerencias.MotorSugerencias.paraVariasVariables(r.funcion()));
+                        pe.mathnova.domain.sugerencias.MotorSugerencias.paraVariasVariables(r.funcion()), r);
             }
             case ResolverService.Plan.LimiteDoble ld -> {
                 pe.mathnova.domain.calculo.limites.ResolucionLimiteDoble r =
@@ -654,14 +731,14 @@ public class ResolucionController {
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.existe() ? ImpresoraLatex.imprimir(r.valor()) : null;
-                yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoLimiteDoble.de(r), ans, List.of());
+                yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoLimiteDoble.de(r), ans, List.of(), r);
             }
             case ResolverService.Plan.Extremos ex -> {
                 pe.mathnova.domain.calculo.extremos.ResolucionExtremos r =
                         resolverService.resolverExtremos(texto, avance);
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
-                yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoExtremos.de(r), null, List.of());
+                yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoExtremos.de(r), null, List.of(), r);
             }
             case ResolverService.Plan.IntegralMultiple im -> {
                 pe.mathnova.domain.calculo.multiples.ResolucionIntegralMultiple r =
@@ -670,7 +747,7 @@ public class ResolucionController {
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
                 String ans = r.resuelta() ? ImpresoraLatex.imprimir(r.valor()) : null;
                 yield new Resultado(v, pe.mathnova.presentation.resolucion.ContenidoIntegralMultiple.de(r,
-                        resolverService.caminos(r), conCodigos), ans, List.of());
+                        resolverService.caminos(r), conCodigos), ans, List.of(), r);
             }
             case ResolverService.Plan.ResolverEcuacion ec -> {
                 ResolucionEcuacion r = resolverService.resolverEcuacion(texto, forzado, avance);
@@ -679,28 +756,16 @@ public class ResolucionController {
                         ? ImpresoraLatex.imprimir(new pe.mathnova.domain.expresion.Constante(r.soluciones().getFirst().valor()))
                         : null;
                 VistaResolucion v = VistaResolucion.de(r, conCodigos);
-                yield new Resultado(v, ContenidoEcuacion.de(r, v, conCodigos), ans, List.of());
+                yield new Resultado(v, ContenidoEcuacion.de(r, v, conCodigos), ans, List.of(), r);
             }
             default -> {
                 Resolucion r = factorizacion.factorizar(texto, forzado, enCampo, avance);
                 avance.accept(FaseFactorizacion.VERIFICACION);
                 VistaResolucion v = VistaResolucion.de(r, factorizacion.verificar(r), conCodigos);
                 yield new Resultado(v, ContenidoFactorizacion.de(r, v, texto, conCodigos), v.latexFormula(),
-                        factorizacion.sugerencias(r));
+                        factorizacion.sugerencias(r), r);
             }
         };
-    }
-
-    private void actualizarBotonYAviso() {
-        String aviso = switch (plan) {
-            case ResolverService.Plan.Invalido inv -> inv.mensaje();
-            case ResolverService.Plan.Operacion op -> op.mensaje();
-            case ResolverService.Plan.NoSoportado no -> no.mensaje();
-            default -> "";
-        };
-        avisoEntrada.setText(aviso);
-        mostrar(avisoEntrada, !aviso.isEmpty());
-        actualizarBoton();
     }
 
     /** Si llegó otro ejercicio durante el cálculo, se descarta este resultado y se resuelve el nuevo. */
@@ -711,8 +776,8 @@ public class ResolucionController {
             return false;
         }
         animador.detenerFases();
-        terminarCalculo();
-        resolver();
+        pantalla.cancelarCalculo();
+        resolverActual();
         return true;
     }
 
@@ -726,9 +791,8 @@ public class ResolucionController {
 
     /** "Probar" en Exploración: vuelve a resolver empezando por ese método; la cascada se repite. */
     private void resolverCon(String codigo) {
-        String texto = texto();
         metodoForzado = codigo;
-        resolverTexto(texto);
+        resolverActual();
     }
 
     // ---------------------------------------------------------------- resultado
@@ -738,13 +802,12 @@ public class ResolucionController {
         ContenidoPestanas contenido = resultado.contenido();
         animador.detenerFases();
         mostrarCarga(false);
-        terminarCalculo();
         ultimaRespuesta = resultado.ans();
+        ultimaResolucion = resultado.resolucion();
         textoComparacion = contenido.comparacion().orElse(null);
 
         subtituloSolucion.setText(v.subtitulo());
-        formula.setImage(ImagenLatex.de(latexSolucion, contenido.latexSolucion()));
-        marcoFormula.setHvalue(0);
+        formulaSolucion.setLatex(contenido.latexSolucion());
 
         // "Verificado" solo con pasos y comprobación correcta; si no, gris.
         VistaResolucion.Etiqueta e = v.etiqueta();
@@ -851,7 +914,7 @@ public class ResolucionController {
         panelVerificacion.setAnimated(animador.activas());
 
         GraficaFuncion graficaFinal = grafica;
-        List<Node> solucion = new ArrayList<>(List.of(iconoSolucion, subtituloSolucion, marcoFormula, irreducibles,
+        List<Node> solucion = new ArrayList<>(List.of(iconoSolucion, subtituloSolucion, formulaSolucion, irreducibles,
                 alternativas, secciones));
         if (v.sinPasos() != null) {
             solucion.add(sinPasos);
@@ -1065,7 +1128,6 @@ public class ResolucionController {
     private void mostrarNoAplica(MetodoNoAplicable e) {
         animador.detenerFases();
         mostrarCarga(false);
-        terminarCalculo();
         mostrar(cuerpoSolucion, false);
         subtituloSolucion.setText("El método elegido no aplica a esta expresión");
         tituloNoAplica.setText(VistaResolucion.nombre(e.codigo(), codigos) + " no aplica");
@@ -1079,16 +1141,14 @@ public class ResolucionController {
     private void mostrarError(String mensaje) {
         animador.detenerFases();
         mostrarCarga(false);
-        terminarCalculo();
         mostrar(cuerpoSolucion, false);
         subtituloSolucion.setText("No se pudo resolver");
         errorSolucion.setText(mensaje);
         mostrar(errorSolucion, true);
-    }
-
-    private void terminarCalculo() {
-        calculando = false;
-        actualizarBoton();
+        // El panel de Procedimiento no queda vacío: dice lo mismo, para quien mira los pasos.
+        pasos.getChildren().clear();
+        sinPasos.setText(mensaje);
+        mostrar(sinPasos, true);
     }
 
     private void limpiarResultado() {
@@ -1096,7 +1156,7 @@ public class ResolucionController {
         lineasVerificacion.getChildren().clear();
         irreducibles.getChildren().clear();
         alternativas.getChildren().clear();
-        formula.setImage(null);
+        formulaSolucion.setLatex(null);
         subtituloSolucion.setText("Pulsa Resolver para ver la solución.");
         propiedades.getChildren().clear();
         analisis.getChildren().clear();
@@ -1154,6 +1214,7 @@ public class ResolucionController {
 
     /** Dos columnas desde 1100 px de ancho; por debajo, el procedimiento pasa debajo del panel izquierdo. */
     private void acomodar(double anchoVentana) {
+        acomodarBarra(anchoVentana);
         boolean dos = anchoVentana >= ANCHO_DOS_COLUMNAS;
         if (dosColumnas != null && dosColumnas == dos) {
             return;
@@ -1168,6 +1229,32 @@ public class ResolucionController {
             GridPane.setConstraints(columnaIzquierda, 0, 0);
             GridPane.setConstraints(tarjetaProcedimiento, 0, 1);
         }
+    }
+
+    /**
+     * Desde 760 px, el editor, el selector y Resolver van en una fila; por debajo, el editor queda arriba
+     * y el selector y el botón bajan a una segunda fila, a la derecha. El botón nunca se encoge a "…".
+     */
+    private void acomodarBarra(double anchoVentana) {
+        boolean unaFila = anchoVentana <= 0 || anchoVentana >= ANCHO_BARRA_UNA_FILA;
+        boolean ahora = barraEntrada.getChildren().contains(botonResolver);
+        if (unaFila == ahora) {
+            return;
+        }
+        if (unaFila) {
+            filaAcciones.getChildren().clear();
+            barraEntrada.getChildren().setAll(zonaEditor, selectorCampo, botonResolver);
+            zonaEntrada.getChildren().remove(filaAcciones);
+        } else {
+            barraEntrada.getChildren().setAll(zonaEditor);
+            filaAcciones.getChildren().setAll(selectorCampo, botonResolver);
+            zonaEntrada.getChildren().add(zonaEntrada.getChildren().indexOf(barraEntrada) + 1, filaAcciones);
+        }
+    }
+
+    /** La barra está en dos filas (pruebas). */
+    boolean barraEnDosFilas() {
+        return !barraEntrada.getChildren().contains(botonResolver);
     }
 
     private static ColumnConstraints columna(double porcentaje) {

@@ -150,7 +150,7 @@ public final class Teclas {
                     fila(Tecla.latex("□₍□₎", Plantillas.SUBINDICE, "subíndice"),
                             Tecla.latex("∇f", Plantillas.GRADIENTE, "gradiente"),
                             Tecla.latex("Dᵤf", Plantillas.DIRECCIONAL, "derivada direccional"),
-                            Tecla.latex("∂", "\\partial"), BORRAR),
+                            Tecla.latex("∂", Plantillas.PARCIAL_EN, "derivada parcial respecto de la variable que escribas"), BORRAR),
                     fila(Tecla.latex("→", "\\to", "tiende a"), Tecla.escribir(","), IZQUIERDA, DERECHA, ENTER)));
 
     // ------------------------------------------------------------------ ABC y αβγ
@@ -224,7 +224,8 @@ public final class Teclas {
             bloque(
                     fila(Tecla.latex("∞", "\\infty"), Tecla.latex("≠", "\\ne"), Tecla.latex("≈", "\\approx"),
                             Tecla.latex("≤", "\\le"), Tecla.latex("≥", "\\ge"), Tecla.latex("→", "\\to"),
-                            Tecla.latex("∂", "\\partial"), Tecla.latex("∈", "\\in"),
+                            Tecla.latex("∂", Plantillas.PARCIAL_EN, "derivada parcial respecto de la variable que escribas"),
+                            Tecla.latex("∈", "\\in"),
                             Tecla.latex("[", "\\lbrack"), Tecla.latex("]", "\\rbrack")),
                     fila(Tecla.latex("±", "\\pm"), Tecla.latex("·", "\\cdot"), Tecla.latex("∘", "\\circ"),
                             Tecla.latex("°", "\\degree"), Tecla.latex("′", "\\prime"), Tecla.latex("″", "\\doubleprime"),

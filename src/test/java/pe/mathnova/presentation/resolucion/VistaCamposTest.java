@@ -170,7 +170,7 @@ class VistaCamposTest {
         VistaResolucion v = vistaFunciones("x + sen(x)");
         assertAll(
                 () -> assertEquals(VistaResolucion.Etiqueta.NO_FACTORIZABLE, v.etiqueta()),
-                () -> assertEquals("No se puede factorizar: no es polinómica en una sola función.", v.sinPasos()));
+                () -> assertEquals("No se puede factorizar: no es polinómica en una sola función (RN32).", v.sinPasos()));
     }
 
     @Test

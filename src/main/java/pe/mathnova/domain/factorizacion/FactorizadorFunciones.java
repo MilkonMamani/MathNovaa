@@ -38,7 +38,7 @@ import pe.mathnova.domain.parser.Parser;
  */
 public final class FactorizadorFunciones {
 
-    static final String NO_POLINOMICA = "No se puede factorizar: no es polinómica en una sola función";
+    static final String NO_POLINOMICA = "No se puede factorizar: no es polinómica en una sola función (RN32)";
 
     private final OrquestadorFactorizacion motor;
 
