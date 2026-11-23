@@ -1,6 +1,8 @@
 package pe.mathnova.presentation.controller;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -18,8 +20,8 @@ import org.springframework.stereotype.Component;
 import pe.mathnova.presentation.Navegador;
 
 /**
- * Barra lateral y zona de contenido. En este sprint solo "Resolver" funciona; las demás opciones
- * se ven deshabilitadas.
+ * Barra lateral y zona de contenido. "Resolver" y "Configuración" funcionan; las demás opciones se
+ * ven deshabilitadas.
  */
 @Component
 @Scope("prototype")
@@ -32,15 +34,19 @@ public class PrincipalController {
     private record Opcion(String nombre, String icono, String ayuda, boolean habilitada) {
     }
 
+    static final String RESOLVER = "Resolver";
+    static final String CONFIGURACION = "Configuración";
+
     private static final List<Opcion> OPCIONES = List.of(
-            new Opcion("Resolver", "M2 11 H5 L8 18 L13 2 H18", "Resolver un ejercicio paso a paso", true),
+            new Opcion(RESOLVER, "M2 11 H5 L8 18 L13 2 H18", "Resolver un ejercicio paso a paso", true),
             new Opcion("Historial", "M10 1 A9 9 0 1 1 9.99 1 Z M10 5 V10 L13.5 12.5", PROXIMO_SPRINT, false),
             new Opcion("Práctica", "M3 17 L4 13 L14 3 L17 6 L7 16 Z M12 5 L15 8", PROXIMO_SPRINT, false),
             new Opcion("Ejemplos", "M1 4 Q5.5 2 10 4 Q14.5 2 19 4 V17 Q14.5 15 10 17 Q5.5 15 1 17 Z M10 4 V17",
                     PROXIMO_SPRINT, false),
-            new Opcion("Configuración", "M2 5 H18 M2 15 H18 M7 2 V8 M13 12 V18", PROXIMO_SPRINT, false));
+            new Opcion(CONFIGURACION, "M2 5 H18 M2 15 H18 M7 2 V8 M13 12 V18", "Preferencias de la pizarra", true));
 
     private final Navegador navegador;
+    private final Map<String, Button> botones = new LinkedHashMap<>();
 
     @FXML
     private VBox menu;
@@ -70,9 +76,16 @@ public class PrincipalController {
         Tooltip ayuda = new Tooltip(o.ayuda());
         ayuda.setShowDelay(Duration.millis(300));
         if (o.habilitada()) {
-            boton.pseudoClassStateChanged(SELECCIONADO, true);
             boton.setTooltip(ayuda);
-            boton.setOnAction(e -> navegador.mostrarEntrada());
+            boton.setOnAction(e -> {
+                if (o.nombre().equals(CONFIGURACION)) {
+                    navegador.mostrarConfiguracion();
+                } else {
+                    navegador.mostrarEntrada();
+                }
+            });
+            botones.put(o.nombre(), boton);
+            boton.pseudoClassStateChanged(SELECCIONADO, o.nombre().equals(RESOLVER));
             return boton;
         }
         // Un control deshabilitado no recibe el mouse: el tooltip va en un contenedor.
@@ -80,6 +93,11 @@ public class PrincipalController {
         StackPane envoltura = new StackPane(boton);
         Tooltip.install(envoltura, ayuda);
         return envoltura;
+    }
+
+    /** Marca la opción de la pantalla que está a la vista. */
+    public void seleccionar(String nombre) {
+        botones.forEach((n, b) -> b.pseudoClassStateChanged(SELECCIONADO, n.equals(nombre)));
     }
 
     /** Pone una pantalla en la zona de contenido. */

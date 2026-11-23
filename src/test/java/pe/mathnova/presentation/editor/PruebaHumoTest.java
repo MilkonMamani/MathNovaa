@@ -351,15 +351,14 @@ class PruebaHumoTest {
         resolverYEsperar("x^3 - 2x^2 - x + 2");
         assertEquals(EstadoResolucion.RESUELTO, enFx(controlador::estado));
         assertTrue(enFx(() -> visible("#etiquetaVerificado")));
-        // Se espera a que aparezca la línea en vivo del ejercicio resuelto.
-        esperar(() -> visible("#resultadoEnVivo"), "la línea en vivo del ejercicio resuelto");
+        // RF71 retirado: ya no hay línea en vivo que esperar bajo el editor.
 
         entrar(List.of("x^2+*3"));
         // Más que los 400 ms del resultado en vivo.
         Thread.sleep(900);
         enFx(() -> null);
         assertEquals(EstadoResolucion.ERROR, enFx(controlador::estado));
-        assertFalse(enFx(() -> visible("#resultadoEnVivo")), "sigue la línea en vivo del ejercicio anterior");
+        // RF71 retirado: antes se comprobaba que no quedara la línea en vivo del ejercicio anterior.
         assertFalse(enFx(() -> visible("#etiquetaVerificado")), "sigue \"Verificado\" del ejercicio anterior");
         assertTrue(enFx(() -> visible("#avisoEntrada")), "falta el mensaje de error");
         assertTrue(enFx(() -> raiz.lookup("#botonResolver").isDisabled()), "Resolver debe quedar desactivado");

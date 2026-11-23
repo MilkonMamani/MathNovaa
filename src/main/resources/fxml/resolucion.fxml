@@ -17,11 +17,12 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.SVGPath?>
 
-<!-- "Resolver ejercicio" (Sprint S3b, mockups A, F, G y H).
+<!-- "Resolver ejercicio" (Sprint S3b, mockups A, F, G y H; wireframe de la Pizarra).
      Arriba: el editor visual a lo ancho (HU36), el selector Q/R/C y "Resolver", que decide qué hacer con
-     lo que se escribió. Debajo del editor, el resultado en vivo (HU37).
-     A la izquierda, pestañas Teclado | Gráfica | Análisis | Exploración; a la derecha, el procedimiento
-     paso a paso con "Propiedades de la función" y "Verificación" plegables.
+     lo que se escribió. Bajo el editor ya no va el resultado en vivo (RF71 retirado): el resultado depende
+     del método y del campo, y solo aparece al final de la Pizarra.
+     A la izquierda, pestañas Teclado | Escribir | Gráfica | Análisis | Exploración; a la derecha, la
+     Pizarra con "Propiedades de la función" y "Verificación" plegables.
      ResolucionController crea el editor y el teclado, y pone las columnas lado a lado o una debajo de
      otra según el ancho. Los estilos están en css/mathnova.css. -->
 <ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -43,6 +44,9 @@
             <HBox fx:id="barraEntrada" styleClass="barra-entrada" alignment="CENTER_LEFT" fillHeight="false">
                 <!-- ResolucionController pone aquí el EditorMatematico -->
                 <StackPane fx:id="zonaEditor" HBox.hgrow="ALWAYS" minWidth="0"/>
+                <!-- "Usar este ejercicio" en Escribir; se va al editar con el teclado -->
+                <Label fx:id="etiquetaEscritoAMano" text="✎ Escrito a mano" styleClass="etiqueta-escrito-a-mano"
+                       minWidth="-Infinity" visible="false" managed="false"/>
                 <HBox fx:id="selectorCampo" styleClass="selector-campo" minWidth="-Infinity">
                     <ToggleButton fx:id="campoQ" text="Q" selected="true" styleClass="opcion-campo"
                                   accessibleText="Resolver en los racionales">
@@ -70,8 +74,6 @@
                 <Button fx:id="botonResolver" text="Resolver" styleClass="boton-primario" onAction="#resolver"
                         disable="true" focusTraversable="false" minWidth="120"/>
             </HBox>
-            <!-- HU37: el resultado en gris, 400 ms después de la última tecla -->
-            <Label fx:id="resultadoEnVivo" styleClass="resultado-en-vivo" wrapText="true" visible="false" managed="false"/>
             <Label fx:id="avisoEntrada" styleClass="mensaje-error" wrapText="true" visible="false" managed="false"/>
             <!-- Los paneles muestran el resultado de lo que había antes en el editor -->
             <Label fx:id="notaActualizar" styleClass="nota-actualizar" wrapText="true" visible="false" managed="false"/>
@@ -81,16 +83,22 @@
             <!-- Izquierda: pestañas -->
             <VBox fx:id="columnaIzquierda" spacing="12">
                 <HBox fx:id="pestanasIzquierda" styleClass="pestanas-panel" spacing="6" alignment="CENTER_LEFT">
-                    <ToggleButton fx:id="pestanaTeclado" text="Teclado" styleClass="teclado-pildora" focusTraversable="false"/>
-                    <ToggleButton fx:id="pestanaGrafica" text="Gráfica" styleClass="teclado-pildora" focusTraversable="false"/>
-                    <ToggleButton fx:id="pestanaAnalisis" text="Análisis" styleClass="teclado-pildora" focusTraversable="false"/>
-                    <ToggleButton fx:id="pestanaExploracion" text="Exploración" styleClass="teclado-pildora" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaTeclado" text="Teclado" styleClass="pestana" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaEscribir" text="Escribir" styleClass="pestana" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaGrafica" text="Gráfica" styleClass="pestana" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaAnalisis" text="Análisis" styleClass="pestana" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaExploracion" text="Exploración" styleClass="pestana" focusTraversable="false"/>
                 </HBox>
 
                 <StackPane fx:id="contenidoIzquierda">
                     <!-- Teclado (HU33) -->
                     <VBox fx:id="vistaTeclado" styleClass="tarjeta">
                         <StackPane fx:id="zonaTeclado"/>
+                    </VBox>
+
+                    <!-- Escribir: escritura a mano; ResolucionController pone aquí el PanelEscritura -->
+                    <VBox fx:id="vistaEscritura" styleClass="tarjeta" visible="false" managed="false">
+                        <StackPane fx:id="zonaEscritura"/>
                     </VBox>
 
                     <!-- Gráfica: la tarjeta Solución y la gráfica (Sprint 3) -->
@@ -172,10 +180,10 @@
                 </StackPane>
             </VBox>
 
-            <!-- Derecha: Procedimiento paso a paso y dos secciones plegables -->
+            <!-- Derecha: la Pizarra y dos secciones plegables -->
             <VBox fx:id="tarjetaProcedimiento" styleClass="tarjeta">
-                <Label text="Procedimiento paso a paso" styleClass="titulo-tarjeta"/>
-                <VBox fx:id="pasos" spacing="8"/>
+                <!-- ResolucionController pone aquí la PizarraResolucion -->
+                <StackPane fx:id="zonaPizarra"/>
                 <Label fx:id="sinPasos" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
                        visible="false" managed="false"/>
                 <!-- HU10: sugerencias con su justificación y el botón Resolver -->

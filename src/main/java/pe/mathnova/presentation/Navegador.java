@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import pe.mathnova.presentation.controller.ConfiguracionController;
 import pe.mathnova.presentation.controller.PrincipalController;
 import pe.mathnova.presentation.controller.ResolucionController;
 
@@ -29,6 +30,8 @@ public class Navegador {
     private PrincipalController principal;
     private Parent resolucion;
     private ResolucionController resolucionControlador;
+    private Parent configuracion;
+    private ConfiguracionController configuracionControlador;
 
     public Navegador(ApplicationContext contexto) {
         this.contexto = contexto;
@@ -51,12 +54,28 @@ public class Navegador {
     /** "Resolver" en la barra lateral: la pantalla con el editor, con lo último que se escribió. */
     public void mostrarEntrada() {
         principal.mostrar(pantallaResolucion());
+        principal.seleccionar("Resolver");
+        resolucionControlador.actualizarPreferencias();
         resolucionControlador.enfocar();
+    }
+
+    /** "Configuración" en la barra lateral o el engranaje del teclado. */
+    public void mostrarConfiguracion() {
+        if (configuracion == null) {
+            FXMLLoader loader = cargar("/fxml/configuracion.fxml");
+            configuracion = loader.getRoot();
+            configuracionControlador = loader.getController();
+        } else {
+            configuracionControlador.cargar();
+        }
+        principal.mostrar(configuracion);
+        principal.seleccionar("Configuración");
     }
 
     /** Abre la pantalla y resuelve el texto (sección 9) con la animación en cascada. */
     public void mostrarResolucion(String texto) {
         principal.mostrar(pantallaResolucion());
+        principal.seleccionar("Resolver");
         resolucionControlador.resolver(texto);
     }
 
@@ -65,6 +84,7 @@ public class Navegador {
             FXMLLoader loader = cargar("/fxml/resolucion.fxml");
             resolucion = loader.getRoot();
             resolucionControlador = loader.getController();
+            resolucionControlador.setOnConfiguracion(this::mostrarConfiguracion);
         }
         return resolucion;
     }

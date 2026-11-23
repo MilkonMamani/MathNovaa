@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- "Configuración": por ahora, solo si la Pizarra muestra las explicaciones de los pasos.
+     La preferencia es la misma del interruptor "Explicaciones" de la Pizarra (clave mostrar_explicaciones). -->
+<ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pe.mathnova.presentation.controller.ConfiguracionController"
+            fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false" styleClass="contenido-scroll">
+    <VBox spacing="18" styleClass="pantalla-configuracion">
+        <padding>
+            <Insets top="28" right="32" bottom="32" left="32"/>
+        </padding>
+
+        <Label text="Configuración" styleClass="titulo-pantalla"/>
+
+        <VBox styleClass="tarjeta" maxWidth="720">
+            <Label text="Pizarra" styleClass="titulo-tarjeta"/>
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Mostrar las explicaciones" styleClass="ajuste-nombre"/>
+                    <Label text="Cada paso muestra por qué aplica el método, sin tener que pulsar «?»."
+                           styleClass="subtitulo-tarjeta" wrapText="true"/>
+                </VBox>
+                <ToggleButton fx:id="mostrarExplicaciones" styleClass="interruptor-explicaciones"
+                              accessibleText="Mostrar las explicaciones en la pizarra" minWidth="-Infinity">
+                    <tooltip>
+                        <Tooltip text="Mostrar u ocultar todas las explicaciones de la pizarra"/>
+                    </tooltip>
+                    <graphic>
+                        <StackPane styleClass="interruptor-riel">
+                            <Region styleClass="interruptor-perilla"/>
+                        </StackPane>
+                    </graphic>
+                </ToggleButton>
+            </HBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

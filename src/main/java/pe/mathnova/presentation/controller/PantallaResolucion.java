@@ -8,12 +8,15 @@ import pe.mathnova.domain.parser.Parser;
 
 /**
  * El estado de la pantalla "Resolver ejercicio", sin JavaFX. El controlador le avisa lo que pasa
- * (cambió el editor, pasaron los 400 ms, llegó el resultado en vivo, empezó o terminó el cálculo) y
- * después dibuja todos los paneles con lo que dice aquí; ninguno se actualiza por su cuenta.
+ * (cambió el editor, pasaron los 400 ms, empezó o terminó el cálculo) y después dibuja todos los
+ * paneles con lo que dice aquí; ninguno se actualiza por su cuenta.
  *
- * <p>Cada cambio del editor sube la {@link #version()}. Lo que se calculó para una versión anterior (el
- * resultado en vivo, la solución) no se muestra como actual: la línea en vivo se descarta y los
- * paneles quedan atenuados con "Pulsa Resolver para actualizar".
+ * <p>Cada cambio del editor sube la {@link #version()}. Lo que se calculó para una versión anterior no
+ * se muestra como actual: los paneles quedan atenuados con "Pulsa Resolver para actualizar" (RF77).
+ *
+ * <p>La línea de resultado en vivo bajo el editor (HU37, RF71) se retiró: el resultado depende del
+ * método y del campo Q/R/C, y mostrarlo antes de Resolver adelantaba la respuesta. Solo aparece al
+ * final de la Pizarra.
  */
 public final class PantallaResolucion {
 
@@ -89,9 +92,6 @@ public final class PantallaResolucion {
     /** El cálculo falló ("No se pudo resolver: …"). */
     private String fallo;
 
-    private String enVivo;
-    private int versionEnVivo = -1;
-
     // ------------------------------------------------------------------ eventos
 
     /**
@@ -109,7 +109,6 @@ public final class PantallaResolucion {
         analisis = nuevo;
         version++;
         confirmado = false;
-        enVivo = null;
         return true;
     }
 
@@ -117,7 +116,6 @@ public final class PantallaResolucion {
     public void invalidar() {
         version++;
         confirmado = false;
-        enVivo = null;
     }
 
     /** Pasaron los 400 ms sin teclas: el error (si lo hay) ya se muestra. */
@@ -125,19 +123,6 @@ public final class PantallaResolucion {
         if (deVersion == version) {
             confirmado = true;
         }
-    }
-
-    /** Llegó el resultado en vivo de {@code deVersion}; si el texto cambió mientras, se descarta. */
-    public boolean enVivoListo(int deVersion, String linea) {
-        if (deVersion != version || linea == null || linea.isBlank()) {
-            return false;
-        }
-        if (!enVivoPosible(estado())) {
-            return false;
-        }
-        enVivo = linea;
-        versionEnVivo = deVersion;
-        return true;
     }
 
     /** Empieza "Resolver": los paneles se vacían y se ve la carga. */
@@ -208,16 +193,6 @@ public final class PantallaResolucion {
     /** La versión que se está calculando. */
     public int versionCalculo() {
         return versionCalculo;
-    }
-
-    /** La línea gris bajo el editor; null si no se ve. Solo si es de lo que hay ahora en el editor. */
-    public String lineaEnVivo() {
-        return enVivoPosible(estado()) && versionEnVivo == version ? enVivo : null;
-    }
-
-    /** La línea en vivo solo acompaña a una entrada que se puede resolver. */
-    private static boolean enVivoPosible(EstadoResolucion e) {
-        return e == EstadoResolucion.ESCRIBIENDO || e == EstadoResolucion.CALCULANDO || e == EstadoResolucion.RESUELTO;
     }
 
     /** El mensaje rojo bajo el editor (ERROR o INCOMPLETO); null si no hay. El fallo del cálculo va en la tarjeta. */

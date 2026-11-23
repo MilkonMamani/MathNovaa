@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import pe.mathnova.application.editor.TraductorLatex;
@@ -14,7 +15,13 @@ import pe.mathnova.application.service.ResolverService;
 import pe.mathnova.domain.ecuacion.ResolvedorEcuaciones;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 
-/** El estado único de la pantalla: nada del ejercicio anterior queda como si fuera actual. */
+/**
+ * El estado único de la pantalla: nada del ejercicio anterior queda como si fuera actual.
+ *
+ * <p>RF71 (la línea de resultado en vivo bajo el editor) se retiró: el resultado depende del método y
+ * del campo Q/R/C, y mostrarlo antes de Resolver adelantaba la respuesta. Las aserciones sobre esa línea
+ * se quitaron de estas pruebas y la que solo probaba RF71 quedó desactivada; RF77 (atenuar) sigue.
+ */
 class PantallaResolucionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -40,7 +47,6 @@ class PantallaResolucionTest {
         assertEquals(EstadoResolucion.VACIO, p.estado());
         assertFalse(p.botonActivo());
         assertNull(p.mensaje());
-        assertNull(p.lineaEnVivo());
         assertFalse(p.atenuado());
         assertFalse(p.etiquetaVisible());
     }
@@ -50,25 +56,21 @@ class PantallaResolucionTest {
         escribir("x^2-5x+6");
         assertEquals(EstadoResolucion.ESCRIBIENDO, p.estado());
         assertTrue(p.botonActivo());
-        assertTrue(p.enVivoListo(p.version(), "= (x − 2)(x − 3)"));
-        assertEquals("= (x − 2)(x − 3)", p.lineaEnVivo());
+        // RF71 retirado: antes aquí llegaba la línea en vivo "= (x − 2)(x − 3)".
         resolver(true);
         assertEquals(EstadoResolucion.RESUELTO, p.estado());
         assertTrue(p.verificado());
         assertTrue(p.etiquetaVisible());
         assertFalse(p.atenuado());
-        assertEquals("= (x − 2)(x − 3)", p.lineaEnVivo());
     }
 
     @Test
-    void alCambiarElTextoSeBorraLaLineaYSeAtenua() {
+    void alCambiarElTextoSeAtenua() {
         escribir("x^2-5x+6");
-        p.enVivoListo(p.version(), "= (x − 2)(x − 3)");
         resolver(true);
 
         escribir("x^2-5x+");
-        // de inmediato: sin línea en vivo, sin "Verificado", paneles atenuados
-        assertNull(p.lineaEnVivo());
+        // de inmediato: sin "Verificado", paneles atenuados (RF77)
         assertFalse(p.verificado());
         assertFalse(p.etiquetaVisible());
         assertTrue(p.atenuado());
@@ -79,18 +81,16 @@ class PantallaResolucionTest {
         assertNotNull(p.mensaje());
         assertFalse(p.botonActivo());
         assertTrue(p.atenuado());
-        assertNull(p.lineaEnVivo());
     }
 
+    /**
+     * RF71 retirado. Esta prueba comprobaba que un resultado en vivo de una versión vieja de la entrada
+     * se descartaba (enVivoListo con la versión anterior no se mostraba y con la actual sí). La línea en
+     * vivo ya no existe, ni enVivoListo ni lineaEnVivo: no queda nada que probar aquí.
+     */
+    @Disabled("RF71 retirado: ya no hay línea de resultado en vivo bajo el editor")
     @Test
     void unCalculoEnVivoViejoSeDescarta() {
-        escribir("x^2-1");
-        int vieja = p.version();
-        escribir("x^2-4");
-        assertFalse(p.enVivoListo(vieja, "= (x − 1)(x + 1)"));
-        assertNull(p.lineaEnVivo());
-        assertTrue(p.enVivoListo(p.version(), "= (x − 2)(x + 2)"));
-        assertEquals("= (x − 2)(x + 2)", p.lineaEnVivo());
     }
 
     @Test

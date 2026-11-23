@@ -52,7 +52,7 @@ import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
 /**
- * El botón "Resolver" (antes "Factorizar") y el resultado en vivo (HU37, RF71): decide qué hacer con
+ * El botón "Resolver" (antes "Factorizar") y el resumen del resultado en una línea: decide qué hacer con
  * lo que se escribió (factorizar, simplificar, resolver la ecuación, calcular el límite, la derivada o la
  * integral) y lo calcula.
  */
@@ -417,12 +417,16 @@ public class ResolverService {
         return r.factorizacion() == null ? null : factorizacion.verificar(r.factorizacion());
     }
 
-    // ------------------------------------------------------------------ resultado en vivo (HU37, RF71)
+    // ------------------------------------------------------------------ resumen en una línea (antes RF71)
 
     /**
-     * Lo que se muestra en gris debajo del editor, en texto de la sección 9: "= (x - 2)(x - 3)",
+     * El resultado en una línea, en texto de la sección 9: "= (x - 2)(x - 3)",
      * "x₁ = -1/2 ≈ -0.5, x₂ = 2", "= 5/3 ≈ 1.6667". Vacío si no hay nada que mostrar: entrada
      * incompleta o inválida, una operación que todavía no se resuelve, o nada nuevo que decir.
+     *
+     * <p>Antes se mostraba en gris bajo el editor (HU37, RF71). Esa línea se retiró de la pantalla: el
+     * resultado depende del método y del campo, y adelantarlo confundía. La interfaz ya no llama a este
+     * método; queda porque las pruebas de los sprints S4–S8 lo usan para comparar resultados.
      */
     public Optional<String> enVivo(String texto) {
         return enVivo(texto, Campo.Q);

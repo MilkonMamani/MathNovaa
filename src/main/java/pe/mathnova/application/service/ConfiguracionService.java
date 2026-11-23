@@ -18,6 +18,8 @@ import pe.mathnova.infrastructure.persistence.ConfiguracionRepository;
  *   <li>"animaciones": "true" o "false" (por defecto "true")</li>
  *   <li>"mostrar_codigos": "true" o "false" (por defecto "false"): si se ven los códigos internos
  *       de los métodos (F16, F04…) junto a su nombre</li>
+ *   <li>"mostrar_explicaciones": "true" o "false" (por defecto "false"): si la Pizarra abre con todas
+ *       las notas "por qué aplica" a la vista (el interruptor "Explicaciones")</li>
  * </ul>
  * Si la base falla, se usan los valores por defecto y la app sigue funcionando.
  */
@@ -26,9 +28,11 @@ public class ConfiguracionService {
 
     public static final String ANIMACIONES = "animaciones";
     public static final String MOSTRAR_CODIGOS = "mostrar_codigos";
+    public static final String MOSTRAR_EXPLICACIONES = "mostrar_explicaciones";
 
     /** Claves que se crean al iniciar si faltan, con su valor por defecto. */
-    private static final Map<String, String> POR_DEFECTO = Map.of(ANIMACIONES, "true", MOSTRAR_CODIGOS, "false");
+    private static final Map<String, String> POR_DEFECTO = Map.of(ANIMACIONES, "true", MOSTRAR_CODIGOS, "false",
+            MOSTRAR_EXPLICACIONES, "false");
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfiguracionService.class);
 
@@ -63,6 +67,26 @@ public class ConfiguracionService {
     @Transactional(readOnly = true)
     public boolean mostrarCodigos() {
         return leer(MOSTRAR_CODIGOS, false);
+    }
+
+    /** false salvo que la clave diga "true". */
+    @Transactional(readOnly = true)
+    public boolean mostrarExplicaciones() {
+        return leer(MOSTRAR_EXPLICACIONES, false);
+    }
+
+    /** El interruptor "Explicaciones" de la Pizarra o de Configuración. Si la base falla, solo se avisa. */
+    @Transactional
+    public void guardarMostrarExplicaciones(boolean si) {
+        guardar(MOSTRAR_EXPLICACIONES, si);
+    }
+
+    private void guardar(String clave, boolean valor) {
+        try {
+            configuracion.save(new ConfiguracionEntity(clave, String.valueOf(valor)));
+        } catch (RuntimeException e) {
+            LOG.warn("No se pudo guardar la clave {} en configuracion", clave, e);
+        }
     }
 
     private boolean leer(String clave, boolean porDefecto) {

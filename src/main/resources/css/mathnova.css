@@ -5,14 +5,23 @@
 
 /* ===================== Paleta y base ===================== */
 .root {
-    color-barra: #0f1f3d;
+    color-barra: #0b1120;
+    color-barra-activo: #1e293b;
+    color-nova: #60a5fa;
     color-barra-texto: #cbd5e1;
-    color-fondo: #f5f7fb;
+    color-fondo: #f3f4f6;
     color-tarjeta: #ffffff;
     color-marino: #1e3a6e;
     color-marino-hover: #274b8c;
     color-marino-pulsado: #172e57;
     color-azul: #2563eb;
+    color-primario: #1d4ed8;
+    color-primario-hover: #1e40af;
+    color-primario-pulsado: #1e3a8a;
+    color-tinta: #0f172a;
+    color-gris-texto: #64748b;
+    color-borde-tarjeta: #e5e7eb;
+    color-cuadricula: #eef0f3;
     color-verde: #16a34a;
     color-verde-fondo: #dcfce7;
     color-rojo: #dc2626;
@@ -61,8 +70,9 @@
 
 .barra-lateral {
     -fx-background-color: color-barra;
-    -fx-pref-width: 224px;
-    -fx-min-width: 224px;
+    -fx-pref-width: 220px;
+    -fx-min-width: 220px;
+    -fx-max-width: 220px;
     -fx-padding: 24 12 24 12;
     -fx-spacing: 4;
 }
@@ -90,6 +100,13 @@
 
 .logo-texto {
     -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* "Math" en blanco y "Nova" en azul */
+.logo-nova {
+    -fx-text-fill: color-nova;
     -fx-font-size: 20px;
     -fx-font-weight: bold;
 }
@@ -122,7 +139,7 @@
 }
 
 .nav-item:seleccionado {
-    -fx-background-color: color-marino;
+    -fx-background-color: color-barra-activo;
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
@@ -181,7 +198,7 @@
 
 /* ===================== Botones ===================== */
 .boton-primario {
-    -fx-background-color: color-marino;
+    -fx-background-color: color-primario;
     -fx-background-radius: 8;
     -fx-border-color: transparent;
     -fx-border-width: 2;
@@ -189,21 +206,22 @@
     -fx-text-fill: white;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-min-height: 42px;
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
     -fx-padding: 0 24 0 24;
     -fx-cursor: hand;
 }
 
 .boton-primario:hover {
-    -fx-background-color: color-marino-hover;
+    -fx-background-color: color-primario-hover;
 }
 
 .boton-primario:pressed {
-    -fx-background-color: color-marino-pulsado;
+    -fx-background-color: color-primario-pulsado;
 }
 
 .boton-primario:focus-visible {
-    -fx-border-color: color-azul;
+    -fx-border-color: color-nova;
 }
 
 .boton-primario:disabled {
@@ -214,10 +232,21 @@
 .barra-entrada {
     -fx-background-color: color-tarjeta;
     -fx-background-radius: 12;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 12;
     -fx-padding: 8 8 8 12;
     -fx-spacing: 8;
     -fx-alignment: center-left;
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 18, 0, 0, 4);
+}
+
+/* "Usar este ejercicio" en Escribir; se va al editar con el teclado */
+.etiqueta-escrito-a-mano {
+    -fx-background-color: #eff6ff;
+    -fx-background-radius: 999;
+    -fx-text-fill: color-primario;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10 4 10;
 }
 
 .selector-campo {
@@ -236,12 +265,14 @@
     -fx-border-radius: 8;
     -fx-text-fill: color-texto-2;
     -fx-font-weight: bold;
-    -fx-min-width: 42px;
-    -fx-min-height: 42px;
+    -fx-min-width: 44px;
+    -fx-min-height: 44px;
+    -fx-pref-width: 44px;
+    -fx-pref-height: 44px;
 }
 
 .opcion-campo:selected {
-    -fx-background-color: color-marino;
+    -fx-background-color: color-tinta;
     -fx-text-fill: white;
 }
 
@@ -983,14 +1014,33 @@
     -fx-padding: 0 4 0 0;
 }
 
-.resultado-en-vivo {
-    -fx-text-fill: #94a3b8;
-    -fx-font-size: 18px;
-    -fx-padding: 0 0 0 16;
+.pestanas-panel {
+    -fx-padding: 0;
+    -fx-spacing: 4;
+    -fx-border-color: transparent transparent color-borde-tarjeta transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.pestanas-panel {
-    -fx-padding: 0 0 2 0;
+/* Pestañas Teclado · Escribir · Gráfica · Análisis · Exploración: la activa subrayada y en negrita */
+.pestana {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 14px;
+    -fx-padding: 8 8 8 8;
+    -fx-cursor: hand;
+}
+
+.pestana:hover {
+    -fx-text-fill: color-tinta;
+}
+
+.pestana:selected {
+    -fx-border-color: transparent transparent color-primario transparent;
+    -fx-text-fill: color-tinta;
+    -fx-font-weight: bold;
 }
 
 .tarjeta-metodo {
@@ -1186,4 +1236,393 @@
 /* Ventana angosta: el selector Q/R/C y Resolver en una segunda fila, a la derecha. */
 .fila-acciones {
     -fx-padding: 0 8 0 0;
+}
+
+/* ===================== Pizarra (wireframe) ===================== */
+.pizarra-resolucion {
+    -fx-spacing: 12;
+}
+
+.pizarra-cabecera {
+    -fx-spacing: 8;
+}
+
+.pizarra-control {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 13px;
+    -fx-min-height: 32px;
+    -fx-padding: 0 10 0 10;
+    -fx-cursor: hand;
+}
+
+.pizarra-control:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.pizarra-control:focus-visible {
+    -fx-border-color: color-primario;
+    -fx-border-width: 2;
+}
+
+.pizarra-control:disabled {
+    -fx-opacity: 0.4;
+}
+
+.pizarra-flecha-nav {
+    -fx-font-size: 16px;
+    -fx-min-width: 32px;
+    -fx-padding: 0;
+}
+
+.pizarra-etiqueta-pasos {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.pizarra-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-gris-texto;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.boton-icono {
+    -fx-min-width: 36px;
+    -fx-min-height: 32px;
+    -fx-padding: 0;
+}
+
+/* Interruptor "Explicaciones": foco, texto y switch; borde de foco visible con el teclado */
+.interruptor-explicaciones {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-padding: 2 6 2 6;
+    -fx-cursor: hand;
+}
+
+.interruptor-explicaciones:focused {
+    -fx-border-color: color-primario;
+}
+
+.interruptor-texto {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 13px;
+}
+
+.interruptor-riel {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 999;
+    -fx-min-width: 34px;
+    -fx-max-width: 34px;
+    -fx-min-height: 20px;
+    -fx-max-height: 20px;
+    -fx-padding: 2;
+    -fx-alignment: center-left;
+}
+
+.interruptor-perilla {
+    -fx-background-color: white;
+    -fx-background-radius: 999;
+    -fx-min-width: 16px;
+    -fx-max-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-height: 16px;
+}
+
+.interruptor-explicaciones:selected .interruptor-riel {
+    -fx-background-color: color-primario;
+    -fx-alignment: center-right;
+}
+
+.interruptor-explicaciones:selected .pizarra-icono {
+    -fx-stroke: color-primario;
+}
+
+/* Cuerpo: cuadrícula de 24 px en #EEF0F3 */
+.pizarra-cuerpo {
+    -fx-background-color:
+        white,
+        linear-gradient(from 0px 0px to 24px 0px, repeat, color-cuadricula 0%, color-cuadricula 4.2%, transparent 4.2%, transparent 100%),
+        linear-gradient(from 0px 0px to 0px 24px, repeat, color-cuadricula 0%, color-cuadricula 4.2%, transparent 4.2%, transparent 100%);
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-padding: 20 20 24 20;
+    -fx-spacing: 10;
+}
+
+.pizarra-rotulo {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.pizarra-linea {
+    -fx-background-color: color-tinta;
+    -fx-min-height: 2.5px;
+    -fx-max-height: 2.5px;
+}
+
+.pizarra-filas {
+    -fx-spacing: 4;
+}
+
+.pizarra-paso {
+    -fx-spacing: 6;
+}
+
+/* La flecha azul con el método: siempre a la vista */
+.pizarra-paso-flecha {
+    -fx-padding: 2 0 2 40;
+}
+
+.pizarra-flecha {
+    -fx-fill: transparent;
+    -fx-stroke: color-primario;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.pizarra-metodo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+.pizarra-numero {
+    -fx-background-color: color-tinta;
+    -fx-background-radius: 999;
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-max-width: 28px;
+    -fx-max-height: 28px;
+}
+
+.pizarra-numero .label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* Paso a paso: los que faltan, solo el círculo gris */
+.pizarra-numero:pendiente {
+    -fx-background-color: #cbd5e1;
+}
+
+/* El "?" de cada paso: solo el ícono, sin borde ni fondo */
+.boton-nota {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 999;
+    -fx-min-width: 36px;
+    -fx-min-height: 36px;
+    -fx-max-width: 36px;
+    -fx-max-height: 36px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.boton-nota-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-gris-texto;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.boton-nota:hover,
+.boton-nota:focus-visible {
+    -fx-background-color: #eff6ff;
+}
+
+.boton-nota:hover .boton-nota-icono,
+.boton-nota:focus-visible .boton-nota-icono {
+    -fx-stroke: color-primario;
+}
+
+.boton-nota:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+.pizarra-nota {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-padding: 10 12 8 12;
+}
+
+.pizarra-nota-texto {
+    -fx-text-fill: #334155;
+    -fx-font-size: 13px;
+}
+
+.pizarra-ocultar {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 12px;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+/* El resultado en un recuadro de borde doble */
+.pizarra-resultado-doble {
+    -fx-background-color: white;
+    -fx-border-color: color-tinta, color-tinta;
+    -fx-border-width: 1.5, 1.5;
+    -fx-border-insets: 0, 4;
+    -fx-padding: 14 18 14 18;
+}
+
+.pizarra-comprobacion {
+    -fx-fill: #334155;
+    -fx-font-size: 13px;
+}
+
+.pizarra-comprobacion-titulo {
+    -fx-font-weight: bold;
+    -fx-fill: color-tinta;
+}
+
+/* ===================== Escribir (escritura a mano) ===================== */
+.barra-escritura {
+    -fx-spacing: 6;
+}
+
+.herramienta-escritura {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-max-width: 40px;
+    -fx-max-height: 40px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.herramienta-escritura:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.herramienta-escritura:focus-visible {
+    -fx-border-color: color-primario;
+    -fx-border-width: 2;
+}
+
+.herramienta-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-tinta;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+/* La herramienta activa, con fondo oscuro */
+.herramienta-escritura:selected {
+    -fx-background-color: color-tinta;
+    -fx-border-color: color-tinta;
+}
+
+.herramienta-escritura:selected .herramienta-icono {
+    -fx-stroke: white;
+}
+
+.lienzo-escritura {
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-cursor: crosshair;
+}
+
+.lienzo-vacio-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-gris-texto;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.lienzo-vacio-titulo {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.lienzo-vacio-ayuda {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 13px;
+}
+
+.escritura-estado {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+.tarjeta-entendi {
+    -fx-background-color: #f8faff;
+    -fx-background-radius: 10;
+    -fx-border-color: #bfdbfe;
+    -fx-border-radius: 10;
+    -fx-padding: 14;
+}
+
+.boton-usar-escritura {
+    -fx-padding: 0 16 0 16;
+}
+
+.entendi-titulo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.entendi-pregunta {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 13px;
+}
+
+/* Símbolo dudoso: subrayado con puntos naranjas */
+.simbolo-dudoso {
+    -fx-border-color: transparent transparent #c2410c transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-style: dotted;
+}
+
+/* En serif cursiva, como en la fórmula: así x y × no se confunden */
+.boton-alternativa-simbolo {
+    -fx-font-family: "Times New Roman";
+    -fx-font-style: italic;
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 16px;
+    -fx-min-width: 40px;
+    -fx-min-height: 36px;
+    -fx-cursor: hand;
+}
+
+.boton-alternativa-simbolo:hover,
+.boton-alternativa-simbolo:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+/* ===================== Configuración ===================== */
+.ajuste-nombre {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
 }

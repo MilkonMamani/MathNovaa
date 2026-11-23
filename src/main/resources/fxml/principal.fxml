@@ -17,7 +17,10 @@
                 <StackPane styleClass="logo-marca">
                     <Label text="M"/>
                 </StackPane>
-                <Label text="MathNova" styleClass="logo-texto"/>
+                <HBox accessibleText="MathNova">
+                    <Label text="Math" styleClass="logo-texto"/>
+                    <Label text="Nova" styleClass="logo-nova"/>
+                </HBox>
             </HBox>
         </VBox>
     </left>
