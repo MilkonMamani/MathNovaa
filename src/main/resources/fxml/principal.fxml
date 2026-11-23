@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Estructura de toda la app: barra lateral oscura a la izquierda y contenido a la derecha.
+     PrincipalController arma las opciones del menú; el Navegador cambia el contenido. -->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pe.mathnova.presentation.controller.PrincipalController"
+            styleClass="pantalla-principal">
+    <left>
+        <VBox fx:id="menu" styleClass="barra-lateral">
+            <HBox styleClass="logo">
+                <StackPane styleClass="logo-marca">
+                    <Label text="M"/>
+                </StackPane>
+                <Label text="MathNova" styleClass="logo-texto"/>
+            </HBox>
+        </VBox>
+    </left>
+
+    <center>
+        <StackPane fx:id="contenido" styleClass="contenido"/>
+    </center>
+</BorderPane>

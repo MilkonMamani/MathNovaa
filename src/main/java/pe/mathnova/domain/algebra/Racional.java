@@ -1,0 +1,140 @@
+package pe.mathnova.domain.algebra;
+
+import java.math.BigInteger;
+import java.util.Objects;
+
+/**
+ * Número racional exacto (RNF01, RN02): sin double ni float.
+ * Siempre está simplificado y con el denominador positivo, así que dos racionales
+ * iguales tienen los mismos num y den, y el equals del record sirve tal cual.
+ */
+public record Racional(BigInteger num, BigInteger den) implements Comparable<Racional> {
+
+    public static final Racional CERO = new Racional(BigInteger.ZERO, BigInteger.ONE);
+    public static final Racional UNO = new Racional(BigInteger.ONE, BigInteger.ONE);
+
+    public Racional {
+        Objects.requireNonNull(num, "num");
+        Objects.requireNonNull(den, "den");
+        if (den.signum() == 0) {
+            throw new ArithmeticException("Denominador cero");
+        }
+        if (den.signum() < 0) {
+            num = num.negate();
+            den = den.negate();
+        }
+        BigInteger mcd = num.gcd(den);
+        if (!mcd.equals(BigInteger.ONE)) {
+            num = num.divide(mcd);
+            den = den.divide(mcd);
+        }
+    }
+
+    public static Racional de(long n) {
+        return new Racional(BigInteger.valueOf(n), BigInteger.ONE);
+    }
+
+    public static Racional de(long num, long den) {
+        return new Racional(BigInteger.valueOf(num), BigInteger.valueOf(den));
+    }
+
+    public static Racional de(BigInteger n) {
+        return new Racional(n, BigInteger.ONE);
+    }
+
+    /**
+     * Lee "3", "-7", "0.25" (→ 1/4), "-1.5" o "2/3". El decimal va con punto.
+     *
+     * @throws NumberFormatException si el texto no es un número válido
+     */
+    public static Racional parse(String texto) {
+        String s = Objects.requireNonNull(texto, "texto").trim();
+        int barra = s.indexOf('/');
+        if (barra >= 0) {
+            return parse(s.substring(0, barra)).dividir(parse(s.substring(barra + 1)));
+        }
+        boolean negativo = false;
+        if (s.startsWith("-") || s.startsWith("+")) {
+            negativo = s.charAt(0) == '-';
+            s = s.substring(1);
+        }
+        int punto = s.indexOf('.');
+        String entera = punto < 0 ? s : s.substring(0, punto);
+        String decimales = punto < 0 ? "" : s.substring(punto + 1);
+        if (entera.isEmpty() || !soloDigitos(entera) || (punto >= 0 && (decimales.isEmpty() || !soloDigitos(decimales)))) {
+            throw new NumberFormatException("No es un número: \"" + texto + "\"");
+        }
+        BigInteger n = new BigInteger(entera + decimales);
+        BigInteger d = BigInteger.TEN.pow(decimales.length());
+        return new Racional(negativo ? n.negate() : n, d);
+    }
+
+    private static boolean soloDigitos(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Racional sumar(Racional o) {
+        return new Racional(num.multiply(o.den).add(o.num.multiply(den)), den.multiply(o.den));
+    }
+
+    public Racional restar(Racional o) {
+        return sumar(o.negar());
+    }
+
+    public Racional multiplicar(Racional o) {
+        return new Racional(num.multiply(o.num), den.multiply(o.den));
+    }
+
+    /** @throws ArithmeticException si o es cero */
+    public Racional dividir(Racional o) {
+        if (o.esCero()) {
+            throw new ArithmeticException("División entre cero");
+        }
+        return new Racional(num.multiply(o.den), den.multiply(o.num));
+    }
+
+    public Racional negar() {
+        return new Racional(num.negate(), den);
+    }
+
+    public Racional inverso() {
+        return UNO.dividir(this);
+    }
+
+    /** Potencia entera; con exponente negativo devuelve el inverso. 0^-n lanza ArithmeticException. */
+    public Racional potencia(int n) {
+        if (n < 0) {
+            return inverso().potencia(-n);
+        }
+        return new Racional(num.pow(n), den.pow(n));
+    }
+
+    public boolean esEntero() {
+        return den.equals(BigInteger.ONE);
+    }
+
+    public boolean esCero() {
+        return num.signum() == 0;
+    }
+
+    public int signo() {
+        return num.signum();
+    }
+
+    @Override
+    public int compareTo(Racional o) {
+        return num.multiply(o.den).compareTo(o.num.multiply(den));
+    }
+
+    /** "3", "-1/2". */
+    @Override
+    public String toString() {
+        return esEntero() ? num.toString() : num + "/" + den;
+    }
+}

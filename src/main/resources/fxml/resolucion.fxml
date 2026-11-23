@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!-- "Resolver ejercicio" (Sprint S3b, mockups A, F, G y H).
+     Arriba: el editor visual a lo ancho (HU36), el selector Q/R/C y "Resolver", que decide qué hacer con
+     lo que se escribió. Debajo del editor, el resultado en vivo (HU37).
+     A la izquierda, pestañas Teclado | Gráfica | Análisis | Exploración; a la derecha, el procedimiento
+     paso a paso con "Propiedades de la función" y "Verificación" plegables.
+     ResolucionController crea el editor y el teclado, y pone las columnas lado a lado o una debajo de
+     otra según el ancho. Los estilos están en css/mathnova.css. -->
+<ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pe.mathnova.presentation.controller.ResolucionController"
+            fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false" styleClass="contenido-scroll">
+    <VBox spacing="18" styleClass="pantalla-resolucion">
+        <padding>
+            <Insets top="28" right="32" bottom="32" left="32"/>
+        </padding>
+
+        <VBox spacing="4">
+            <Label text="Resolver ejercicio" styleClass="titulo-pantalla"/>
+            <Label text="Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver."
+                   styleClass="subtitulo-pantalla"/>
+        </VBox>
+
+        <VBox spacing="6">
+            <HBox styleClass="barra-entrada" alignment="CENTER_LEFT" fillHeight="false">
+                <!-- ResolucionController pone aquí el EditorMatematico -->
+                <StackPane fx:id="zonaEditor" HBox.hgrow="ALWAYS"/>
+                <HBox styleClass="selector-campo">
+                    <ToggleButton fx:id="campoQ" text="Q" selected="true" styleClass="opcion-campo"
+                                  accessibleText="Resolver en los racionales">
+                        <tooltip>
+                            <Tooltip text="Resolver en los racionales (Q)"/>
+                        </tooltip>
+                    </ToggleButton>
+                    <StackPane fx:id="envolturaR">
+                        <ToggleButton fx:id="campoR" text="R" styleClass="opcion-campo"
+                                      accessibleText="Resolver en los reales">
+                            <tooltip>
+                                <Tooltip text="Resolver en los reales (R): radicales"/>
+                            </tooltip>
+                        </ToggleButton>
+                    </StackPane>
+                    <StackPane fx:id="envolturaC">
+                        <ToggleButton fx:id="campoC" text="C" styleClass="opcion-campo"
+                                      accessibleText="Resolver en los complejos">
+                            <tooltip>
+                                <Tooltip text="Resolver en los complejos (C): radicales e i"/>
+                            </tooltip>
+                        </ToggleButton>
+                    </StackPane>
+                </HBox>
+                <Button fx:id="botonResolver" text="Resolver" styleClass="boton-primario" onAction="#resolver"
+                        disable="true" focusTraversable="false"/>
+            </HBox>
+            <!-- HU37: el resultado en gris, 400 ms después de la última tecla -->
+            <Label fx:id="resultadoEnVivo" styleClass="resultado-en-vivo" wrapText="true" visible="false" managed="false"/>
+            <Label fx:id="avisoEntrada" styleClass="mensaje-error" wrapText="true" visible="false" managed="false"/>
+        </VBox>
+
+        <GridPane fx:id="columnas" hgap="20" vgap="20">
+            <!-- Izquierda: pestañas -->
+            <VBox fx:id="columnaIzquierda" spacing="12">
+                <HBox fx:id="pestanasIzquierda" styleClass="pestanas-panel" spacing="6" alignment="CENTER_LEFT">
+                    <ToggleButton fx:id="pestanaTeclado" text="Teclado" styleClass="teclado-pildora" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaGrafica" text="Gráfica" styleClass="teclado-pildora" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaAnalisis" text="Análisis" styleClass="teclado-pildora" focusTraversable="false"/>
+                    <ToggleButton fx:id="pestanaExploracion" text="Exploración" styleClass="teclado-pildora" focusTraversable="false"/>
+                </HBox>
+
+                <StackPane fx:id="contenidoIzquierda">
+                    <!-- Teclado (HU33) -->
+                    <VBox fx:id="vistaTeclado" styleClass="tarjeta">
+                        <StackPane fx:id="zonaTeclado"/>
+                    </VBox>
+
+                    <!-- Gráfica: la tarjeta Solución y la gráfica (Sprint 3) -->
+                    <VBox fx:id="vistaGrafica" spacing="20" visible="false" managed="false">
+                        <VBox fx:id="tarjetaSolucion" styleClass="tarjeta">
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <StackPane fx:id="iconoSolucion" styleClass="icono-check">
+                                    <Circle radius="16" styleClass="check-circulo"/>
+                                    <SVGPath content="M0 5 L4 9 L12 1" styleClass="check-marca"/>
+                                </StackPane>
+                                <VBox spacing="2">
+                                    <Label text="Solución" styleClass="titulo-tarjeta"/>
+                                    <Label fx:id="subtituloSolucion" styleClass="subtitulo-tarjeta" wrapText="true"/>
+                                </VBox>
+                            </HBox>
+
+                            <StackPane>
+                                <VBox fx:id="cuerpoSolucion" spacing="12">
+                                    <HBox styleClass="recuadro-formula">
+                                        <ScrollPane fx:id="marcoFormula" HBox.hgrow="ALWAYS" fitToHeight="true"
+                                                    vbarPolicy="NEVER" hbarPolicy="AS_NEEDED" focusTraversable="false"
+                                                    styleClass="marco-formula">
+                                            <ImageView fx:id="formula" preserveRatio="true"/>
+                                        </ScrollPane>
+                                        <Label fx:id="etiquetaVerificado" text="Verificado" styleClass="etiqueta-verificado"
+                                               minWidth="-Infinity">
+                                            <graphic>
+                                                <SVGPath fx:id="marcaVerificado" content="M0 4 L3 7 L9 1" styleClass="check-marca"/>
+                                            </graphic>
+                                        </Label>
+                                    </HBox>
+                                    <VBox fx:id="irreducibles" spacing="4"/>
+                                    <FlowPane fx:id="alternativas" styleClass="alternativas" hgap="8" vgap="6"/>
+                                </VBox>
+
+                                <VBox fx:id="carga" styleClass="carga" visible="false" managed="false">
+                                    <ProgressIndicator prefWidth="40" prefHeight="40"/>
+                                    <Label fx:id="mensajeCarga" styleClass="mensaje-carga"/>
+                                </VBox>
+
+                                <Label fx:id="errorSolucion" styleClass="mensaje-error" wrapText="true"
+                                       visible="false" managed="false" StackPane.alignment="TOP_LEFT"/>
+
+                                <!-- HU08: el método elegido no aplica; se muestra el motivo, no un error -->
+                                <VBox fx:id="avisoNoAplica" styleClass="aviso-metodo" visible="false" managed="false"
+                                      StackPane.alignment="TOP_LEFT">
+                                    <Label fx:id="tituloNoAplica" styleClass="aviso-titulo" wrapText="true"/>
+                                    <Label fx:id="motivoNoAplica" styleClass="aviso-motivo" wrapText="true"/>
+                                </VBox>
+                            </StackPane>
+                        </VBox>
+
+                        <VBox fx:id="tarjetaGrafica" styleClass="tarjeta" visible="false" managed="false">
+                            <Label text="Gráfica de la función" styleClass="titulo-tarjeta"/>
+                            <!-- ResolucionController pone aquí el componente GraficaFuncion (Canvas) -->
+                            <StackPane fx:id="zonaGrafica" styleClass="zona-grafica"/>
+                            <Label fx:id="graficaNoDisponible" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
+                                   text="La gráfica está disponible para funciones de una variable"
+                                   visible="false" managed="false"/>
+                            <Label fx:id="ayudaGrafica" styleClass="subtitulo-tarjeta" wrapText="true"
+                                   text="Rueda: acercar o alejar · Arrastrar: mover · Doble clic: vista inicial"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Análisis: propiedades y recta de signos (RF66) -->
+                    <VBox fx:id="vistaAnalisis" styleClass="tarjeta" visible="false" managed="false">
+                        <Label text="Análisis de la función" styleClass="titulo-tarjeta"/>
+                        <VBox fx:id="analisis" spacing="10"/>
+                        <Label fx:id="sinAnalisis" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
+                               text="Resuelve un polinomio, una fracción o una ecuación de una variable para ver su análisis."/>
+                    </VBox>
+
+                    <!-- Exploración: los métodos como tarjetas y la comparación Q/R/C -->
+                    <VBox fx:id="vistaExploracion" styleClass="tarjeta" spacing="14" visible="false" managed="false">
+                        <Label text="Métodos" styleClass="titulo-tarjeta"/>
+                        <FlowPane fx:id="tarjetasMetodos" hgap="10" vgap="10" styleClass="tarjetas-metodos"/>
+                        <Label fx:id="sinMetodos" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
+                               text="Resuelve un ejercicio para ver qué métodos se usaron, cuáles se pueden probar y cuáles no aplican."/>
+                        <Label fx:id="tituloComparacion" text="Comparación Q / R / C" styleClass="titulo-tarjeta"/>
+                        <GridPane fx:id="comparacion" hgap="12" vgap="8" styleClass="comparacion-campos"/>
+                    </VBox>
+                </StackPane>
+            </VBox>
+
+            <!-- Derecha: Procedimiento paso a paso y dos secciones plegables -->
+            <VBox fx:id="tarjetaProcedimiento" styleClass="tarjeta">
+                <Label text="Procedimiento paso a paso" styleClass="titulo-tarjeta"/>
+                <VBox fx:id="pasos" spacing="8"/>
+                <Label fx:id="sinPasos" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
+                       visible="false" managed="false"/>
+                <!-- HU10: sugerencias con su justificación y el botón Resolver -->
+                <VBox fx:id="zonaSugerencias" spacing="8" styleClass="zona-sugerencias" visible="false" managed="false">
+                    <Label text="Qué más puedes hacer" styleClass="rotulo"/>
+                    <VBox fx:id="sugerencias" spacing="8"/>
+                </VBox>
+                <VBox fx:id="secciones">
+                    <TitledPane fx:id="panelPropiedades" text="Propiedades de la función" expanded="false"
+                                styleClass="seccion-plegable">
+                        <graphic>
+                            <SVGPath content="M1 14 H15 M2 11 L6 6 L9 9 L14 2" styleClass="seccion-icono"/>
+                        </graphic>
+                        <VBox fx:id="propiedades" spacing="10"/>
+                    </TitledPane>
+                    <TitledPane fx:id="panelVerificacion" text="Verificación" expanded="false"
+                                styleClass="seccion-plegable">
+                        <graphic>
+                            <SVGPath content="M8 1 A7 7 0 1 1 7.99 1 Z M4.5 8 L7 10.5 L11.5 5.5" styleClass="seccion-icono"/>
+                        </graphic>
+                        <VBox fx:id="lineasVerificacion" spacing="4"/>
+                    </TitledPane>
+                </VBox>
+            </VBox>
+        </GridPane>
+    </VBox>
+</ScrollPane>

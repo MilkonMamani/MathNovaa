@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; overflow: hidden; }
+  math-field {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 26px;
+    padding: 8px 12px;
+    border: none;
+    outline: none;
+    background: #ffffff;
+    --caret-color: #2563eb;
+    --placeholder-color: #d8dee9;
+    --placeholder-opacity: 1;
+  }
+  math-field::part(virtual-keyboard-toggle) { display: none; }
+  math-field::part(menu-toggle) { display: none; }
+</style>
+<script>
+  /*
+   * Ajustes para el WebView de JavaFX 21 (WebKit 619).
+   *
+   * 1) Fuentes: ese WebKit no decodifica WOFF2, que es lo único que MathLive
+   *    intenta cargar. Cargamos las mismas caras KaTeX en WOFF antes que
+   *    MathLive; al encontrarlas en document.fonts, MathLive no carga nada.
+   *
+   * 2) Teclado: ese WebKit entrega KeyboardEvent.key y .code vacíos (solo
+   *    keyCode y keyIdentifier). El texto entra bien por "input", pero MathLive
+   *    decide flechas, Enter, ⌫, Tab y Esc por code/key. Completamos key/code
+   *    solo para esas teclas y para Ctrl+letra; el resto queda igual.
+   */
+  (function () {
+    var caras = [
+      ['KaTeX_Main-Regular'],
+      ['KaTeX_Main-BoldItalic', { style: 'italic', weight: 'bold' }],
+      ['KaTeX_Main-Bold', { weight: 'bold' }],
+      ['KaTeX_Main-Italic', { style: 'italic' }],
+      ['KaTeX_Math-Italic', { style: 'italic' }],
+      ['KaTeX_Math-BoldItalic', { style: 'italic', weight: 'bold' }],
+      ['KaTeX_AMS-Regular'],
+      ['KaTeX_Caligraphic-Regular'],
+      ['KaTeX_Caligraphic-Bold', { weight: 'bold' }],
+      ['KaTeX_Fraktur-Regular'],
+      ['KaTeX_Fraktur-Bold', { weight: 'bold' }],
+      ['KaTeX_SansSerif-Regular'],
+      ['KaTeX_SansSerif-Bold', { weight: 'bold' }],
+      ['KaTeX_SansSerif-Italic', { style: 'italic' }],
+      ['KaTeX_Script-Regular'],
+      ['KaTeX_Typewriter-Regular'],
+      ['KaTeX_Size1-Regular'],
+      ['KaTeX_Size2-Regular'],
+      ['KaTeX_Size3-Regular'],
+      ['KaTeX_Size4-Regular']
+    ];
+    window.fuentesListas = Promise.all(caras.map(function (c) {
+      var f = new FontFace(c[0].replace(/-[a-zA-Z]+$/, ''), 'url(fonts/' + c[0] + '.woff)', c[1] || {});
+      document.fonts.add(f);
+      return f.load();
+    }));
+
+    var proto = KeyboardEvent.prototype;
+    var keyOriginal = Object.getOwnPropertyDescriptor(proto, 'key');
+    var codeOriginal = Object.getOwnPropertyDescriptor(proto, 'code');
+    if (!keyOriginal || !codeOriginal) return;
+
+    var porIdentificador = {
+      'Left': 'ArrowLeft', 'Right': 'ArrowRight', 'Up': 'ArrowUp', 'Down': 'ArrowDown',
+      'Enter': 'Enter', 'Home': 'Home', 'End': 'End', 'PageUp': 'PageUp', 'PageDown': 'PageDown',
+      'U+0008': 'Backspace', 'U+0009': 'Tab', 'U+001B': 'Escape', 'U+007F': 'Delete'
+    };
+    var porCodigo = {
+      8: 'Backspace', 9: 'Tab', 13: 'Enter', 27: 'Escape', 33: 'PageUp', 34: 'PageDown',
+      35: 'End', 36: 'Home', 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown', 46: 'Delete'
+    };
+
+    function teclaEspecial(ev) {
+      var porId = porIdentificador[ev.keyIdentifier];
+      if (porId) return porId;
+      return porCodigo[ev.keyCode] || null;
+    }
+
+    function letraConCtrl(ev) {
+      if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return null;
+      var k = ev.keyCode;
+      if (k >= 65 && k <= 90) return { key: String.fromCharCode(k + 32), code: 'Key' + String.fromCharCode(k) };
+      if (k >= 48 && k <= 57) return { key: String.fromCharCode(k), code: 'Digit' + String.fromCharCode(k) };
+      return null;
+    }
+
+    Object.defineProperty(proto, 'key', {
+      configurable: true,
+      get: function () {
+        var v = keyOriginal.get.call(this);
+        if (v) return v;
+        var e = teclaEspecial(this);
+        if (e) return e;
+        var l = letraConCtrl(this);
+        return l ? l.key : v;
+      }
+    });
+    Object.defineProperty(proto, 'code', {
+      configurable: true,
+      get: function () {
+        var v = codeOriginal.get.call(this);
+        if (v) return v;
+        var e = teclaEspecial(this);
+        if (e) return e;
+        var l = letraConCtrl(this);
+        return l ? l.code : v;
+      }
+    });
+  })();
+</script>
+<script src="mathlive.min.js"></script>
+</head>
+<body>
+<math-field id="mf"></math-field>
+<script>
+  // Sin internet: las fuentes ya se cargaron arriba; MathLive no busca nada más.
+  MathfieldElement.fontsDirectory = null;
+  MathfieldElement.soundsDirectory = null;
+
+  var mf = document.getElementById('mf');
+  mf.mathVirtualKeyboardPolicy = 'manual';
+  // Los atajos de MathLive se apagan: en este WebView las teclas llegan sin key y no saltarían.
+  // Los nombres de función los convierte atajos() más abajo.
+  mf.inlineShortcuts = {};
+  mf.smartMode = false;
+  if (window.mathVirtualKeyboard) { window.mathVirtualKeyboard.hide(); }
+
+  function aJava(metodo, a, b, c) {
+    try {
+      if (window.java && window.java[metodo]) {
+        if (c !== undefined) { window.java[metodo](a, b, c); }
+        else if (b !== undefined) { window.java[metodo](a, b); }
+        else { window.java[metodo](a); }
+      }
+    } catch (e) {}
+  }
+
+  var ultimaAltura = 0;
+  function avisarAltura() {
+    var h = Math.ceil(mf.getBoundingClientRect().height);
+    if (h !== ultimaAltura) { ultimaAltura = h; aJava('onAltura', h); }
+  }
+
+  // ---------------------------------------------------------------- nombres de función
+  // Al teclear sen, cos, ln... seguidos, se vuelven la función en letra recta (\operatorname{sen}, \cos).
+  // RN45: "sen" gana sobre s·e·n, pero con espacios ("s e n") siguen siendo tres letras.
+  var ATAJOS = {
+    sen: '\\operatorname{sen}', cos: '\\cos', tan: '\\tan', cot: '\\cot', sec: '\\sec', csc: '\\csc',
+    cosec: '\\operatorname{cosec}', arcsen: '\\operatorname{arcsen}', arccos: '\\arccos', arctan: '\\arctan',
+    ln: '\\ln', log: '\\log', exp: '\\exp'
+  };
+  var LARGO_ATAJO = 6;
+  // Lo tecleado seguido, sin espacio ni otro signo en medio: [{texto, latex}], uno por átomo.
+  var tecleo = [];
+  var convirtiendo = false;
+
+  function latexAntes(k) {
+    var p = mf.position - k + 1;
+    return p >= 1 ? mf.getValue(p - 1, p, 'latex') : null;
+  }
+
+  // El tecleo sigue valiendo si los átomos justo antes de la letra nueva (que ya está puesta) son
+  // esos mismos: el cursor no se movió y no se borró nada.
+  function tecleoVigente() {
+    for (var j = 0; j < tecleo.length; j++) {
+      if (latexAntes(tecleo.length - j + 1) !== tecleo[j].latex) { return false; }
+    }
+    return true;
+  }
+
+  function cortarTecleo() { tecleo = []; }
+
+  function letraTecleada(letra) {
+    if (!tecleoVigente()) { tecleo = []; }
+    tecleo.push({ texto: letra, latex: latexAntes(1) });
+    if (tecleo.length > LARGO_ATAJO) { tecleo.shift(); }
+    // El nombre más largo primero: "arcsen" antes que "sen", "cosec" antes que "cos" + e + c.
+    for (var i = 0; i < tecleo.length; i++) {
+      var palabra = '';
+      for (var j = i; j < tecleo.length; j++) { palabra += tecleo[j].texto; }
+      var latex = ATAJOS[palabra];
+      if (latex) {
+        convirtiendo = true;
+        try {
+          for (var k = i; k < tecleo.length; k++) { mf.executeCommand('deleteBackward'); }
+          mf.executeCommand(['insert', latex, { format: 'latex' }]);
+        } finally {
+          convirtiendo = false;
+        }
+        tecleo = tecleo.slice(0, i);
+        tecleo.push({ texto: palabra, latex: latexAntes(1) });
+        return;
+      }
+    }
+  }
+
+  // MathLive sale del exponente tras una cifra (x^2x es x²·x), pero no si la base es una función:
+  // sen^2x quedaría sen^{2x}. Aquí se hace lo mismo para las funciones, como en la gramática.
+  function salirDelExponenteDeFuncion() {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      if (!modelo) { return; }
+      var atomo = modelo.at(modelo.position);
+      var base = atomo && atomo.parent;
+      if (atomo && base && atomo.parentBranch === 'superscript' && (base.type === 'mop' || base.type === 'operator')
+          && atomo.leftSibling && atomo.leftSibling.type === 'first' && atomo.isLastSibling) {
+        mf.executeCommand('moveAfterParent');
+      }
+    } catch (e) {}
+  }
+
+  // e^(2x): al cerrar el paréntesis que es todo el exponente, el cursor sale (como x^(n + 1) en texto).
+  function salirDelExponenteConParentesis() {
+    try {
+      var modelo = mf._mathfield && mf._mathfield.model;
+      if (!modelo) { return; }
+      var atomo = modelo.at(modelo.position);
+      if (atomo && atomo.type === 'leftright' && atomo.parentBranch === 'superscript'
+          && atomo.leftSibling && atomo.leftSibling.type === 'first' && atomo.isLastSibling) {
+        mf.executeCommand('moveAfterParent');
+      }
+    } catch (e) {}
+  }
+
+  // Justo después de que MathLive inserta lo tecleado. Tiene que ser aquí y no en el evento input,
+  // que MathLive despacha con setTimeout: al tipear rápido llegaría con más letras ya puestas.
+  function despuesDeTeclear(d) {
+    if (convirtiendo) { return; }
+    if (typeof d === 'string' && d.length === 1) {
+      if (/^[a-zA-Z]$/.test(d)) { letraTecleada(d); return; }
+      cortarTecleo();
+      if (/^[0-9]$/.test(d)) { salirDelExponenteDeFuncion(); }
+      else if (d === ')' || d === ']') { salirDelExponenteConParentesis(); }
+      return;
+    }
+    cortarTecleo();
+  }
+
+  // El teclado físico llega a MathLive por onInput(texto) del campo interno; se envuelve una vez. El
+  // campo interno se crea después de este script, así que se intenta de nuevo con cada tecla.
+  function engancharTecleo() {
+    var campo = mf._mathfield;
+    if (!campo || campo.__mathnova || typeof campo.onInput !== 'function') { return; }
+    var original = campo.onInput;
+    campo.onInput = function (texto) {
+      var r = original.apply(this, arguments);
+      try { despuesDeTeclear(texto); } catch (e) {}
+      return r;
+    };
+    campo.__mathnova = true;
+  }
+  engancharTecleo();
+
+  // ---------------------------------------------------------------- sugerencias (RF70)
+  // Java pasa la lista: [{palabra, latex}]. Al escribir la palabra aparece la lista; Enter inserta, Esc cierra.
+  var sugerencias = [];
+  var abierta = null;      // {palabra, indices, sel}
+  var descartada = null;   // palabra que el usuario cerró con Esc
+
+  // {texto, funcion}: las letras sueltas antes del cursor, o el nombre de la función que ya se
+  // convirtió (\operatorname{sen} es "sen", \cos es "cos"), que ocupa un solo átomo.
+  function palabraAntesDelCursor() {
+    var ultimo = latexAntes(1);
+    var f = ultimo && /^\\(?:operatorname\{(?:\\mathrm\{)?)?([a-z]+)\}*$/.exec(ultimo);
+    if (f && ATAJOS[f[1]]) { return { texto: f[1], funcion: true }; }
+    var s = '';
+    for (var i = mf.position; i > 0 && s.length < 6; i--) {
+      var ch = mf.getValue(i - 1, i, 'latex');
+      if (!/^[a-zA-Z]$/.test(ch)) { break; }
+      s = ch + s;
+    }
+    return { texto: s, funcion: false };
+  }
+
+  function coincide(antes, palabra) {
+    return antes.funcion ? antes.texto === palabra
+        : antes.texto.length >= palabra.length && antes.texto.slice(-palabra.length) === palabra;
+  }
+
+  function puntoDelCursor() {
+    var caret = mf.shadowRoot && mf.shadowRoot.querySelector('.ML__caret');
+    var r = caret ? caret.getBoundingClientRect() : mf.getBoundingClientRect();
+    return { x: caret ? r.left : 12, y: r.bottom };
+  }
+
+  function buscarSugerencias() {
+    var antes = palabraAntesDelCursor();
+    var palabra = null;
+    for (var i = 0; i < sugerencias.length; i++) {
+      var p = sugerencias[i].palabra;
+      if (coincide(antes, p) && (palabra === null || p.length > palabra.length)) {
+        palabra = p;
+      }
+    }
+    if (palabra === null || palabra === descartada) {
+      if (palabra === null) { descartada = null; }
+      cerrar();
+      return;
+    }
+    var indices = [];
+    for (var j = 0; j < sugerencias.length; j++) {
+      if (sugerencias[j].palabra === palabra) { indices.push(j); }
+    }
+    if (abierta && abierta.palabra === palabra && abierta.atomos === (antes.funcion ? 1 : palabra.length)) { return; }
+    abierta = { palabra: palabra, indices: indices, sel: 0, atomos: antes.funcion ? 1 : palabra.length };
+    var punto = puntoDelCursor();
+    aJava('onSugerencias', indices.join(','), punto.x, punto.y);
+  }
+
+  function cerrar() {
+    if (abierta) { abierta = null; aJava('onCerrarSugerencias', ''); }
+  }
+
+  function aceptar(posicion) {
+    if (!abierta) { return; }
+    var item = sugerencias[abierta.indices[posicion]];
+    var n = abierta.atomos;
+    abierta = null;
+    cortarTecleo();
+    aJava('onCerrarSugerencias', '');
+    for (var i = 0; i < n; i++) { mf.executeCommand('deleteBackward'); }
+    window.editor.insertar(item.latex);
+  }
+
+  mf.addEventListener('input', function (ev) {
+    buscarSugerencias();
+    aJava('onCambio', mf.getValue());
+    avisarAltura();
+  });
+  mf.addEventListener('selection-change', function () {
+    if (abierta && !coincide(palabraAntesDelCursor(), abierta.palabra)) { cerrar(); }
+  });
+  mf.addEventListener('focusout', function () { setTimeout(function () { if (!mf.hasFocus()) { cerrar(); } }, 150); });
+
+  mf.addEventListener('keydown', function (ev) {
+    // Espacio, flechas, Inicio/Fin: lo que venga después ya no forma un nombre con lo de antes.
+    engancharTecleo();
+    var kc = ev.keyCode;
+    if (kc === 32 || (kc >= 35 && kc <= 40) || kc === 9) { cortarTecleo(); }
+    if (abierta) {
+      var parar = true;
+      if (ev.key === 'ArrowDown') {
+        abierta.sel = (abierta.sel + 1) % abierta.indices.length;
+        aJava('onSeleccion', abierta.sel);
+      } else if (ev.key === 'ArrowUp') {
+        abierta.sel = (abierta.sel + abierta.indices.length - 1) % abierta.indices.length;
+        aJava('onSeleccion', abierta.sel);
+      } else if (ev.key === 'Enter' || ev.key === 'Tab') {
+        aceptar(abierta.sel);
+      } else if (ev.key === 'Escape') {
+        descartada = abierta.palabra;
+        cerrar();
+      } else {
+        parar = false;
+      }
+      if (parar) { ev.preventDefault(); ev.stopImmediatePropagation(); return; }
+    }
+    if (ev.key === 'Enter') {
+      ev.preventDefault(); ev.stopImmediatePropagation();
+      aJava('onEnter', mf.getValue());
+    }
+  }, true);
+
+  // ---------------------------------------------------------------- API que llama Java
+  window.editor = {
+    insertar: function (latex) {
+      mf.focus();
+      mf.executeCommand(['insert', latex, { selectionMode: 'placeholder', focus: true }]);
+      mf.focus();
+    },
+    izquierda: function () { mf.focus(); mf.executeCommand('moveToPreviousChar'); },
+    derecha: function () { mf.focus(); mf.executeCommand('moveToNextChar'); },
+    borrar: function () { mf.focus(); mf.executeCommand('deleteBackward'); },
+    limpiar: function () {
+      cerrar();
+      cortarTecleo();
+      mf.setValue('');
+      mf.focus();
+      aJava('onCambio', '');
+      avisarAltura();
+    },
+    poner: function (latex) {
+      cerrar();
+      cortarTecleo();
+      mf.setValue(latex);
+      mf.focus();
+      mf.executeCommand('moveToMathfieldEnd');
+      aJava('onCambio', mf.getValue());
+      avisarAltura();
+    },
+    valor: function () { return mf.getValue(); },
+    // Letra por letra, como el teclado físico: así saltan los nombres de función y el espacio corta.
+    escribir: function (texto) {
+      mf.focus();
+      for (var i = 0; i < texto.length; i++) {
+        var c = texto.charAt(i);
+        if (c === ' ') { cortarTecleo(); }
+        mf.executeCommand(['typedText', c]);
+        despuesDeTeclear(c);
+      }
+    },
+    enfocar: function () { mf.focus(); },
+    configurarSugerencias: function (json) { sugerencias = JSON.parse(json); },
+    aceptarSugerencia: function (posicion) { aceptar(posicion); mf.focus(); },
+    cerrarSugerencias: function () { cerrar(); }
+  };
+  window.fuentesListas.then(function () { engancharTecleo(); avisarAltura(); aJava('onListo', 'ok'); },
+                            function (e) { aJava('onListo', 'fuentes:' + e); });
+</script>
+</body>
+</html>

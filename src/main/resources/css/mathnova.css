@@ -1,0 +1,1168 @@
+/*
+ * MathNova · estilos de toda la app.
+ * Todos los colores, radios y sombras están aquí; los FXML solo ponen clases.
+ */
+
+/* ===================== Paleta y base ===================== */
+.root {
+    color-barra: #0f1f3d;
+    color-barra-texto: #cbd5e1;
+    color-fondo: #f5f7fb;
+    color-tarjeta: #ffffff;
+    color-marino: #1e3a6e;
+    color-marino-hover: #274b8c;
+    color-marino-pulsado: #172e57;
+    color-azul: #2563eb;
+    color-verde: #16a34a;
+    color-verde-fondo: #dcfce7;
+    color-rojo: #dc2626;
+    color-rojo-fondo: #fee2e2;
+    color-texto: #0f172a;
+    color-texto-2: #475569;
+    color-borde: #e2e8f0;
+    color-gris-claro: #f1f5f9;
+    color-gris-hover: #f8fafc;
+
+    /* "System" es la fuente del sistema: Segoe UI en Windows */
+    -fx-font-family: "System";
+    -fx-font-size: 14px;
+    -fx-focus-color: #2563eb;
+    -fx-faint-focus-color: #2563eb22;
+    -fx-accent: #2563eb;
+}
+
+.label {
+    -fx-text-fill: color-texto;
+}
+
+.tooltip {
+    -fx-background-color: color-texto;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 6 10 6 10;
+}
+
+/* ===================== Estructura: barra lateral + contenido ===================== */
+.pantalla-principal {
+    -fx-background-color: color-fondo;
+}
+
+.contenido {
+    -fx-background-color: color-fondo;
+}
+
+.contenido-scroll,
+.contenido-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.barra-lateral {
+    -fx-background-color: color-barra;
+    -fx-pref-width: 224px;
+    -fx-min-width: 224px;
+    -fx-padding: 24 12 24 12;
+    -fx-spacing: 4;
+}
+
+.logo {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 24 8;
+}
+
+.logo-marca {
+    -fx-background-color: color-azul;
+    -fx-background-radius: 8;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-width: 32px;
+    -fx-max-height: 32px;
+}
+
+.logo-marca .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.logo-texto {
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-barra-texto;
+    -fx-font-size: 14px;
+    -fx-alignment: center-left;
+    -fx-graphic-text-gap: 12;
+    -fx-min-height: 42px;
+    -fx-padding: 0 12 0 12;
+    -fx-cursor: hand;
+}
+
+.nav-item .icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-barra-texto;
+    -fx-stroke-width: 1.8;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.nav-item:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.07);
+}
+
+.nav-item:seleccionado {
+    -fx-background-color: color-marino;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.nav-item:seleccionado .icono {
+    -fx-stroke: white;
+}
+
+.nav-item:focus-visible {
+    -fx-border-color: color-azul;
+}
+
+.nav-item:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* ===================== Tarjetas y textos ===================== */
+.tarjeta {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 16;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 18, 0, 0, 4);
+}
+
+.titulo-pantalla {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.subtitulo-pantalla {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 14px;
+}
+
+.titulo-tarjeta {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.subtitulo-tarjeta {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.rotulo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.mensaje-error {
+    -fx-text-fill: color-rojo;
+    -fx-font-size: 13px;
+}
+
+/* ===================== Botones ===================== */
+.boton-primario {
+    -fx-background-color: color-marino;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-min-height: 42px;
+    -fx-padding: 0 24 0 24;
+    -fx-cursor: hand;
+}
+
+.boton-primario:hover {
+    -fx-background-color: color-marino-hover;
+}
+
+.boton-primario:pressed {
+    -fx-background-color: color-marino-pulsado;
+}
+
+.boton-primario:focus-visible {
+    -fx-border-color: color-azul;
+}
+
+.boton-primario:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* ===================== Barra de entrada ===================== */
+.barra-entrada {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 12;
+    -fx-padding: 8 8 8 12;
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 18, 0, 0, 4);
+}
+
+.selector-campo {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 8;
+    -fx-padding: 0;
+    -fx-spacing: 0;
+    -fx-alignment: center;
+}
+
+.opcion-campo {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-texto-2;
+    -fx-font-weight: bold;
+    -fx-min-width: 42px;
+    -fx-min-height: 42px;
+}
+
+.opcion-campo:selected {
+    -fx-background-color: color-marino;
+    -fx-text-fill: white;
+}
+
+.opcion-campo:focus-visible {
+    -fx-border-color: color-azul;
+}
+
+.opcion-campo:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* ===================== Tarjeta "Solución" ===================== */
+.icono-check .check-circulo {
+    -fx-fill: color-verde-fondo;
+}
+
+.icono-check .check-marca {
+    -fx-fill: transparent;
+    -fx-stroke: color-verde;
+    -fx-stroke-width: 2.4;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.recuadro-formula {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 10;
+    -fx-padding: 16 20 16 20;
+    -fx-spacing: 16;
+    -fx-alignment: center-left;
+    -fx-min-height: 88px;
+}
+
+.marco-formula,
+.marco-formula > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.etiqueta-verificado {
+    -fx-background-color: color-verde-fondo;
+    -fx-background-radius: 999;
+    -fx-text-fill: color-verde;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 12 5 10;
+    -fx-graphic-text-gap: 6;
+}
+
+.etiqueta-verificado .check-marca {
+    -fx-fill: transparent;
+    -fx-stroke: color-verde;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+/* HU18: la expansión no coincide con la entrada */
+.etiqueta-verificado:mal {
+    -fx-background-color: color-rojo-fondo;
+    -fx-text-fill: color-rojo;
+}
+
+.etiqueta-verificado:mal .check-marca {
+    -fx-stroke: color-rojo;
+}
+
+.nota-irreducible {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.carga {
+    -fx-spacing: 14;
+    -fx-alignment: center;
+    -fx-padding: 36 0 36 0;
+}
+
+.carga .progress-indicator {
+    -fx-progress-color: color-marino;
+}
+
+.mensaje-carga {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 14px;
+}
+
+/* ===================== Tarjeta "Procedimiento paso a paso" ===================== */
+.paso {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 10;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 10;
+}
+
+.paso:abierta {
+    -fx-border-color: color-marino;
+}
+
+.paso-fila {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-padding: 8 12 8 10;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-min-height: 56px;
+    -fx-cursor: hand;
+}
+
+.paso-fila:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.paso-fila:focus-visible {
+    -fx-border-color: color-azul;
+}
+
+.paso-numero {
+    -fx-background-color: color-marino;
+    -fx-background-radius: 999;
+    -fx-min-width: 30px;
+    -fx-min-height: 30px;
+    -fx-max-width: 30px;
+    -fx-max-height: 30px;
+}
+
+.paso-numero .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.paso-nombre {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.paso-flecha {
+    -fx-fill: transparent;
+    -fx-stroke: color-texto-2;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.paso-detalle {
+    -fx-spacing: 6;
+    -fx-padding: 4 16 16 54;
+}
+
+.justificacion {
+    -fx-font-size: 14px;
+}
+
+.trabajo {
+    -fx-padding: 8 12 8 12;
+    -fx-spacing: 4;
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 8;
+}
+
+/* F13: las filas del aspa en columnas fijas */
+.trabajo .aspa {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 16px;
+}
+
+.nota-sin-pasos {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 10;
+    -fx-padding: 14 16 14 16;
+    -fx-font-size: 14px;
+}
+
+/* Secciones plegables con flecha: descartados (HU05) y verificación (HU18) */
+.seccion-plegable {
+    -fx-text-fill: color-texto;
+    -fx-font-weight: bold;
+}
+
+.seccion-plegable > .title {
+    -fx-background-color: transparent;
+    -fx-border-color: color-borde transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 4 12 4;
+    -fx-min-height: 44px;
+    -fx-cursor: hand;
+}
+
+.seccion-plegable:focus-visible > .title {
+    -fx-border-color: color-azul;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.seccion-plegable > .title > .arrow-button > .arrow {
+    -fx-background-color: color-texto-2;
+}
+
+.seccion-plegable > .content {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 4 8 26;
+}
+
+.seccion-plegable .label {
+    -fx-font-weight: normal;
+}
+
+.descartado {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.linea-verificacion {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 13px;
+    -fx-text-fill: color-texto-2;
+}
+
+.seccion-plegable .coincide {
+    -fx-text-fill: color-verde;
+    -fx-font-weight: bold;
+}
+
+.seccion-plegable .no-coincide {
+    -fx-text-fill: color-rojo;
+    -fx-font-weight: bold;
+}
+
+/* ===================== Sprint 3 ===================== */
+
+/* A.2: "Irreducible en Q" y "Sin factorización en Q" en gris */
+.etiqueta-verificado:neutra {
+    -fx-background-color: color-gris-claro;
+    -fx-text-fill: color-texto-2;
+}
+
+/* Parte D: "También se puede resolver con: Ruffini" */
+.alternativas {
+    -fx-padding: 4 0 0 0;
+    -fx-alignment: center-left;
+}
+
+.alternativas-rotulo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.alternativa {
+    -fx-text-fill: color-azul;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent;
+    -fx-padding: 2 4 2 4;
+}
+
+.alternativa:focus-visible {
+    -fx-border-color: color-azul;
+    -fx-border-radius: 4;
+}
+
+/* HU08: el método forzado no aplica */
+.aviso-metodo {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 10;
+    -fx-padding: 14 16 14 16;
+    -fx-spacing: 4;
+}
+
+.aviso-titulo {
+    -fx-font-weight: bold;
+}
+
+.aviso-motivo {
+    -fx-text-fill: color-texto-2;
+}
+
+.descartado-motivo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+/* ===================== Pizarra (HU06) ===================== */
+.pizarra {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+}
+
+.pizarra .label,
+.pizarra-texto,
+.pizarra-texto .text {
+    -fx-font-size: 15px;
+}
+
+.sustitucion-texto {
+    -fx-fill: color-texto;
+    -fx-font-size: 15px;
+}
+
+.pizarra-resultado {
+    -fx-font-weight: bold;
+}
+
+/* Fichas de los candidatos p/q */
+.ficha {
+    -fx-background-radius: 999;
+    -fx-padding: 3 10 3 10;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.ficha-raiz {
+    -fx-background-color: color-verde-fondo;
+    -fx-text-fill: color-verde;
+}
+
+.ficha-fallida {
+    -fx-background-color: color-rojo-fondo;
+    -fx-text-fill: color-rojo;
+}
+
+/* Tabla de Ruffini */
+.ruffini-grilla {
+    -fx-hgap: 0;
+    -fx-vgap: 2;
+}
+
+.ruffini-numero {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 16px;
+    -fx-min-width: 46px;
+    -fx-padding: 2 8 2 8;
+}
+
+/* Los 0 de los términos que faltaban */
+.ruffini-numero:relleno {
+    -fx-text-fill: #94a3b8;
+}
+
+.ruffini-producto {
+    -fx-cursor: hand;
+    -fx-text-fill: color-texto-2;
+}
+
+.ruffini-producto:hover {
+    -fx-background-color: #dbeafe;
+    -fx-background-radius: 4;
+}
+
+.ruffini-raiz {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 10 2 0;
+}
+
+.ruffini-vertical {
+    -fx-background-color: color-texto;
+    -fx-min-width: 2px;
+    -fx-max-width: 2px;
+}
+
+.ruffini-horizontal {
+    -fx-background-color: color-texto;
+    -fx-min-height: 2px;
+    -fx-max-height: 2px;
+}
+
+.ruffini-residuo {
+    -fx-border-color: color-texto-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+}
+
+.ruffini-residuo:cero {
+    -fx-border-color: color-verde;
+    -fx-background-color: color-verde-fondo;
+    -fx-background-radius: 4;
+    -fx-text-fill: color-verde;
+    -fx-font-weight: bold;
+}
+
+.ruffini-flecha {
+    -fx-stroke: color-azul;
+    -fx-stroke-width: 2;
+}
+
+.ruffini-flecha-punta {
+    -fx-fill: color-azul;
+}
+
+.ruffini-origen {
+    -fx-background-color: color-azul;
+    -fx-background-radius: 4;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 1 6 1 6;
+}
+
+/* Aspa simple y doble */
+.aspa-grilla {
+    -fx-hgap: 10;
+    -fx-vgap: 4;
+}
+
+.aspa-celda,
+.aspa-celda-central {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 17px;
+    -fx-padding: 0 4 0 4;
+}
+
+.aspa-celda-central {
+    -fx-text-fill: color-azul;
+    -fx-font-weight: bold;
+}
+
+.aspa-linea {
+    -fx-stroke: color-texto-2;
+    -fx-stroke-width: 1.5;
+}
+
+.aspa-suma {
+    -fx-text-fill: color-verde;
+    -fx-font-weight: bold;
+}
+
+/* Sustitución: la variable nueva resaltada */
+.sustitucion {
+    -fx-hgap: 14;
+    -fx-vgap: 6;
+}
+
+.sustitucion-definicion {
+    -fx-font-weight: bold;
+}
+
+.sustitucion-variable {
+    -fx-fill: color-azul;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+}
+
+/* Sistema de coeficientes */
+.sistema-tabla {
+    -fx-hgap: 18;
+    -fx-vgap: 3;
+}
+
+.sistema-solucion {
+    -fx-font-weight: bold;
+    -fx-text-fill: color-verde;
+}
+
+/* ===================== Sprint 3 · pulido de la pantalla de resolución ===================== */
+
+/* Fila de paso: nombre en una línea y la fórmula debajo, a todo el ancho */
+.paso-fila {
+    -fx-spacing: 6;
+    -fx-alignment: top-left;
+    -fx-min-height: -1;
+    -fx-padding: 10 12 8 10;
+}
+
+.paso-titulo {
+    -fx-spacing: 12;
+}
+
+.paso-formula {
+    -fx-padding: 0 0 0 42;
+}
+
+/* Círculos numerados en azul claro con el número en azul marino, como en el prototipo */
+.paso-numero {
+    -fx-background-color: #dbeafe;
+}
+
+.paso-numero .label {
+    -fx-text-fill: color-marino;
+}
+
+/* El paso desplegado conserva el borde azul */
+.paso:abierta {
+    -fx-border-color: color-azul;
+    -fx-border-width: 1.5;
+}
+
+/* Secciones plegables con ícono */
+.seccion-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-marino;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.seccion-plegable {
+    -fx-graphic-text-gap: 8;
+}
+
+/* "También se puede resolver con:" como botones pequeños con borde */
+.boton-alternativa {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-marino;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 12 5 12;
+    -fx-cursor: hand;
+}
+
+.boton-alternativa:hover {
+    -fx-background-color: #dbeafe;
+    -fx-border-color: color-azul;
+}
+
+.boton-alternativa:focus-visible {
+    -fx-border-color: color-azul;
+}
+
+/* Gráfica (HU35) */
+.zona-grafica {
+    -fx-background-color: color-tarjeta;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-min-height: 340px;
+    -fx-pref-height: 340px;
+}
+
+/* Propiedades de la función (RF66) */
+.propiedades-tabla {
+    -fx-hgap: 16;
+    -fx-vgap: 6;
+}
+
+.seccion-plegable .propiedad-nombre {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.propiedad-valor {
+    -fx-font-size: 14px;
+}
+
+.recta-signos {
+    -fx-min-height: 64px;
+    -fx-pref-height: 64px;
+}
+
+.recta-linea {
+    -fx-stroke: color-texto-2;
+    -fx-stroke-width: 1.5;
+}
+
+.recta-punto {
+    -fx-fill: color-marino;
+}
+
+.seccion-plegable .recta-raiz {
+    -fx-font-size: 12px;
+    -fx-text-fill: color-texto;
+}
+
+.seccion-plegable .recta-signo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.seccion-plegable .recta-signo:positivo {
+    -fx-text-fill: color-verde;
+}
+
+.seccion-plegable .recta-signo:negativo {
+    -fx-text-fill: color-rojo;
+}
+
+/* ===================== Editor visual (HU36) ===================== */
+.editor-matematico {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 10;
+    -fx-padding: 4 8 4 8;
+}
+
+.editor-campo {
+    -fx-alignment: center-left;
+}
+
+.editor-aviso-icono {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 20px;
+}
+
+.editor-aviso {
+    -fx-text-fill: #b45309;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 2 30;
+}
+
+.editor-sugerencias {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, #0f172a33, 12, 0, 0, 3);
+    -fx-min-width: 240;
+}
+
+.editor-sugerencia {
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 6;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.editor-sugerencia:hover {
+    -fx-background-color: #f1f5f9;
+}
+
+.editor-sugerencia:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e3a6e;
+}
+
+/* ===================== Teclado en pantalla (HU33, RF72) ===================== */
+.teclado-mn {
+    -fx-padding: 4 0 0 0;
+}
+
+.teclado-pildora {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 999;
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.teclado-pildora:hover {
+    -fx-background-color: #e2e8f0;
+}
+
+.teclado-pildora:selected {
+    -fx-background-color: color-marino;
+    -fx-text-fill: white;
+}
+
+.teclado-mas {
+    -fx-background-color: transparent;
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10 4 10;
+    -fx-background-radius: 999;
+    -fx-cursor: hand;
+}
+
+.teclado-mas:hover {
+    -fx-background-color: color-gris-claro;
+}
+
+.teclado-tecla {
+    -fx-background-color: #c7cddb, white;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 9, 8;
+    -fx-text-fill: color-texto;
+    -fx-font-size: 16px;
+    -fx-padding: 6 4 6 4;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #0f172a14, 2, 0, 0, 1);
+}
+
+.teclado-tecla:hover {
+    -fx-background-color: #b6bfd1, color-gris-hover;
+}
+
+.teclado-tecla:pressed {
+    -fx-background-color: #9aa5bd, #e8ecf4;
+}
+
+.teclado-especial {
+    -fx-background-color: #b9c0d0, #d5d9e3;
+}
+
+.teclado-especial:hover {
+    -fx-background-color: #a9b1c4, #cbd0dc;
+}
+
+.teclado-especial:pressed {
+    -fx-background-color: #98a1b6, #bfc5d3;
+}
+
+.teclado-enter {
+    -fx-background-color: color-marino-pulsado, color-marino;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.teclado-enter:hover {
+    -fx-background-color: color-marino-pulsado, color-marino-hover;
+}
+
+.teclado-enter:pressed {
+    -fx-background-color: color-marino-pulsado, color-marino-pulsado;
+}
+
+.teclado-constante {
+    -fx-text-fill: #ea580c;
+    -fx-font-weight: bold;
+}
+
+.teclado-desactivada,
+.teclado-desactivada:hover,
+.teclado-desactivada:pressed {
+    -fx-background-color: #e2e8f0, #f1f5f9;
+    -fx-text-fill: #94a3b8;
+    -fx-cursor: default;
+    -fx-effect: null;
+}
+
+/* ===================== Pantalla Resolver (Sprint S3b) ===================== */
+/* Dentro de la barra, el editor no lleva su propio marco: la barra ya es la tarjeta. */
+.barra-entrada .editor-matematico {
+    -fx-border-color: transparent;
+    -fx-padding: 0 4 0 0;
+}
+
+.resultado-en-vivo {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 18px;
+    -fx-padding: 0 0 0 16;
+}
+
+.pestanas-panel {
+    -fx-padding: 0 0 2 0;
+}
+
+.tarjeta-metodo {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 10;
+    -fx-padding: 10 12 10 12;
+}
+
+.metodo-nombre {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.metodo-motivo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+.metodo-estado {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 999;
+    -fx-padding: 2 8 2 8;
+}
+
+.metodo-usado {
+    -fx-background-color: color-verde-fondo;
+    -fx-text-fill: color-verde;
+}
+
+.metodo-probar {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: color-azul;
+}
+
+.metodo-no-aplica {
+    -fx-background-color: color-gris-claro;
+    -fx-text-fill: color-texto-2;
+}
+
+.comparacion-campo {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-min-width: 28;
+    -fx-alignment: center;
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+}
+
+/* El campo elegido en la barra (Q, R o C) */
+.comparacion-campo-elegido {
+    -fx-background-color: color-azul;
+    -fx-text-fill: white;
+}
+
+.comparacion-pendiente {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+}
+
+/* HU10: tarjetas de sugerencia debajo de los pasos */
+.zona-sugerencias {
+    -fx-padding: 12 0 4 0;
+}
+
+.tarjeta-sugerencia {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 10;
+    -fx-padding: 10 12 10 12;
+}
+
+.tarjeta-sugerencia:disabled-sugerencia {
+    -fx-opacity: 0.6;
+}
+
+.sugerencia-icono {
+    -fx-fill: color-azul;
+}
+
+.sugerencia-titulo {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.sugerencia-justificacion {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+/* Sprint 5: tabla de valores y asíntotas en Análisis */
+.tabla-valores {
+    -fx-hgap: 18;
+    -fx-vgap: 4;
+}
+
+.tabla-valores-cabecera {
+    -fx-font-weight: bold;
+    -fx-text-fill: color-texto-2;
+}
+
+.tabla-valores-celda {
+    -fx-font-family: "Consolas", "Monospaced";
+    -fx-font-size: 13px;
+}
+
+/* La fila final de la tabla de valores: hacia dónde se acerca f */
+.tabla-valores-limite {
+    -fx-text-fill: color-verde;
+    -fx-font-weight: bold;
+}
+
+/* Exploración: la línea de vista previa de un camino que también sirve */
+.metodo-vista-previa {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+    -fx-font-family: "Consolas", "Monospaced";
+}
+
+/* Comparación Q / R / C: el resultado es el mismo en los tres campos */
+.comparacion-nota {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+/* ===================== Sprint 7: pizarra de integración y varias variables ===================== */
+
+/* I03: tabla de por partes (u | dv / du | v) */
+.partes-grilla {
+    -fx-hgap: 28;
+    -fx-vgap: 6;
+    -fx-padding: 4 0 4 0;
+}
+
+.partes-celda {
+    -fx-font-size: 16px;
+    -fx-padding: 2 8 2 8;
+    -fx-border-color: transparent transparent color-texto-2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* I05: triángulo de la sustitución trigonométrica */
+.triangulo-lado {
+    -fx-fill: transparent;
+    -fx-stroke: color-azul;
+    -fx-stroke-width: 2;
+}
+
+.triangulo-recto,
+.triangulo-angulo {
+    -fx-fill: transparent;
+    -fx-stroke: color-texto-2;
+    -fx-stroke-width: 1.2;
+}
+
+.triangulo-etiqueta {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* V04: diagrama de árbol de la regla de la cadena */
+.arbol-nodo {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: color-azul;
+}
+
+.arbol-rama {
+    -fx-font-size: 13px;
+    -fx-text-fill: color-texto-2;
+}
