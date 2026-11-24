@@ -7,7 +7,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
@@ -19,7 +18,7 @@ import javafx.scene.shape.SVGPath;
 import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.animacion.AnimadorResolucion;
-import pe.mathnova.presentation.latex.ImagenLatex;
+import pe.mathnova.presentation.latex.VistaLatex;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 import pe.mathnova.presentation.pizarra.Pizarra;
 
@@ -168,9 +167,6 @@ public final class FilaPaso {
     }
 
     private ImageView imagen(Expresion e) {
-        Image img = ImagenLatex.de(renderizador, e);
-        ImageView vista = new ImageView(img);
-        vista.setPreserveRatio(true);
-        return vista;
+        return new VistaLatex(renderizador, pe.mathnova.domain.expresion.ImpresoraLatex.imprimir(e));
     }
 }

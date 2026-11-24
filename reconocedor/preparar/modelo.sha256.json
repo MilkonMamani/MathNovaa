@@ -1,0 +1,8 @@
+{
+  "config.json": "5e5cecf286ff2cef6c90224fea89c0b9ee3bae932454969b82e6362bcb270599",
+  "preprocessor_config.json": "d06c4b87fd6aa74b8b2cdbc4361227d8073ce37e8cfe9e6442802d0bee64da03",
+  "tokenizer.json": "02c318d9cfa95bf323371762b8f838a82709530274d36dba6eca880f0add6cc4",
+  "tokenizer_config.json": "fd4d94f8b9dbb7deeb3a3ef084ca0e16c43d45774a180730b7e9cfd6359a074b",
+  "README.md": "1bb14e76ecf4029bf1e50429acc1f7ae10e69ea0bcc409df1e9cf637c616a5fb",
+  "unimernet_small.pth": "fa54b0a8126bb60060bc90818ce20a5ca1b5dd5d7da5c0983579f5c3a2cc90ea"
+}

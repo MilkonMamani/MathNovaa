@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Estructura de toda la app: barra lateral oscura a la izquierda y contenido a la derecha.
-     PrincipalController arma las opciones del menú; el Navegador cambia el contenido. -->
+<!-- Estructura de toda la app: barra lateral a la izquierda y contenido a la derecha.
+     La barra tiene dos anchos (compacta 56 px, desplegada 184 px); el botón de tres rayas solo
+     alterna ese ancho y las etiquetas. PrincipalController arma las cinco opciones; el Navegador
+     cambia el contenido. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.mathnova.presentation.controller.PrincipalController"
             styleClass="pantalla-principal">
     <left>
         <VBox fx:id="menu" styleClass="barra-lateral">
-            <HBox styleClass="logo">
-                <StackPane styleClass="logo-marca">
-                    <Label text="M"/>
-                </StackPane>
-                <HBox accessibleText="MathNova">
-                    <Label text="Math" styleClass="logo-texto"/>
-                    <Label text="Nova" styleClass="logo-nova"/>
-                </HBox>
+            <HBox styleClass="barra-cabecera">
+                <Button fx:id="alternar" styleClass="nav-item, nav-alternar" onAction="#alternarMenu"/>
+                <Label fx:id="marca" text="MathNova" styleClass="barra-marca"/>
             </HBox>
         </VBox>
     </left>

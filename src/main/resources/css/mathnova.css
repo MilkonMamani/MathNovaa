@@ -68,91 +68,108 @@
     -fx-padding: 0;
 }
 
+/* Barra lateral: compacta (56 px, solo íconos) o desplegada (184 px, ícono y nombre).
+   Un único modelo: la misma columna de filas; el ancho lo pone la pseudoclase :desplegado y el
+   texto se oculta con graphic-only, así los íconos nunca se mueven. Todo va bajo .barra-lateral. */
 .barra-lateral {
-    -fx-background-color: color-barra;
-    -fx-pref-width: 220px;
-    -fx-min-width: 220px;
-    -fx-max-width: 220px;
-    -fx-padding: 24 12 24 12;
-    -fx-spacing: 4;
+    nav-tinta: #1f2937;
+    nav-carbon: #374151;
+    nav-hover: #f3f4f6;
+    nav-activo: #eff6ff;
+    nav-acento: #2563eb;
+    -fx-background-color: #e5e7eb, #ffffff;
+    -fx-background-insets: 0, 0 1 0 0;
+    -fx-min-width: 56px;
+    -fx-pref-width: 56px;
+    -fx-max-width: 56px;
+    -fx-padding: 8 1 8 0;
+    -fx-spacing: 2;
 }
 
-.logo {
-    -fx-spacing: 10;
+.barra-lateral:desplegado {
+    -fx-min-width: 184px;
+    -fx-pref-width: 184px;
+    -fx-max-width: 184px;
+}
+
+.barra-lateral .barra-cabecera {
     -fx-alignment: center-left;
-    -fx-padding: 0 8 24 8;
+    -fx-padding: 0 0 8 0;
 }
 
-.logo-marca {
-    -fx-background-color: color-azul;
-    -fx-background-radius: 8;
-    -fx-min-width: 32px;
-    -fx-min-height: 32px;
-    -fx-max-width: 32px;
-    -fx-max-height: 32px;
+.barra-lateral .barra-marca {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 15px;
+    -fx-text-fill: nav-tinta;
 }
 
-.logo-marca .label {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 16px;
-}
-
-.logo-texto {
-    -fx-text-fill: white;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-}
-
-/* "Math" en blanco y "Nova" en azul */
-.logo-nova {
-    -fx-text-fill: color-nova;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-}
-
-.nav-item {
-    -fx-background-color: transparent;
-    -fx-background-radius: 8;
-    -fx-border-color: transparent;
-    -fx-border-width: 2;
-    -fx-border-radius: 8;
-    -fx-text-fill: color-barra-texto;
+/* Fila de 44 px; capas del fondo: indicador (2 px a la izquierda), fondo, anillo de foco, fondo.
+   Solo cambian los colores, nunca las medidas: el contenido no se desplaza. */
+.barra-lateral .nav-item {
+    nav-ind: #ffffff;
+    nav-fondo: #ffffff;
+    nav-anillo: #ffffff;
+    -fx-background-color: nav-ind, nav-fondo, nav-anillo, nav-fondo;
+    -fx-background-insets: 0, 0 0 0 2, 3, 5;
+    -fx-background-radius: 0, 0, 7, 5;
+    -fx-text-fill: nav-tinta;
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 14px;
+    -fx-font-weight: normal;
     -fx-alignment: center-left;
+    -fx-content-display: graphic-only;
     -fx-graphic-text-gap: 12;
-    -fx-min-height: 42px;
-    -fx-padding: 0 12 0 12;
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+    -fx-max-height: 44px;
+    -fx-padding: 0 8 0 16;
     -fx-cursor: hand;
 }
 
-.nav-item .icono {
+.barra-lateral:desplegado .nav-item {
+    -fx-content-display: left;
+}
+
+/* Las tres rayas: siempre solo ícono, sobre el mismo eje que los cinco íconos. */
+.barra-lateral .nav-alternar,
+.barra-lateral:desplegado .nav-alternar {
+    -fx-content-display: graphic-only;
+    -fx-min-width: 52px;
+    -fx-pref-width: 52px;
+    -fx-max-width: 52px;
+    -fx-padding: 0 12 0 16;
+}
+
+.barra-lateral .nav-item .icono {
     -fx-fill: transparent;
-    -fx-stroke: color-barra-texto;
-    -fx-stroke-width: 1.8;
+    -fx-stroke: nav-carbon;
+    -fx-stroke-width: 1.5;
     -fx-stroke-line-cap: round;
     -fx-stroke-line-join: round;
 }
 
-.nav-item:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.07);
+.barra-lateral .nav-item:hover {
+    nav-ind: nav-hover;
+    nav-fondo: nav-hover;
+    nav-anillo: nav-hover;
 }
 
-.nav-item:seleccionado {
-    -fx-background-color: color-barra-activo;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
+.barra-lateral .nav-item:seleccionado {
+    nav-ind: nav-acento;
+    nav-fondo: nav-activo;
+    nav-anillo: nav-activo;
+    -fx-text-fill: nav-acento;
 }
 
-.nav-item:seleccionado .icono {
-    -fx-stroke: white;
+.barra-lateral .nav-item:seleccionado .icono {
+    -fx-stroke: nav-acento;
 }
 
-.nav-item:focus-visible {
-    -fx-border-color: color-azul;
+.barra-lateral .nav-item:focus-visible {
+    nav-anillo: nav-acento;
 }
 
-.nav-item:disabled {
+.barra-lateral .nav-item:disabled {
     -fx-opacity: 0.45;
 }
 
@@ -812,6 +829,22 @@
     -fx-pref-height: 340px;
 }
 
+.grafica-control {
+    -fx-background-color: rgba(255, 255, 255, 0.94);
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-text-fill: #334155;
+    -fx-font-size: 11px;
+    -fx-padding: 3 7;
+    -fx-cursor: hand;
+}
+
+.grafica-control:hover {
+    -fx-background-color: #eff6ff;
+    -fx-border-color: #93c5fd;
+}
+
 /* Propiedades de la función (RF66) */
 .propiedades-tabla {
     -fx-hgap: 16;
@@ -1012,6 +1045,45 @@
 .barra-entrada .editor-matematico {
     -fx-border-color: transparent;
     -fx-padding: 0 4 0 0;
+}
+
+/* Separador herramientas | Pizarra: una línea gris de 1 px con 8 px de agarre; azul mientras se arrastra.
+   El relleno de cada panel deja ver la sombra de las tarjetas (el SplitPane recorta cada panel). */
+.division-trabajo {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-box-border: transparent;
+}
+
+.division-trabajo > .split-pane-divider {
+    -fx-padding: 0 4 0 4;
+    -fx-background-color: transparent, #e2e8f0;
+    -fx-background-insets: 0, 12 3.5 20 3.5;
+    -fx-cursor: h-resize;
+}
+
+.division-trabajo > .split-pane-divider:hover {
+    -fx-background-color: transparent, #cbd5e1;
+}
+
+.division-trabajo:arrastrando > .split-pane-divider {
+    -fx-background-color: transparent, color-primario;
+    -fx-background-insets: 0, 12 3 20 3;
+}
+
+.division-trabajo > .split-pane-divider > .horizontal-grabber {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-shape: null;
+}
+
+.panel-herramientas {
+    -fx-padding: 12 8 20 16;
+}
+
+.panel-pizarra {
+    -fx-padding: 12 16 20 8;
 }
 
 .pestanas-panel {
@@ -1347,16 +1419,13 @@
     -fx-stroke: color-primario;
 }
 
-/* Cuerpo: cuadrícula de 24 px en #EEF0F3 */
+/* Superficie de escritura: blanca (#FFFFFF), sin cuadrícula. La cuadrícula de la Gráfica es otro componente. */
 .pizarra-cuerpo {
-    -fx-background-color:
-        white,
-        linear-gradient(from 0px 0px to 24px 0px, repeat, color-cuadricula 0%, color-cuadricula 4.2%, transparent 4.2%, transparent 100%),
-        linear-gradient(from 0px 0px to 0px 24px, repeat, color-cuadricula 0%, color-cuadricula 4.2%, transparent 4.2%, transparent 100%);
-    -fx-background-radius: 8;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
     -fx-border-color: color-borde-tarjeta;
-    -fx-border-radius: 8;
-    -fx-padding: 20 20 24 20;
+    -fx-border-radius: 10;
+    -fx-padding: 20 24 24 24;
     -fx-spacing: 10;
 }
 
@@ -1366,70 +1435,148 @@
     -fx-font-weight: bold;
 }
 
-.pizarra-linea {
-    -fx-background-color: color-tinta;
-    -fx-min-height: 2.5px;
-    -fx-max-height: 2.5px;
-}
-
 .pizarra-filas {
-    -fx-spacing: 4;
+    -fx-spacing: 20;
+    -fx-padding: 8 0 0 0;
 }
 
 .pizarra-paso {
     -fx-spacing: 6;
 }
 
-/* La flecha azul con el método: siempre a la vista */
+/* "1 → Factor común" en una sola línea */
 .pizarra-paso-flecha {
-    -fx-padding: 2 0 2 40;
+    -fx-padding: 0;
 }
 
 .pizarra-flecha {
     -fx-fill: transparent;
     -fx-stroke: color-primario;
-    -fx-stroke-width: 2;
+    -fx-stroke-width: 1.8;
     -fx-stroke-line-cap: round;
     -fx-stroke-line-join: round;
 }
 
 .pizarra-metodo {
     -fx-text-fill: color-primario;
-    -fx-font-size: 13px;
-    -fx-font-style: italic;
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
 }
 
 .pizarra-numero {
-    -fx-background-color: color-tinta;
-    -fx-background-radius: 999;
-    -fx-min-width: 28px;
-    -fx-min-height: 28px;
-    -fx-max-width: 28px;
-    -fx-max-height: 28px;
+    -fx-background-color: transparent;
 }
 
 .pizarra-numero .label {
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
+    -fx-text-fill: color-primario;
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+}
+
+/* Paso a paso: los que faltan, solo el número en gris */
+.pizarra-numero:pendiente .label {
+    -fx-text-fill: #94a3b8;
+}
+
+/* Las operaciones, debajo del encabezado y un poco hacia adentro */
+.pizarra-fila {
+    -fx-padding: 0 0 0 24;
+}
+
+.pizarra-parte {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 12px;
+}
+
+/* En la pizarra las operaciones van directamente sobre el blanco: sin recuadros grises */
+.pizarra-resolucion .pizarra,
+.pizarra-resolucion .trabajo {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+
+.pizarra-resolucion .ficha {
+    -fx-background-color: transparent;
+    -fx-padding: 0 10 0 0;
+    -fx-font-weight: normal;
+}
+
+.pizarra-renglon-texto {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 15px;
+}
+
+.pizarra-marca {
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
 }
 
-/* Paso a paso: los que faltan, solo el círculo gris */
-.pizarra-numero:pendiente {
-    -fx-background-color: #cbd5e1;
+.pizarra-marca-ok {
+    -fx-text-fill: color-verde;
 }
 
-/* El "?" de cada paso: solo el ícono, sin borde ni fondo */
+.pizarra-marca-mal {
+    -fx-text-fill: color-rojo;
+}
+
+/* Ruffini en la pizarra: solo las líneas de la división, números con tipografía matemática */
+.pizarra-resolucion .ruffini-numero,
+.pizarra-resolucion .ruffini-raiz {
+    -fx-font-family: "Cambria Math", "Cambria", "Times New Roman", serif;
+    -fx-font-size: 18px;
+    -fx-text-fill: color-tinta;
+    -fx-font-weight: normal;
+}
+
+.pizarra-resolucion .ruffini-numero:relleno {
+    -fx-text-fill: color-primario;
+}
+
+.pizarra-resolucion .ruffini-producto {
+    -fx-text-fill: color-texto-2;
+}
+
+.pizarra-resolucion .ruffini-residuo,
+.pizarra-resolucion .ruffini-residuo:cero {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.pizarra-resolucion .ruffini-residuo:cero {
+    -fx-text-fill: color-verde;
+    -fx-font-weight: bold;
+}
+
+.pizarra-resolucion .ruffini-vertical {
+    -fx-background-color: color-tinta;
+    -fx-min-width: 1.5px;
+    -fx-max-width: 1.5px;
+}
+
+.pizarra-resolucion .ruffini-horizontal {
+    -fx-background-color: color-tinta;
+    -fx-min-height: 1.5px;
+    -fx-max-height: 1.5px;
+}
+
+.ruffini-vinculo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+    -fx-padding: 0 0 0 18;
+}
+
+/* El "?" de cada paso, junto al nombre del método: solo el ícono */
 .boton-nota {
     -fx-background-color: transparent;
     -fx-background-radius: 999;
     -fx-border-color: transparent;
     -fx-border-width: 2;
     -fx-border-radius: 999;
-    -fx-min-width: 36px;
-    -fx-min-height: 36px;
-    -fx-max-width: 36px;
-    -fx-max-height: 36px;
+    -fx-min-width: 26px;
+    -fx-min-height: 26px;
+    -fx-max-width: 26px;
+    -fx-max-height: 26px;
     -fx-padding: 0;
     -fx-cursor: hand;
 }
@@ -1440,6 +1587,8 @@
     -fx-stroke-width: 1.6;
     -fx-stroke-line-cap: round;
     -fx-stroke-line-join: round;
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
 }
 
 .boton-nota:hover,
@@ -1456,12 +1605,18 @@
     -fx-border-color: color-primario;
 }
 
+/* Nota del docente: texto breve con una línea azul fina al margen */
 .pizarra-nota {
-    -fx-background-color: white;
-    -fx-background-radius: 8;
-    -fx-border-color: color-borde-tarjeta;
-    -fx-border-radius: 8;
-    -fx-padding: 10 12 8 12;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent transparent color-primario;
+    -fx-border-width: 0 0 0 2;
+    -fx-padding: 2 0 2 12;
+}
+
+.pizarra-nota-titulo {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
 }
 
 .pizarra-nota-texto {
@@ -1476,23 +1631,78 @@
     -fx-border-color: transparent;
 }
 
-/* El resultado en un recuadro de borde doble */
-.pizarra-resultado-doble {
-    -fx-background-color: white;
-    -fx-border-color: color-tinta, color-tinta;
-    -fx-border-width: 1.5, 1.5;
-    -fx-border-insets: 0, 4;
-    -fx-padding: 14 18 14 18;
+/* Resultado: el rótulo y UNA superficie #CFE6FF; sin bordes, líneas ni sombras */
+.pizarra-resultado-bloque {
+    -fx-spacing: 6;
+    -fx-padding: 14 0 0 0;
 }
 
-.pizarra-comprobacion {
-    -fx-fill: #334155;
-    -fx-font-size: 13px;
+.pizarra-resultado-rotulo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.pizarra-resultado-final {
+    -fx-background-color: #cfe6ff;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: null;
+    -fx-padding: 12 16 12 16;
+}
+
+/* Comprobación: debajo de la superficie, antes de "Qué más puedes hacer" */
+.pizarra-comprobacion-seccion {
+    -fx-spacing: 6;
+    -fx-padding: 4 4 0 4;
 }
 
 .pizarra-comprobacion-titulo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-fill: color-tinta;
+}
+
+.pizarra-comprobacion-metodo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 14px;
+}
+
+.pizarra-comprobacion-estado {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 14px;
+}
+
+.pizarra-comprobacion-estado:mal {
+    -fx-text-fill: color-rojo;
+}
+
+.pizarra-comprobacion-estado:neutra {
+    -fx-text-fill: color-gris-texto;
+}
+
+.pizarra-ver-detalle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 6;
+    -fx-text-fill: color-primario;
+    -fx-font-size: 13px;
+    -fx-padding: 3 10 3 10;
+    -fx-cursor: hand;
+}
+
+.pizarra-ver-detalle:hover,
+.pizarra-ver-detalle:selected {
+    -fx-background-color: #eff6ff;
+}
+
+.pizarra-comprobacion-detalle {
+    -fx-padding: 6 0 2 12;
+    -fx-border-color: transparent transparent transparent color-borde;
+    -fx-border-width: 0 0 0 2;
 }
 
 /* ===================== Escribir (escritura a mano) ===================== */
@@ -1625,4 +1835,65 @@
 .ajuste-nombre {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
+}
+
+/* ===================== Pizarra: encabezados de paso en peso regular ===================== */
+/* Número, flecha y método en azul, peso 400, en "Todos los pasos" y "Paso a paso" (también los anidados). */
+.pizarra-resolucion .pizarra-paso-flecha .label,
+.pizarra-resolucion .pizarra-metodo,
+.pizarra-resolucion .pizarra-numero .label,
+.pizarra-resolucion .paso-numero .label,
+.pizarra-resolucion .paso-titulo {
+    -fx-font-weight: normal;
+}
+
+/* Desarrollo de un paso largo (Cardano): frases aparte de las fórmulas */
+.pizarra-desarrollo .pizarra-explicacion {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+    -fx-padding: 4 0 0 0;
+}
+
+.pizarra-definicion-exacta {
+    -fx-padding: 4 0 4 12;
+    -fx-border-color: transparent transparent transparent #bfdbfe;
+    -fx-border-width: 0 0 0 2;
+}
+
+.pizarra-resultado-pie {
+    -fx-padding: 8 0 0 0;
+}
+
+/* Comprobación: la cadena con los "=" alineados */
+.pizarra-cadena-nota {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+.pizarra-comprobacion-subtitulo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+    -fx-padding: 10 0 2 0;
+}
+
+/* Comparación Q / R / C: etiqueta de ancho fijo y expresión flexible */
+.comparacion-fila {
+    -fx-padding: 0 0 10 0;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.comparacion-descripcion {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+.comparacion-exacta {
+    -fx-background-color: transparent;
+    -fx-background: white;
+    -fx-padding: 2;
+}
+
+.comparacion-exacta-contenido {
+    -fx-padding: 4 4 6 0;
 }

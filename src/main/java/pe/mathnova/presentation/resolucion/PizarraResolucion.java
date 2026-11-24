@@ -5,71 +5,138 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.css.PseudoClass;
+import javafx.geometry.Bounds;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.AccessibleRole;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 
 import pe.mathnova.domain.expresion.ImpresoraLatex;
+import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.animacion.AnimadorResolucion;
-import pe.mathnova.presentation.latex.ImagenLatex;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
+import pe.mathnova.presentation.pizarra.ModeloRuffini;
 import pe.mathnova.presentation.pizarra.Pizarra;
 
 /**
- * La Pizarra de "Resolver ejercicio": el procedimiento escrito como en un cuaderno.
+ * La Pizarra de "Resolver ejercicio": el procedimiento escrito como lo haría un docente en una pizarra
+ * blanca.
  *
  * <p>Cabecera: "Pizarra", ‹ "Todos los pasos" / "Paso N de M" ›, "Paso a paso" / "Ver todo", el
- * interruptor "Explicaciones" y exportar PDF. Cuerpo, sobre una cuadrícula de 24 px: el tipo de
- * ejercicio ("FACTORIZA"), la expresión original y una línea gruesa; cada paso con una flecha azul y el
- * nombre del método encima, y una fila de tres columnas fijas (número, fórmula y nota); al final el
- * resultado en un recuadro doble y la Comprobación.
+ * interruptor "Explicaciones" y exportar PDF. Superficie blanca (sin cuadrícula): el tipo de ejercicio
+ * ("FACTORIZA") y la expresión original; cada paso con su encabezado en una línea ("1 → Factor común") y
+ * debajo las operaciones directamente sobre el blanco; al final el rótulo "Resultado" y la fórmula sobre
+ * un fondo #CFE6FF, sin bordes. Fuera de la superficie, la sección "Comprobación".
  *
- * <p>Las notas "por qué aplica" empiezan ocultas: en su columna, de ancho fijo, solo hay un botón "?".
- * Abrir o cerrar una nota no mueve nada más. Qué se ve lo decide {@link EstadoPizarra}.
+ * <p>Las explicaciones son notas del docente: texto breve con una línea azul fina al margen, a la derecha
+ * de la operación si hay lugar o debajo del mismo paso si la pizarra se angosta. Qué se ve lo decide
+ * {@link EstadoPizarra}.
  */
 public final class PizarraResolucion extends VBox {
 
-    /** Ancho fijo de la columna de notas, esté vacía o llena. */
-    static final double ANCHO_NOTA = 220;
     static final String VER_EXPLICACION = "Ver explicación";
+    /** Tamaño de las fórmulas del procedimiento (se reducen hasta el mínimo antes de partirse). */
+    static final double TAMANO = Pizarra.TAMANO;
+    static final double TAMANO_MINIMO = Pizarra.TAMANO_MINIMO;
+    /** El resultado, un poco más grande que las fórmulas intermedias. */
+    static final double TAMANO_RESULTADO = 22;
 
     private static final PseudoClass PENDIENTE = PseudoClass.getPseudoClass("pendiente");
     private static final PseudoClass ENCENDIDO = PseudoClass.getPseudoClass("encendido");
+    private static final PseudoClass MAL = PseudoClass.getPseudoClass("mal");
+    private static final PseudoClass NEUTRA = PseudoClass.getPseudoClass("neutra");
     /** Ícono de foco: el bulbo y la base. */
     private static final String ICONO_FOCO =
             "M5 7 A5 5 0 1 1 11 11.5 V13 H5 V11.5 A5 5 0 0 1 5 7 Z M6 15.5 H10";
     private static final String ICONO_AYUDA =
             "M10 1 A9 9 0 1 1 9.99 1 Z M7.5 7.5 A2.5 2.5 0 1 1 10 10 V11.5 M10 14.4 V14.6";
     private static final String ICONO_PDF = "M4 1 H11 L16 6 V19 H4 Z M11 1 V6 H16 M7 12 L10 15 L13 12 M10 8 V15";
+    /** La flecha horizontal entre el número y el método. */
+    private static final String FLECHA = "M0 6 H15 M10 1 L15 6 L10 11";
 
     /**
      * Lo que se dibuja de un resultado.
      *
-     * @param rotulo       "FACTORIZA", "DERIVA"…; null si no se sabe
-     * @param latexEntrada la expresión original; null si no se pudo dibujar
-     * @param pasos        los pasos, numerados desde 1
-     * @param latexResultado lo que va en el recuadro doble; null si no hay
-     * @param comprobacion el texto que sigue a "Comprobación."; null si no hay
+     * @param rotulo         "FACTORIZA", "DERIVA"…; null si no se sabe
+     * @param latexEntrada   la expresión original; null si no se pudo dibujar
+     * @param pasos          los pasos, numerados desde 1
+     * @param latexResultado la fórmula del resultado final; null si no hay
+     * @param comprobacion   la sección "Comprobación" debajo de la pizarra; null si no hay
+     * @param pieResultado   debajo del resultado: qué es cada símbolo ("donde r es la raíz real de P")
      */
     public record Contenido(String rotulo, String latexEntrada, List<VistaPaso> pasos, String latexResultado,
-                            String comprobacion) {
+                            Comprobacion comprobacion, List<Desarrollo.Renglon> pieResultado) {
+
+        public Contenido {
+            pieResultado = pieResultado == null ? List.of() : List.copyOf(pieResultado);
+        }
+
+        public Contenido(String rotulo, String latexEntrada, List<VistaPaso> pasos, String latexResultado,
+                         Comprobacion comprobacion) {
+            this(rotulo, latexEntrada, pasos, latexResultado, comprobacion, List.of());
+        }
+
+        /** Con la comprobación en una sola frase (o null). */
+        public Contenido(String rotulo, String latexEntrada, List<VistaPaso> pasos, String latexResultado,
+                         String comprobacion) {
+            this(rotulo, latexEntrada, pasos, latexResultado,
+                    comprobacion == null ? null : Comprobacion.mensaje(comprobacion));
+        }
+    }
+
+    /**
+     * La comprobación que hizo el motor, tal cual.
+     *
+     * @param metodo  cómo se comprobó ("Por expansión", "Derivando el resultado"); null si no se sabe
+     * @param accion  el texto del control que despliega el detalle ("Ver expansión"); null sin detalle
+     * @param lineas  los renglones del detalle, en escritura de pizarra; cada igualdad en su renglón
+     * @param estado  si coincide, si no coincide o si no se pudo comprobar
+     * @param mensaje lo que se lee junto al estado ("Coincide con la entrada")
+     * @param cadena  la expansión como cadena de expresiones completas (los "=" alineados); vacía si no hay
+     * @param tituloExtra  el rótulo de una segunda comprobación ("Coincidencia numérica en 5 puntos"), o null
+     * @param lineasExtra  sus renglones
+     */
+    public record Comprobacion(String metodo, String accion, List<String> lineas, Estado estado, String mensaje,
+                               List<CadenaIgualdades.Eslabon> cadena, String tituloExtra, List<String> lineasExtra) {
+
+        public enum Estado { COINCIDE, NO_COINCIDE, SIN_COMPROBAR }
+
+        public Comprobacion {
+            lineas = lineas == null ? List.of() : List.copyOf(lineas);
+            cadena = cadena == null ? List.of() : List.copyOf(cadena);
+            lineasExtra = lineasExtra == null ? List.of() : List.copyOf(lineasExtra);
+        }
+
+        public Comprobacion(String metodo, String accion, List<String> lineas, Estado estado, String mensaje) {
+            this(metodo, accion, lineas, estado, mensaje, List.of(), null, List.of());
+        }
+
+        /** Hay algo que desplegar con {@link #accion()}. */
+        boolean conDetalle() {
+            return accion != null && (!lineas.isEmpty() || !cadena.isEmpty() || !lineasExtra.isEmpty());
+        }
+
+        /** Solo una frase, sin detalle. */
+        public static Comprobacion mensaje(String texto) {
+            return new Comprobacion(null, null, List.of(), Estado.SIN_COMPROBAR, texto);
+        }
     }
 
     private final RenderizadorLatex renderizador;
@@ -85,13 +152,19 @@ public final class PizarraResolucion extends VBox {
 
     private final VBox cuerpo = new VBox();
     private final Label rotulo = new Label();
-    private final StackPane enunciado = new StackPane();
-    private final Region linea = new Region();
+    private final FormulaAjustable enunciado = new FormulaAjustable(TAMANO_RESULTADO, TAMANO_MINIMO);
     private final VBox filas = new VBox();
-    private final StackPane recuadroResultado = new StackPane();
-    private final FormulaAjustable formulaResultado = new FormulaAjustable(24, 16);
-    private final Text textoComprobacion = new Text();
-    private final TextFlow comprobacion;
+    private final VBox bloqueResultado = new VBox();
+    private final StackPane superficieResultado = new StackPane();
+    private final FormulaAjustable formulaResultado = new FormulaAjustable(TAMANO_RESULTADO, TAMANO_MINIMO + 2);
+    private final VBox pieResultado = new VBox(4);
+
+    private final VBox seccionComprobacion = new VBox();
+    private final Label metodoComprobacion = new Label();
+    private final Label estadoComprobacion = new Label();
+    private final ToggleButton verDetalle = new ToggleButton();
+    private final VBox detalleComprobacion = new VBox();
+    private String accionComprobacion;
 
     private final List<Fila> pasos = new ArrayList<>();
 
@@ -139,33 +212,70 @@ public final class PizarraResolucion extends VBox {
         StackPane envolturaPdf = new StackPane(exportar);
         Tooltip.install(envolturaPdf, new Tooltip("Exportar PDF: disponible próximamente"));
 
-        HBox cabecera = new HBox(8, titulo, hueco, anterior, etiquetaPasos, siguiente, botonModo, interruptor,
-                envolturaPdf);
-        cabecera.setAlignment(Pos.CENTER_LEFT);
+        // Si la Pizarra se angosta (el separador de la pantalla), los controles bajan debajo del título y se
+        // reparten en las líneas que hagan falta, en vez de cortarse en "Piza…" o "Explicacio…".
+        titulo.setMinWidth(Region.USE_PREF_SIZE);
+        interruptor.setMinWidth(Region.USE_PREF_SIZE);
+        HBox navegacion = new HBox(8, anterior, etiquetaPasos, siguiente);
+        navegacion.setAlignment(Pos.CENTER_LEFT);
+        navegacion.setMinWidth(Region.USE_PREF_SIZE);
+        FlowPane controles = new FlowPane(8, 8, navegacion, botonModo, interruptor, envolturaPdf);
+        controles.setAlignment(Pos.CENTER_RIGHT);
+        controles.setRowValignment(javafx.geometry.VPos.CENTER);
+        controles.setPrefWrapLength(10_000); // en una sola línea mientras quepa
+        HBox filaTitulo = new HBox(8, titulo, hueco, controles);
+        filaTitulo.setAlignment(Pos.CENTER_LEFT);
+        VBox cabecera = new VBox(8, filaTitulo);
+        cabecera.widthProperty().addListener((obs, antes, ancho) ->
+                acomodarCabecera(cabecera, filaTitulo, titulo, controles, ancho.doubleValue()));
         cabecera.getStyleClass().add("pizarra-cabecera");
 
-        // ---- cuerpo
+        // ---- superficie de escritura
         rotulo.getStyleClass().add("pizarra-rotulo");
+        enunciado.setRenglonesPrimero(true);
+        formulaResultado.setRenglonesPrimero(true);
         enunciado.getStyleClass().add("pizarra-enunciado");
-        enunciado.setAlignment(Pos.CENTER_LEFT);
-        linea.getStyleClass().add("pizarra-linea");
         filas.getStyleClass().add("pizarra-filas");
 
-        recuadroResultado.getStyleClass().add("pizarra-resultado-doble");
-        recuadroResultado.getChildren().add(formulaResultado);
-        recuadroResultado.setMaxWidth(Region.USE_PREF_SIZE);
-        recuadroResultado.setAccessibleText("Resultado");
-        Text negrita = new Text("Comprobación. ");
-        negrita.getStyleClass().addAll("pizarra-comprobacion", "pizarra-comprobacion-titulo");
-        textoComprobacion.getStyleClass().add("pizarra-comprobacion");
-        comprobacion = new TextFlow(negrita, textoComprobacion);
-        comprobacion.getStyleClass().add("pizarra-comprobacion-linea");
+        Label rotuloResultado = new Label("Resultado");
+        rotuloResultado.getStyleClass().add("pizarra-resultado-rotulo");
+        formulaResultado.getStyleClass().add("pizarra-resultado-formula");
+        superficieResultado.getStyleClass().add("pizarra-resultado-final");
+        superficieResultado.getChildren().add(formulaResultado);
+        superficieResultado.setAlignment(Pos.CENTER_LEFT);
+        superficieResultado.setMaxWidth(Region.USE_PREF_SIZE);
+        superficieResultado.setMinWidth(0);
+        superficieResultado.setAccessibleText("Resultado");
+        bloqueResultado.getStyleClass().add("pizarra-resultado-bloque");
+        pieResultado.getStyleClass().add("pizarra-resultado-pie");
+        pieResultado.setMinWidth(0);
+        bloqueResultado.getChildren().addAll(rotuloResultado, superficieResultado, pieResultado);
 
         cuerpo.getStyleClass().add("pizarra-cuerpo");
-        cuerpo.getChildren().addAll(rotulo, enunciado, linea, filas, recuadroResultado, comprobacion);
+        cuerpo.getChildren().addAll(rotulo, enunciado, filas, bloqueResultado);
 
-        getChildren().addAll(cabecera, cuerpo);
+        // ---- Comprobación, fuera de la superficie
+        armarComprobacion();
+
+        getChildren().addAll(cabecera, cuerpo, seccionComprobacion);
         limpiar();
+    }
+
+    /** Título y controles en una fila si caben; si no, los controles en las líneas de abajo. */
+    private static void acomodarCabecera(VBox cabecera, HBox filaTitulo, Label titulo, FlowPane controles,
+            double ancho) {
+        boolean unaFila = ancho <= 0 || ancho >= titulo.prefWidth(-1) + 8 + controles.prefWidth(-1);
+        boolean ahora = filaTitulo.getChildren().contains(controles);
+        if (unaFila == ahora) {
+            return;
+        }
+        if (unaFila) {
+            cabecera.getChildren().remove(controles);
+            filaTitulo.getChildren().add(controles);
+        } else {
+            filaTitulo.getChildren().remove(controles);
+            cabecera.getChildren().add(controles);
+        }
     }
 
     /** El interruptor "Explicaciones": ícono de foco, el texto y un switch; Espacio o Enter lo cambian. */
@@ -193,11 +303,35 @@ public final class PizarraResolucion extends VBox {
         });
         interruptor.selectedProperty().addListener((obs, antes, si) -> {
             if (si != estado.explicaciones()) {
-                estado.setExplicaciones(si);
-                pintar();
+                conservarLectura(() -> {
+                    estado.setExplicaciones(si);
+                    pintar();
+                });
                 onExplicaciones.accept(si);
             }
         });
+    }
+
+    /** "Comprobación": cómo se comprobó, el estado real y el detalle plegado ("Ver expansión"). */
+    private void armarComprobacion() {
+        Label titulo = new Label("Comprobación");
+        titulo.getStyleClass().add("pizarra-comprobacion-titulo");
+        metodoComprobacion.getStyleClass().add("pizarra-comprobacion-metodo");
+        metodoComprobacion.setWrapText(true);
+        estadoComprobacion.getStyleClass().add("pizarra-comprobacion-estado");
+        estadoComprobacion.setWrapText(true);
+        verDetalle.getStyleClass().add("pizarra-ver-detalle");
+        verDetalle.setMinWidth(Region.USE_PREF_SIZE);
+        verDetalle.selectedProperty().addListener((obs, antes, si) -> {
+            verDetalle.setText(si && accionComprobacion != null
+                    ? accionComprobacion.replaceFirst("^Ver ", "Ocultar ") : accionComprobacion);
+            mostrarNodo(detalleComprobacion, si);
+        });
+        FlowPane fila = new FlowPane(16, 6, metodoComprobacion, estadoComprobacion, verDetalle);
+        fila.setRowValignment(javafx.geometry.VPos.CENTER);
+        detalleComprobacion.getStyleClass().add("pizarra-comprobacion-detalle");
+        seccionComprobacion.getStyleClass().add("pizarra-comprobacion-seccion");
+        seccionComprobacion.getChildren().addAll(titulo, fila, detalleComprobacion);
     }
 
     /** Se llama cuando el usuario cambia el interruptor (para guardar la preferencia). */
@@ -224,31 +358,72 @@ public final class PizarraResolucion extends VBox {
     public void mostrar(Contenido c) {
         pasos.clear();
         filas.getChildren().clear();
+        String previo = c.latexEntrada();
         for (VistaPaso p : c.pasos()) {
-            Fila f = new Fila(p);
+            Fila f = new Fila(p, previo);
             pasos.add(f);
             filas.getChildren().add(f.bloque);
+            if (p.despues() != null) {
+                previo = ImpresoraLatex.imprimir(p.despues());
+            }
         }
         estado.nuevo(pasos.size());
 
         rotulo.setText(c.rotulo() == null ? "" : c.rotulo());
         mostrarNodo(rotulo, c.rotulo() != null);
-        enunciado.getChildren().clear();
-        if (c.latexEntrada() != null) {
-            ImageView img = new ImageView(ImagenLatex.de(new RenderizadorLatex(22f), c.latexEntrada()));
-            img.setPreserveRatio(true);
-            enunciado.getChildren().add(img);
-        }
+        enunciado.setLatex(c.latexEntrada());
         mostrarNodo(enunciado, c.latexEntrada() != null);
-        mostrarNodo(linea, true);
         mostrarNodo(filas, !pasos.isEmpty());
 
         formulaResultado.setLatex(c.latexResultado());
-        recuadroResultado.setUserData(c.latexResultado());
-        textoComprobacion.setText(c.comprobacion() == null ? "" : c.comprobacion());
-        comprobacion.setUserData(c.comprobacion());
+        bloqueResultado.setUserData(c.latexResultado());
+        pieResultado.getChildren().clear();
+        if (!c.pieResultado().isEmpty()) {
+            pieResultado.getChildren().add(new VistaDesarrollo(new Desarrollo(c.pieResultado()), TAMANO, TAMANO_MINIMO));
+        }
+        mostrarNodo(pieResultado, !c.pieResultado().isEmpty());
+        llenarComprobacion(c.comprobacion());
         mostrarNodo(cuerpo, true);
         pintar();
+    }
+
+    private void llenarComprobacion(Comprobacion c) {
+        seccionComprobacion.setUserData(c);
+        detalleComprobacion.getChildren().clear();
+        verDetalle.setSelected(false);
+        mostrarNodo(detalleComprobacion, false);
+        if (c == null) {
+            return;
+        }
+        metodoComprobacion.setText(c.metodo() == null ? "" : c.metodo());
+        mostrarNodo(metodoComprobacion, c.metodo() != null);
+        String marca = switch (c.estado()) {
+            case COINCIDE -> "✓ ";
+            case NO_COINCIDE -> "✗ ";
+            case SIN_COMPROBAR -> "";
+        };
+        estadoComprobacion.setText(marca + (c.mensaje() == null ? "" : c.mensaje()));
+        estadoComprobacion.pseudoClassStateChanged(MAL, c.estado() == Comprobacion.Estado.NO_COINCIDE);
+        estadoComprobacion.pseudoClassStateChanged(NEUTRA, c.estado() == Comprobacion.Estado.SIN_COMPROBAR);
+        boolean conDetalle = c.conDetalle();
+        accionComprobacion = conDetalle ? c.accion() : null;
+        verDetalle.setText(accionComprobacion);
+        mostrarNodo(verDetalle, conDetalle);
+        if (conDetalle) {
+            // Del resultado completo a la entrada, con los "=" alineados; si no hay cadena, cada igualdad en su
+            // renglón, con la misma tipografía que el procedimiento.
+            if (!c.cadena().isEmpty()) {
+                detalleComprobacion.getChildren().add(new CadenaIgualdades(c.cadena(), TAMANO, TAMANO_MINIMO));
+            } else if (!c.lineas().isEmpty()) {
+                detalleComprobacion.getChildren().add(Igualdades.deTextos(c.lineas(), TAMANO, TAMANO_MINIMO));
+            }
+            if (c.tituloExtra() != null && !c.lineasExtra().isEmpty()) {
+                Label t = new Label(c.tituloExtra());
+                t.getStyleClass().add("pizarra-comprobacion-subtitulo");
+                t.setWrapText(true);
+                detalleComprobacion.getChildren().addAll(t, Igualdades.deTextos(c.lineasExtra(), TAMANO, TAMANO_MINIMO));
+            }
+        }
     }
 
     /** Sin resultado: solo la cabecera. */
@@ -257,25 +432,27 @@ public final class PizarraResolucion extends VBox {
         filas.getChildren().clear();
         estado.nuevo(0);
         formulaResultado.setLatex(null);
-        recuadroResultado.setUserData(null);
-        comprobacion.setUserData(null);
+        bloqueResultado.setUserData(null);
+        pieResultado.getChildren().clear();
+        mostrarNodo(pieResultado, false);
+        llenarComprobacion(null);
         mostrarNodo(cuerpo, false);
         pintar();
     }
 
-    /** Las filas de los pasos (flecha y fila), para la animación en cascada. */
+    /** Las filas de los pasos, para la animación en cascada. */
     public List<Node> filasPasos() {
         return pasos.stream().map(f -> (Node) f.bloque).toList();
     }
 
-    /** El círculo numerado de cada paso, para la animación. */
+    /** El número de cada paso, para la animación. */
     public List<Node> numeros() {
         return pasos.stream().map(f -> (Node) f.numero).toList();
     }
 
-    /** El recuadro del resultado y la Comprobación, que entran después de los pasos. */
+    /** El resultado y la Comprobación, que entran después de los pasos. */
     public List<Node> cierre() {
-        return List.of(recuadroResultado, comprobacion);
+        return List.of(bloqueResultado, seccionComprobacion);
     }
 
     // ------------------------------------------------------------------ dibujo
@@ -291,53 +468,169 @@ public final class PizarraResolucion extends VBox {
             f.pintar();
         }
         boolean cierre = estado.resultadoVisible() && cuerpo.isVisible();
-        mostrarNodo(recuadroResultado, cierre && recuadroResultado.getUserData() != null);
-        mostrarNodo(comprobacion, cierre && comprobacion.getUserData() != null);
+        mostrarNodo(bloqueResultado, cierre && bloqueResultado.getUserData() != null);
+        mostrarNodo(seccionComprobacion, cierre && seccionComprobacion.getUserData() != null);
     }
 
-    /** Un paso: la flecha con el método y la fila número | fórmula | nota. */
+    /**
+     * Hace el cambio sin perder el lugar de lectura: el paso que estaba arriba de la vista queda en el mismo
+     * lugar de la pantalla aunque se abran o cierren las notas de los pasos de arriba.
+     */
+    private void conservarLectura(Runnable cambio) {
+        ScrollPane desplazable = desplazable();
+        Node ancla = desplazable == null ? null : ancla(desplazable);
+        double antes = ancla == null ? 0 : ancla.localToScene(0, 0).getY();
+        cambio.run();
+        if (ancla == null || getScene() == null) {
+            return;
+        }
+        Parent raiz = getScene().getRoot();
+        raiz.applyCss();
+        raiz.layout();
+        double despues = ancla.localToScene(0, 0).getY();
+        Node contenido = desplazable.getContent();
+        double alto = contenido.getLayoutBounds().getHeight();
+        double vista = desplazable.getViewportBounds().getHeight();
+        if (alto <= vista || Math.abs(despues - antes) < 0.5) {
+            return;
+        }
+        double rango = desplazable.getVmax() - desplazable.getVmin();
+        double v = desplazable.getVvalue() + (despues - antes) / (alto - vista) * rango;
+        desplazable.setVvalue(Math.max(desplazable.getVmin(), Math.min(desplazable.getVmax(), v)));
+    }
+
+    private ScrollPane desplazable() {
+        for (Node n = getParent(); n != null; n = n.getParent()) {
+            if (n instanceof ScrollPane sp) {
+                return sp;
+            }
+        }
+        return null;
+    }
+
+    /** El paso actual en paso a paso; si no, el primero que se ve en la parte de arriba de la vista. */
+    private Node ancla(ScrollPane desplazable) {
+        if (pasos.isEmpty()) {
+            return null;
+        }
+        if (estado.modo() == EstadoPizarra.Modo.PASO_A_PASO) {
+            return pasos.get(estado.actual() - 1).bloque;
+        }
+        Bounds vista = desplazable.localToScene(desplazable.getLayoutBounds());
+        for (Fila f : pasos) {
+            Bounds b = f.bloque.localToScene(f.bloque.getLayoutBounds());
+            if (b != null && vista != null && b.getMaxY() > vista.getMinY()) {
+                return f.bloque;
+            }
+        }
+        return pasos.getLast().bloque;
+    }
+
+    /** Un paso: "1 → Factor común" en una línea, las operaciones debajo y la nota al costado o debajo. */
     private final class Fila {
 
         private final int n;
         private final VBox bloque = new VBox();
         private final HBox flecha;
         private final StackPane numero;
-        private final VBox formula = new VBox(6);
-        private final StackPane columnaNota = new StackPane();
+        private final SVGPath punta = new SVGPath();
+        private final Label metodo;
+        private final VBox formula = new VBox(8);
+        private final PasoConNota cuerpoPaso;
         private final Button botonNota;
         private final VBox nota;
         private final Hyperlink ocultar = new Hyperlink("Ocultar");
 
-        Fila(VistaPaso p) {
+        Fila(VistaPaso p, String previo) {
             n = p.orden();
 
-            SVGPath punta = new SVGPath();
-            punta.setContent("M6 0 V22 M1 17 L6 22 L11 17");
+            numero = new StackPane(new Label(String.valueOf(n)));
+            numero.getStyleClass().add("pizarra-numero");
+            numero.setMinWidth(Region.USE_PREF_SIZE);
+            punta.setContent(FLECHA);
             punta.getStyleClass().add("pizarra-flecha");
-            Label metodo = new Label(p.titulo());
+            metodo = new Label(p.titulo());
             metodo.getStyleClass().add("pizarra-metodo");
             metodo.setWrapText(true);
             if (p.ayuda() != null && !p.ayuda().equals(p.titulo())) {
                 metodo.setTooltip(new Tooltip(p.ayuda()));
             }
-            flecha = new HBox(10, punta, metodo);
+
+            botonNota = new Button(null, icono(ICONO_AYUDA, "boton-nota-icono"));
+            botonNota.getStyleClass().add("boton-nota");
+            botonNota.setAccessibleText("Ver explicación del paso " + n);
+            botonNota.setTooltip(new Tooltip(VER_EXPLICACION));
+            botonNota.setOnAction(e -> {
+                estado.alternarNota(n);
+                pintar();
+                ocultar.requestFocus();
+            });
+
+            flecha = new HBox(8, numero, punta, metodo, botonNota);
             flecha.setAlignment(Pos.CENTER_LEFT);
             flecha.getStyleClass().add("pizarra-paso-flecha");
 
-            numero = new StackPane(new Label(String.valueOf(n)));
-            numero.getStyleClass().add("pizarra-numero");
-
             formula.getStyleClass().add("pizarra-formula");
             formula.setMinWidth(0);
-            HBox.setHgrow(formula, Priority.ALWAYS);
-            if (p.trabajo() != null) {
-                formula.getChildren().add(Pizarra.de(p.trabajo()));
+            llenarFormula(p, previo);
+
+            nota = armarNota(p);
+            cuerpoPaso = new PasoConNota(formula, nota);
+            cuerpoPaso.getStyleClass().add("pizarra-fila");
+
+            bloque.getChildren().addAll(flecha, cuerpoPaso);
+            bloque.getStyleClass().add("pizarra-paso");
+        }
+
+        /**
+         * Las operaciones del paso, como las entrega el motor. Si el paso trabaja solo con una parte de la
+         * expresión (un factor), primero se dice con cuál; al final, la igualdad que resulta.
+         */
+        private void llenarFormula(VistaPaso p, String previo) {
+            if (p.desarrollo() != null) {
+                // Un paso largo (Cardano): explicaciones y fórmulas en renglones separados; el desarrollo ya
+                // termina con la factorización, sin repetir los radicales anidados.
+                VistaDesarrollo d = new VistaDesarrollo(p.desarrollo(), TAMANO, TAMANO_MINIMO);
+                d.getStyleClass().add("pizarra-despues");
+                formula.getChildren().add(d);
+                return;
             }
-            if (p.despues() != null) {
-                FormulaAjustable f = new FormulaAjustable(FilaPaso.TAMANO, FilaPaso.TAMANO_MINIMO);
-                f.getStyleClass().add("pizarra-despues");
-                f.setLatex(ImpresoraLatex.imprimir(p.despues()));
-                formula.getChildren().add(f);
+            String antes = p.antes() == null ? null : ImpresoraLatex.imprimir(p.antes());
+            String despues = p.despues() == null ? null : ImpresoraLatex.imprimir(p.despues());
+            boolean parte = antes != null && previo != null && !mismo(antes, previo);
+            List<String> lineas = Pizarra.lineas(p.trabajo());
+
+            if (parte && p.trabajo() != null) {
+                Label con = new Label("Se trabaja con");
+                con.getStyleClass().add("pizarra-parte");
+                con.setMinWidth(Region.USE_PREF_SIZE);
+                FormulaAjustable f = formula(antes);
+                HBox.setHgrow(f, Priority.ALWAYS);
+                HBox fila = new HBox(10, con, f);
+                fila.setAlignment(Pos.CENTER_LEFT);
+                fila.getStyleClass().add("pizarra-parte-fila");
+                formula.getChildren().add(fila);
+            }
+            String conclusion = despues == null ? null
+                    : antes != null && (p.trabajo() != null || parte) ? antes + " = " + despues : despues;
+            if (lineas != null) {
+                List<Igualdades.Renglon> renglones = new ArrayList<>();
+                lineas.forEach(l -> renglones.addAll(Igualdades.Renglon.partidos(l)));
+                if (conclusion != null) {
+                    renglones.add(Igualdades.Renglon.deLatex(conclusion));
+                }
+                Igualdades bloqueLineas = new Igualdades(renglones, TAMANO, TAMANO_MINIMO);
+                bloqueLineas.getStyleClass().add("pizarra-despues");
+                formula.getChildren().add(bloqueLineas);
+            } else {
+                if (p.trabajo() != null) {
+                    formula.getChildren().add(Pizarra.de(p.trabajo()));
+                }
+                if (conclusion != null) {
+                    FormulaAjustable f = formula(conclusion);
+                    f.getStyleClass().add("pizarra-despues");
+                    formula.getChildren().add(f);
+                }
             }
             if (!p.hijos().isEmpty()) {
                 VBox internos = new VBox(6);
@@ -352,17 +645,23 @@ public final class PizarraResolucion extends VBox {
                 anidados.getStyleClass().addAll("seccion-plegable", "pasos-anidados");
                 formula.getChildren().add(anidados);
             }
+        }
 
-            botonNota = new Button(null, icono(ICONO_AYUDA, "boton-nota-icono"));
-            botonNota.getStyleClass().add("boton-nota");
-            botonNota.setAccessibleText("Ver explicación del paso " + n);
-            botonNota.setTooltip(new Tooltip(VER_EXPLICACION));
-            botonNota.setOnAction(e -> {
-                estado.alternarNota(n);
-                pintar();
-                ocultar.requestFocus();
-            });
-
+        /** La nota del docente: lo que explica el motor y, en Ruffini, por qué aparece un cero. */
+        private VBox armarNota(VistaPaso p) {
+            VBox caja = new VBox(4);
+            if (p.trabajo() instanceof TrabajoIntermedio.TablaRuffini t) {
+                List<String> faltan = ModeloRuffini.de(t).faltantes();
+                if (!faltan.isEmpty()) {
+                    Label pregunta = new Label(faltan.size() == 1 ? "¿Por qué aparece un cero?"
+                            : "¿Por qué aparecen ceros?");
+                    pregunta.getStyleClass().add("pizarra-nota-titulo");
+                    Label porque = new Label(porQueCero(faltan));
+                    porque.setWrapText(true);
+                    porque.getStyleClass().add("pizarra-nota-texto");
+                    caja.getChildren().addAll(pregunta, porque);
+                }
+            }
             Label texto = new Label(FormateadorTexto.pizarra(p.justificacion()));
             texto.setWrapText(true);
             texto.getStyleClass().add("pizarra-nota-texto");
@@ -373,33 +672,132 @@ public final class PizarraResolucion extends VBox {
                 pintar();
                 botonNota.requestFocus();
             });
-            nota = new VBox(6, texto, ocultar);
-            nota.getStyleClass().add("pizarra-nota");
-            nota.setMaxHeight(Region.USE_PREF_SIZE);
-
-            columnaNota.getStyleClass().add("pizarra-columna-nota");
-            columnaNota.setAlignment(Pos.TOP_LEFT);
-            columnaNota.setMinWidth(ANCHO_NOTA);
-            columnaNota.setPrefWidth(ANCHO_NOTA);
-            columnaNota.setMaxWidth(ANCHO_NOTA);
-            columnaNota.getChildren().addAll(botonNota, nota);
-
-            HBox fila = new HBox(12, numero, formula, columnaNota);
-            fila.setAlignment(Pos.TOP_LEFT);
-            fila.getStyleClass().add("pizarra-fila");
-            bloque.getChildren().addAll(flecha, fila);
-            bloque.getStyleClass().add("pizarra-paso");
+            caja.getChildren().addAll(texto, ocultar);
+            caja.getStyleClass().add("pizarra-nota");
+            caja.setMaxHeight(Region.USE_PREF_SIZE);
+            return caja;
         }
 
         void pintar() {
             boolean visible = estado.pasoVisible(n);
             numero.pseudoClassStateChanged(PENDIENTE, !visible);
-            mostrarNodo(flecha, visible);
+            mostrarNodo(punta, visible);
+            mostrarNodo(metodo, visible);
             mostrarNodo(formula, visible);
-            mostrarNodo(columnaNota, visible);
+            mostrarNodo(cuerpoPaso, visible);
             mostrarNodo(botonNota, estado.botonNotaVisible(n));
             mostrarNodo(nota, estado.notaVisible(n));
             mostrarNodo(ocultar, estado.ocultarVisible(n));
+            cuerpoPaso.requestLayout();
+        }
+    }
+
+    /** "Falta el término en x², por eso su coeficiente es 0." */
+    static String porQueCero(List<String> faltan) {
+        List<String> nombres = faltan.stream().map(t -> t.isEmpty() ? "el término independiente" : t).toList();
+        if (nombres.size() == 1) {
+            String t = nombres.getFirst();
+            return (t.startsWith("el ") ? "Falta " + t : "Falta el término en " + t)
+                    + ". Por eso su coeficiente es 0.";
+        }
+        String lista = String.join(", ", nombres.subList(0, nombres.size() - 1)) + " y " + nombres.getLast();
+        return "Faltan los términos en " + lista + ". Por eso sus coeficientes son 0.";
+    }
+
+    private static boolean mismo(String a, String b) {
+        return a.replace(" ", "").equals(b.replace(" ", ""));
+    }
+
+    private static FormulaAjustable formula(String latex) {
+        FormulaAjustable f = Igualdades.formula(TAMANO, TAMANO_MINIMO);
+        f.setLatex(latex);
+        return f;
+    }
+
+    /**
+     * Las operaciones de un paso y su nota. La nota va a la derecha si cabe junto a la fórmula sin
+     * achicarla; si no (pizarra angosta), debajo del mismo paso. Oculta, no ocupa lugar.
+     */
+    static final class PasoConNota extends Region {
+
+        static final double SEPARACION = 32;
+        static final double NOTA_MINIMA = 200;
+        static final double NOTA_MAXIMA = 320;
+        static final double DEBAJO = 10;
+
+        private final Region contenido;
+        private final Region nota;
+
+        PasoConNota(Region contenido, Region nota) {
+            this.contenido = contenido;
+            this.nota = nota;
+            getChildren().addAll(contenido, nota);
+            setMinWidth(0);
+        }
+
+        private boolean conNota() {
+            return nota.isManaged();
+        }
+
+        /** La nota va al costado con este ancho. */
+        boolean alCostado(double ancho) {
+            return conNota() && ancho >= contenido.prefWidth(-1) + SEPARACION + NOTA_MINIMA;
+        }
+
+        private double anchoNota(double ancho) {
+            return Math.min(NOTA_MAXIMA, ancho - contenido.prefWidth(-1) - SEPARACION);
+        }
+
+        @Override
+        public Orientation getContentBias() {
+            return Orientation.HORIZONTAL;
+        }
+
+        @Override
+        protected double computeMinWidth(double alto) {
+            return 0;
+        }
+
+        @Override
+        protected double computePrefWidth(double alto) {
+            return contenido.prefWidth(-1) + (conNota() ? SEPARACION + NOTA_MINIMA : 0);
+        }
+
+        @Override
+        protected double computePrefHeight(double ancho) {
+            if (!conNota()) {
+                return contenido.prefHeight(ancho);
+            }
+            if (ancho < 0 || alCostado(ancho)) {
+                double nw = ancho < 0 ? NOTA_MINIMA : anchoNota(ancho);
+                double cw = ancho < 0 ? -1 : ancho - SEPARACION - nw;
+                return Math.max(contenido.prefHeight(cw), nota.prefHeight(nw));
+            }
+            return contenido.prefHeight(ancho) + DEBAJO + nota.prefHeight(ancho);
+        }
+
+        @Override
+        protected double computeMinHeight(double ancho) {
+            return computePrefHeight(ancho);
+        }
+
+        @Override
+        protected void layoutChildren() {
+            double w = getWidth();
+            if (!conNota()) {
+                contenido.resizeRelocate(0, 0, w, contenido.prefHeight(w));
+                return;
+            }
+            if (alCostado(w)) {
+                double nw = anchoNota(w);
+                double cw = w - SEPARACION - nw;
+                contenido.resizeRelocate(0, 0, cw, contenido.prefHeight(cw));
+                nota.resizeRelocate(snapPositionX(cw + SEPARACION), 0, nw, nota.prefHeight(nw));
+            } else {
+                double hc = contenido.prefHeight(w);
+                contenido.resizeRelocate(0, 0, w, hc);
+                nota.resizeRelocate(0, snapPositionY(hc + DEBAJO), w, nota.prefHeight(w));
+            }
         }
     }
 
@@ -448,6 +846,10 @@ public final class PizarraResolucion extends VBox {
         return pasos.get(paso - 1).numero;
     }
 
+    PasoConNota cuerpoPaso(int paso) {
+        return pasos.get(paso - 1).cuerpoPaso;
+    }
+
     Label etiquetaPasos() {
         return etiquetaPasos;
     }
@@ -469,10 +871,39 @@ public final class PizarraResolucion extends VBox {
     }
 
     Node recuadroResultado() {
-        return recuadroResultado;
+        return bloqueResultado;
+    }
+
+    StackPane superficieResultado() {
+        return superficieResultado;
     }
 
     Node comprobacion() {
-        return comprobacion;
+        return seccionComprobacion;
+    }
+
+    ToggleButton verDetalle() {
+        return verDetalle;
+    }
+
+    Node detalleComprobacion() {
+        return detalleComprobacion;
+    }
+
+    Label estadoComprobacion() {
+        return estadoComprobacion;
+    }
+
+    Node pieResultado() {
+        return pieResultado;
+    }
+
+    Label metodoComprobacion() {
+        return metodoComprobacion;
+    }
+
+    /** El nombre del método en el encabezado del paso (pruebas). */
+    Label metodo(int paso) {
+        return pasos.get(paso - 1).metodo;
     }
 }

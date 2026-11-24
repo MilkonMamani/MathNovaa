@@ -102,7 +102,8 @@ public final class TablaRuffini extends VBox {
                 fila++;
             }
             int filaMedio = fila;
-            Label raiz = new Label(t.raiz());
+            Label raiz = new Label(t.valor());
+            raiz.setAccessibleText(t.raiz());
             raiz.getStyleClass().add("ruffini-raiz");
             g.add(raiz, 0, filaMedio);
             Label[] medio = new Label[t.medio().size()];
@@ -125,6 +126,15 @@ public final class TablaRuffini extends VBox {
             residuo.getStyleClass().add("ruffini-residuo");
             residuo.pseudoClassStateChanged(CERO, t.residuoCero());
             g.add(residuo, PRIMERA + t.abajo().size(), filaAbajo);
+            // El residuo y lo que significa: "Residuo 0 → (x − 1) es factor".
+            if (t.residuoCero() && t.factor() != null) {
+                Label vinculo = new Label("Residuo 0 → " + t.factor() + " es factor");
+                vinculo.getStyleClass().add("ruffini-vinculo");
+                vinculo.setWrapText(true);
+                vinculo.setMinWidth(96);
+                // Todas en la misma columna, después de la última de la tabla de arriba.
+                g.add(vinculo, PRIMERA + columnas, filaAbajo);
+            }
 
             // Flecha: el producto sale del resultado anterior × raíz.
             for (int i = 1; i < medio.length; i++) {

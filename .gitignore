@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Reconocedor de escritura (pesos y runtime: se preparan, no se versionan) ###
+reconocedor/modelo/
+reconocedor/runtime/
+reconocedor/.venv/
+reconocedor/salida/
+__pycache__/
+reconocedor/preparar/descargas/
+reconocedor/LICENSE-UniMERNet.txt
+reconocedor/.repro con espacios/
+reconocedor/.head/
+reconocedor/python/
+

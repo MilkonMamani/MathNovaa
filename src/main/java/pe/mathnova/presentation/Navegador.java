@@ -49,6 +49,23 @@ public class Navegador {
         stage.setMinWidth(860);
         stage.setMinHeight(600);
         stage.setScene(escena);
+        autoprueba();
+    }
+
+    /** {@code --mathnova.autoprueba=<muestra.json | carpeta>}: comprueba la instalación (ver AutoPrueba). */
+    private void autoprueba() {
+        var env = contexto.getEnvironment();
+        String rutas = env.getProperty("mathnova.autoprueba");
+        if (rutas == null || rutas.isBlank()) {
+            return;
+        }
+        java.nio.file.Path salida = java.nio.file.Path.of(env.getProperty("mathnova.autoprueba.salida",
+                java.nio.file.Path.of(System.getProperty("user.home"), ".mathnova", "autoprueba.txt").toString()));
+        boolean salir = Boolean.parseBoolean(env.getProperty("mathnova.autoprueba.salir", "false"));
+        Object r = contexto.getBean(pe.mathnova.domain.escritura.ReconocedorEscritura.class);
+        String pid = r instanceof pe.mathnova.infrastructure.escritura.ReconocedorUniMERNet u
+                ? "UniMERNet en " + u.carpeta() : r.getClass().getSimpleName();
+        javafx.application.Platform.runLater(() -> new AutoPrueba(resolucionControlador, rutas, salida, salir, pid).iniciar());
     }
 
     /** "Resolver" en la barra lateral: la pantalla con el editor, con lo último que se escribió. */

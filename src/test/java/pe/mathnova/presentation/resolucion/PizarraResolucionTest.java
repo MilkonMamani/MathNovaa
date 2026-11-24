@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.Fx;
@@ -111,8 +112,10 @@ class PizarraResolucionTest {
                 Tooltip t = b.getTooltip();
                 assertNotNull(t);
                 assertEquals("Ver explicación", t.getText());
-                assertEquals(36, b.getWidth(), 0.5);
-                assertEquals(36, b.getHeight(), 0.5);
+                assertEquals(26, b.getWidth(), 0.5);
+                assertEquals(26, b.getHeight(), 0.5);
+                assertEquals(pizarra.lookupAll(".pizarra-paso-flecha").stream().toList().get(i - 1), b.getParent(),
+                        "el \"?\" va en la línea del método");
             }
         });
     }
@@ -121,20 +124,18 @@ class PizarraResolucionTest {
     void elBotonDelPaso2AbreSoloSuNotaSinMoverLaFormula() throws Exception {
         enFx(() -> {
             Bounds formulaAntes = pizarra.formula(2).getBoundsInParent();
-            Bounds columnaAntes = pizarra.nota(2).getParent().getBoundsInParent();
             pizarra.botonNota(2).fire();
             acomodar();
             assertEquals(List.of(2), notasVisibles());
             assertTrue(seVe(pizarra.ocultar(2)), "una nota abierta a mano lleva \"Ocultar\"");
-            assertFalse(seVe(pizarra.botonNota(2)), "la nota va en el lugar del \"?\"");
-            assertEquals(pizarra.botonNota(2).getParent(), pizarra.nota(2).getParent(), "en su misma columna");
+            assertFalse(seVe(pizarra.botonNota(2)), "abierta, no hace falta el \"?\"");
+            assertEquals(pizarra.cuerpoPaso(2), pizarra.nota(2).getParent(), "la nota va junto a su paso");
             Bounds formulaDespues = pizarra.formula(2).getBoundsInParent();
             assertEquals(formulaAntes.getMinX(), formulaDespues.getMinX(), 0.01);
             assertEquals(formulaAntes.getMinY(), formulaDespues.getMinY(), 0.01);
-            assertEquals(formulaAntes.getWidth(), formulaDespues.getWidth(), 0.01);
-            Bounds columnaDespues = pizarra.nota(2).getParent().getBoundsInParent();
-            assertEquals(columnaAntes.getMinX(), columnaDespues.getMinX(), 0.01);
-            assertEquals(PizarraResolucion.ANCHO_NOTA, columnaDespues.getWidth(), 0.01);
+            Bounds nota = pizarra.nota(2).getBoundsInParent();
+            assertTrue(nota.getMinX() >= formulaDespues.getMinX() + pizarra.formula(2).prefWidth(-1),
+                    "en una pizarra ancha la nota va a la derecha, sin tapar la fórmula");
 
             pizarra.ocultar(2).fire();
             acomodar();
@@ -232,5 +233,111 @@ class PizarraResolucionTest {
             assertEquals(PASOS.stream().map(VistaPaso::titulo).toList(), metodos);
             pizarra.lookupAll(".pizarra-paso-flecha").forEach(n -> assertTrue(seVe(n)));
         });
+    }
+
+    @Test
+    void enUnaPizarraAngostaLaNotaBajaDebajoDelPasoYAlApagarseLiberaElEspacio() throws Exception {
+        enFx(() -> {
+            double altoSinNotas = pizarra.cuerpoPaso(1).getHeight();
+            pizarra.interruptor().fire();
+            acomodar();
+            assertTrue(pizarra.cuerpoPaso(1).alCostado(pizarra.cuerpoPaso(1).getWidth()), "ancha: al costado");
+            pizarra.setMaxWidth(300);
+            acomodar();
+            Bounds formula = pizarra.formula(1).getBoundsInParent();
+            Bounds nota = pizarra.nota(1).getBoundsInParent();
+            assertFalse(pizarra.cuerpoPaso(1).alCostado(pizarra.cuerpoPaso(1).getWidth()));
+            assertTrue(nota.getMinY() >= formula.getMaxY(), "angosta: la nota va debajo de la fórmula");
+            pizarra.setMaxWidth(Double.MAX_VALUE);
+            acomodar();
+            pizarra.interruptor().fire();
+            acomodar();
+            assertEquals(altoSinNotas, pizarra.cuerpoPaso(1).getHeight(), 0.5, "apagadas no ocupan lugar");
+            assertEquals(List.of(), notasVisibles());
+        });
+    }
+
+    @Test
+    void elResultadoVaSobreUnFondoCelesteSinBordesNiSombras() throws Exception {
+        enFx(() -> {
+            var sup = pizarra.superficieResultado();
+            assertTrue(seVe(sup));
+            assertEquals(1, sup.getBackground().getFills().size(), "una sola superficie");
+            assertEquals(javafx.scene.paint.Color.web("#CFE6FF"), sup.getBackground().getFills().getFirst().getFill());
+            assertTrue(sup.getBorder() == null || sup.getBorder().isEmpty() || sup.getBorder().getStrokes().stream()
+                    .allMatch(b -> javafx.scene.paint.Color.TRANSPARENT.equals(b.getTopStroke())
+                            || b.getWidths().getTop() == 0), "sin borde");
+            assertEquals(null, sup.getEffect(), "sin sombra");
+            assertEquals(12, sup.getPadding().getTop(), 0.01);
+            assertEquals(16, sup.getPadding().getLeft(), 0.01);
+            assertTrue(sup.getWidth() < pizarra.getWidth(), "se ajusta al contenido");
+        });
+    }
+
+    @Test
+    void laComprobacionVaFueraDeLaSuperficieYDespliegaLaExpansion() throws Exception {
+        enFx(() -> {
+            pizarra.mostrar(new PizarraResolucion.Contenido("FACTORIZA", "x^{2}-1", PASOS.subList(0, 1),
+                    "\\left(x+1\\right)\\left(x-1\\right)",
+                    new PizarraResolucion.Comprobacion("Por expansión", "Ver expansión",
+                            List.of("(x + 1) · (x − 1) = x² − 1", "(x + 1)(x − 1) = x² − 1"),
+                            PizarraResolucion.Comprobacion.Estado.COINCIDE, "Coincide con la entrada")));
+            acomodar();
+            Node seccion = pizarra.comprobacion();
+            assertTrue(seVe(seccion));
+            assertEquals(pizarra, seccion.getParent(), "fuera de la superficie de escritura");
+            assertEquals("✓ Coincide con la entrada", pizarra.estadoComprobacion().getText());
+            assertEquals("Ver expansión", pizarra.verDetalle().getText());
+            assertFalse(seVe(pizarra.detalleComprobacion()));
+            pizarra.verDetalle().fire();
+            acomodar();
+            assertTrue(seVe(pizarra.detalleComprobacion()));
+            assertFalse(pizarra.detalleComprobacion().lookupAll(".formula-ajustable").isEmpty(),
+                    "las igualdades con tipografía matemática");
+        });
+    }
+
+    @Test
+    void siNoCoincideSeMuestraElEstadoReal() throws Exception {
+        enFx(() -> {
+            pizarra.mostrar(new PizarraResolucion.Contenido("FACTORIZA", "x^{2}-1", PASOS.subList(0, 1), "x",
+                    new PizarraResolucion.Comprobacion("Por expansión", "Ver expansión", List.of("x = x² − 1"),
+                            PizarraResolucion.Comprobacion.Estado.NO_COINCIDE, "No coincide con la entrada")));
+            acomodar();
+            assertEquals("✗ No coincide con la entrada", pizarra.estadoComprobacion().getText());
+        });
+    }
+
+    @Test
+    void enRuffiniLaNotaExplicaElCeroYElResiduoDiceQueFactorEs() throws Exception {
+        var ruffini = new TrabajoIntermedio.TablaRuffini('x',
+                List.of(new TrabajoIntermedio.TablaRuffini.Candidato(Racional.de(1), Racional.de(0))),
+                List.of(new TrabajoIntermedio.TablaRuffini.Division(Racional.de(1),
+                        racionales(1, 0, -3, 2), racionales(1, 1, -2), racionales(1, 1, -2, 0), List.of(1))));
+        VistaPaso paso = new VistaPaso(1, "F16", "Ruffini", "Ruffini", "x = 1 deja residuo 0.",
+                Parser.parse("x^3 - 3x + 2"), ruffini, Parser.parse("(x - 1)(x^2 + x - 2)"));
+        enFx(() -> {
+            pizarra.mostrar(new PizarraResolucion.Contenido("FACTORIZA", "x^{3}-3x+2", List.of(paso),
+                    "\\left(x-1\\right)\\left(x^{2}+x-2\\right)", (String) null));
+            pizarra.interruptor().fire();
+            acomodar();
+            var textos = pizarra.nota(1).lookupAll(".label").stream()
+                    .map(n -> ((javafx.scene.control.Label) n).getText()).toList();
+            assertTrue(textos.contains("¿Por qué aparece un cero?"), textos.toString());
+            assertTrue(textos.contains("Falta el término en x². Por eso su coeficiente es 0."), textos.toString());
+            var vinculos = pizarra.lookupAll(".ruffini-vinculo").stream()
+                    .map(n -> ((javafx.scene.control.Label) n).getText()).toList();
+            assertEquals(List.of("Residuo 0 → (x − 1) es factor"), vinculos);
+        });
+    }
+
+    @Test
+    void variosTerminosFaltantes() {
+        assertEquals("Faltan los términos en x³ y x. Por eso sus coeficientes son 0.",
+                PizarraResolucion.porQueCero(List.of("x³", "x")));
+    }
+
+    private static List<Racional> racionales(int... v) {
+        return java.util.Arrays.stream(v).mapToObj(Racional::de).toList();
     }
 }

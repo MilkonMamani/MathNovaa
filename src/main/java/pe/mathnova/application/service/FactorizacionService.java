@@ -45,10 +45,16 @@ public class FactorizacionService {
      * La comparación de la pestaña Exploración: el LaTeX del resultado en cada campo, o el motivo por
      * el que no hay uno ("Solo en Q").
      */
-    public record Comparacion(Map<Campo, String> latex, Map<Campo, String> avisos, String nota) {
+    public record Comparacion(Map<Campo, String> latex, Map<Campo, String> avisos, String nota,
+                              Map<Campo, Resolucion> resoluciones) {
         public Comparacion {
             latex = Map.copyOf(latex);
             avisos = Map.copyOf(avisos);
+            resoluciones = Map.copyOf(resoluciones);
+        }
+
+        public Comparacion(Map<Campo, String> latex, Map<Campo, String> avisos, String nota) {
+            this(latex, avisos, nota, Map.of());
         }
 
         public Comparacion(Map<Campo, String> latex, Map<Campo, String> avisos) {
@@ -244,6 +250,7 @@ public class FactorizacionService {
             }
             return new Comparacion(latex, avisos, iguales ? MISMA_FRACCION : null);
         }
+        Map<Campo, Resolucion> resoluciones = new EnumMap<>(Campo.class);
         for (Campo c : Campo.values()) {
             try {
                 if (FactorizadorFunciones.tieneFunciones(e)) {
@@ -258,13 +265,15 @@ public class FactorizacionService {
                         avisos.put(c, "Las expresiones con funciones se factorizan en Q");
                     }
                 } else {
-                    latex.put(c, latex(motor.resolver(e, c)));
+                    Resolucion r = motor.resolver(e, c);
+                    latex.put(c, latex(r));
+                    resoluciones.put(c, r);
                 }
             } catch (RuntimeException ex) {
                 LOG.debug("{} no se pudo factorizar en {}", texto, c, ex);
             }
         }
-        return new Comparacion(latex, avisos);
+        return new Comparacion(latex, avisos, null, resoluciones);
     }
 
     /**

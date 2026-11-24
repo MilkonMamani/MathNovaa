@@ -12,4 +12,16 @@ import java.util.List;
 public interface ReconocedorEscritura {
 
     ResultadoReconocimiento reconocer(List<Trazo> trazos);
+
+    /**
+     * Deja el reconocedor listo para leer (por ejemplo, carga el modelo). Bloquea: se llama fuera del hilo
+     * de la interfaz, al abrir "Escribir". Los que no necesitan preparación no hacen nada.
+     */
+    default void preparar() {
+    }
+
+    /** false mientras {@link #preparar} no terminó: la primera lectura tardará más. */
+    default boolean listo() {
+        return true;
+    }
 }

@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.input.GestureEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TouchEvent;
 import javafx.scene.input.TouchPoint;
@@ -21,6 +22,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 
+import pe.mathnova.domain.escritura.Muestra;
 import pe.mathnova.domain.escritura.Punto;
 import pe.mathnova.domain.escritura.Trazo;
 
@@ -35,7 +37,14 @@ import pe.mathnova.domain.escritura.Trazo;
  *   <li>Deshacer quita lo último que se hizo (un trazo o una pasada del borrador).</li>
  * </ul>
  * Acepta mouse, lápiz y pantalla táctil. JavaFX no dice si un evento viene del lápiz o del dedo: los
- * toques que llegan mientras hay un trazo con mouse o lápiz se ignoran (la mano apoyada).
+ * toques que llegan mientras hay un trazo con mouse o lápiz se ignoran (la mano apoyada). Un toque con el
+ * dedo llega como TouchEvent y, además, como eventos de mouse "sintetizados": esos se ignoran, así cada
+ * gesto queda una sola vez. Los gestos táctiles (desplazar, pellizcar…) no salen del lienzo: escribir no
+ * mueve la página; la rueda del mouse sí la sigue moviendo.
+ *
+ * <p>Cada punto guarda x, y en píxeles del lienzo (recortados a sus bordes) y t en milisegundos desde el
+ * primer punto de la muestra. {@link #muestra} devuelve los trazos con el tamaño del lienzo de captura y
+ * {@link #cargar} los vuelve a dibujar, a escala si el lienzo es más chico.
  */
 public final class LienzoEscritura extends Region {
 
@@ -60,6 +69,11 @@ public final class LienzoEscritura extends Region {
     private boolean borroAlgo;
     private Punto ultimoBorrador;
     private Herramienta herramienta = Herramienta.LAPIZ;
+    /** System.nanoTime del primer punto de la muestra: el t = 0. */
+    private long origen;
+    /** El lienzo más grande en que se capturó un trazo de la muestra actual. */
+    private double anchoCaptura;
+    private double altoCaptura;
     private final ReadOnlyBooleanWrapper estaVacio = new ReadOnlyBooleanWrapper(true);
 
     private Runnable onEmpezar = () -> { };
@@ -89,26 +103,31 @@ public final class LienzoEscritura extends Region {
 
         getChildren().addAll(canvas, vacio);
 
+        // Mouse (y lápiz, que Windows manda como mouse). Se consumen para que nada de afuera (el
+        // ScrollPane de la pantalla, el SplitPane) los tome como un arrastre suyo.
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
             if (!e.isSynthesized() && fuente == null) {
-                empezar(Fuente.MOUSE, punto(e.getX(), e.getY()));
+                empezar(Fuente.MOUSE, e.getX(), e.getY());
             }
+            e.consume();
         });
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
             if (!e.isSynthesized() && fuente == Fuente.MOUSE) {
                 seguir(punto(e.getX(), e.getY()));
             }
+            e.consume();
         });
         canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
             if (!e.isSynthesized() && fuente == Fuente.MOUSE) {
                 terminar();
             }
+            e.consume();
         });
         canvas.addEventHandler(TouchEvent.TOUCH_PRESSED, e -> {
             if (fuente == null) {
                 TouchPoint t = e.getTouchPoint();
                 toque = t.getId();
-                empezar(Fuente.TOQUE, punto(t.getX(), t.getY()));
+                empezar(Fuente.TOQUE, t.getX(), t.getY());
             }
             e.consume();
         });
@@ -124,6 +143,13 @@ public final class LienzoEscritura extends Region {
                 terminar();
             }
             e.consume();
+        });
+        // Desplazar, pellizcar, girar o deslizar con el dedo sobre el lienzo no mueve la página. La rueda
+        // del mouse y el panel táctil de la laptop no son "directos": siguen desplazando la pantalla.
+        canvas.addEventHandler(GestureEvent.ANY, e -> {
+            if (e.isDirect()) {
+                e.consume();
+            }
         });
     }
 
@@ -186,15 +212,66 @@ public final class LienzoEscritura extends Region {
         redibujar();
     }
 
-    // ------------------------------------------------------------------ trazos
-
-    private Punto punto(double x, double y) {
-        return new Punto(x, y, System.currentTimeMillis());
+    /** Lo que hay ahora en el lienzo como muestra, con el tamaño del lienzo en que se capturó. */
+    public Muestra muestra(String etiqueta) {
+        double ancho = Math.max(anchoCaptura, canvas.getWidth());
+        double alto = Math.max(altoCaptura, canvas.getHeight());
+        return new Muestra(etiqueta, ancho, alto, trazos);
     }
 
-    private void empezar(Fuente f, Punto p) {
+    /**
+     * Reemplaza lo que hay por los trazos de la muestra, como si se acabaran de dibujar uno por uno: deshacer
+     * quita el último. Si el lienzo es más chico que el de captura, la muestra se reduce para que entre
+     * entera (la misma escala en x e y); si es igual o más grande, se dibuja tal cual.
+     */
+    public void cargar(Muestra m) {
+        double w = canvas.getWidth();
+        double h = canvas.getHeight();
+        double escala = 1;
+        if (w > 0 && h > 0 && m.ancho() > 0 && m.alto() > 0) {
+            escala = Math.min(1, Math.min(w / m.ancho(), h / m.alto()));
+        }
+        Muestra aqui = escala == 1 ? m : m.escalada(escala);
+        historial.clear();
+        List<Trazo> hasta = new ArrayList<>();
+        for (Trazo t : aqui.trazos()) {
+            historial.push(List.copyOf(hasta));
+            hasta.add(t);
+        }
+        trazos = List.copyOf(hasta);
+        actual.clear();
+        fuente = null;
+        anchoCaptura = aqui.ancho();
+        altoCaptura = aqui.alto();
+        // Un trazo nuevo sigue el reloj de la muestra cargada.
+        long ultimo = trazos.stream().flatMap(t -> t.puntos().stream()).mapToLong(Punto::t).max().orElse(0);
+        origen = System.nanoTime() - ultimo * 1_000_000L;
+        redibujar();
+    }
+
+    // ------------------------------------------------------------------ trazos
+
+    /** Relativo al lienzo (recortado a sus bordes) y con el tiempo desde que empezó la muestra. */
+    private Punto punto(double x, double y) {
+        double w = canvas.getWidth();
+        double h = canvas.getHeight();
+        double cx = w > 0 ? Math.max(0, Math.min(w, x)) : x;
+        double cy = h > 0 ? Math.max(0, Math.min(h, y)) : y;
+        return new Punto(cx, cy, (System.nanoTime() - origen) / 1_000_000L);
+    }
+
+    private void empezar(Fuente f, double x, double y) {
         fuente = f;
         onEmpezar.run();
+        if (herramienta == Herramienta.LAPIZ && trazos.isEmpty()) {
+            // Primer trazo de una muestra nueva: t = 0 y el lienzo de captura es el de ahora.
+            origen = System.nanoTime();
+            anchoCaptura = 0;
+            altoCaptura = 0;
+        }
+        anchoCaptura = Math.max(anchoCaptura, canvas.getWidth());
+        altoCaptura = Math.max(altoCaptura, canvas.getHeight());
+        Punto p = punto(x, y);
         if (herramienta == Herramienta.LAPIZ) {
             actual.clear();
             actual.add(p);

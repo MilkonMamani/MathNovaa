@@ -19,16 +19,28 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
  * @param trabajo el dibujo de pizarra, o null
  * @param grupo   el rótulo de los pasos anidados ("Factorizar numerador y denominador"), o null
  * @param hijos   los pasos anidados
+ * @param desarrollo los renglones de pizarra de un paso largo (Cardano) en lugar del trabajo; null si no
  */
 public record VistaPaso(int orden, String codigo, String titulo, String ayuda, String justificacion,
                         Expresion antes, TrabajoIntermedio trabajo, Expresion despues, String grupo,
-                        List<VistaPaso> hijos) {
+                        List<VistaPaso> hijos, Desarrollo desarrollo) {
 
     public VistaPaso {
         Objects.requireNonNull(codigo, "codigo");
         Objects.requireNonNull(titulo, "titulo");
         Objects.requireNonNull(justificacion, "justificacion");
         hijos = List.copyOf(hijos);
+    }
+
+    public VistaPaso(int orden, String codigo, String titulo, String ayuda, String justificacion,
+                     Expresion antes, TrabajoIntermedio trabajo, Expresion despues, String grupo,
+                     List<VistaPaso> hijos) {
+        this(orden, codigo, titulo, ayuda, justificacion, antes, trabajo, despues, grupo, hijos, null);
+    }
+
+    /** El mismo paso dibujado con {@code d}. */
+    public VistaPaso conDesarrollo(Desarrollo d) {
+        return new VistaPaso(orden, codigo, titulo, ayuda, justificacion, antes, trabajo, despues, grupo, hijos, d);
     }
 
     public VistaPaso(int orden, String codigo, String titulo, String ayuda, String justificacion,

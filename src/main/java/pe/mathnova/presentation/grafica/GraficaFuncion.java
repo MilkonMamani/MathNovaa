@@ -10,8 +10,10 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
@@ -62,15 +64,19 @@ public final class GraficaFuncion extends Region {
     private final FuncionReal funcion;
     private final VentanaGrafica inicial;
     private final Canvas lienzo = new Canvas();
+    private final Canvas consulta = new Canvas();
+    private final HBox controles = new HBox(3);
     private final Image leyenda;
     private final DoubleProperty progreso = new SimpleDoubleProperty(1);
 
     private VentanaGrafica ventana;
-    private double arrastreX;
-    private double arrastreY;
+    private double toqueX;
+    private double toqueY;
+    private boolean toqueDeslizado;
     /** Punto de la curva bajo el cursor, en coordenadas del plano; NaN si no hay. */
     private double cursorX = Double.NaN;
     private double cursorY = Double.NaN;
+    private String nombreCursor = "f";
 
     public GraficaFuncion(DatosGrafica datos, RenderizadorLatex latex) {
         this.datos = datos;
@@ -79,13 +85,35 @@ public final class GraficaFuncion extends Region {
         this.ventana = inicial;
         this.leyenda = leyenda(datos, latex);
         getStyleClass().add("grafica-funcion");
-        getChildren().add(lienzo);
+        consulta.setMouseTransparent(true);
+        controles.getChildren().addAll(control("+", "Acercar", 0.85),
+                control("−", "Alejar", 1 / 0.85));
+        Button restablecer = new Button("Restablecer vista");
+        restablecer.getStyleClass().add("grafica-control");
+        restablecer.setFocusTraversable(false);
+        restablecer.setOnAction(e -> restablecer());
+        controles.getChildren().add(restablecer);
+        getChildren().addAll(lienzo, consulta, controles);
         setMinSize(200, 200);
         setPrefSize(480, 340);
         setFocusTraversable(false);
         setAccessibleText("Gráfica de " + datos.leyendaLatex());
         progreso.addListener((obs, antes, ahora) -> dibujar());
-        configurarMouse();
+        configurarConsulta();
+    }
+
+    private Button control(String texto, String ayuda, double factor) {
+        Button boton = new Button(texto);
+        boton.getStyleClass().add("grafica-control");
+        boton.setTooltip(new Tooltip(ayuda));
+        boton.setFocusTraversable(false);
+        boton.setOnAction(e -> {
+            ventana = ventana.escalar(factor, (ventana.xMin() + ventana.xMax()) / 2,
+                    (ventana.yMin() + ventana.yMax()) / 2);
+            ocultarConsulta();
+            dibujar();
+        });
+        return boton;
     }
 
     public DoubleProperty progresoProperty() {
@@ -96,9 +124,10 @@ public final class GraficaFuncion extends Region {
         return ventana;
     }
 
-    /** Vuelve a la vista inicial (también con doble clic). */
+    /** Vuelve al encuadre inicial del ejercicio actual. */
     public void restablecer() {
         ventana = inicial;
+        ocultarConsulta();
         dibujar();
     }
 
@@ -114,6 +143,10 @@ public final class GraficaFuncion extends Region {
     protected void layoutChildren() {
         lienzo.setWidth(getWidth());
         lienzo.setHeight(getHeight());
+        consulta.setWidth(getWidth());
+        consulta.setHeight(getHeight());
+        controles.resizeRelocate(Math.max(4, getWidth() - controles.prefWidth(-1) - 8), 8,
+                controles.prefWidth(-1), controles.prefHeight(-1));
         dibujar();
     }
 
@@ -137,56 +170,92 @@ public final class GraficaFuncion extends Region {
 
     // ------------------------------------------------------------------ mouse
 
-    private void configurarMouse() {
-        setOnScroll(e -> {
-            double factor = e.getDeltaY() > 0 ? 0.85 : 1 / 0.85;
-            ventana = ventana.escalar(factor, planoX(e.getX()), planoY(e.getY()));
-            actualizarCursor(e.getX(), e.getY());
-            e.consume();
+    private void configurarConsulta() {
+        setOnMouseMoved(e -> {
+            if (!e.isSynthesized()) actualizarCursor(e.getX(), e.getY());
         });
-        setOnMousePressed(e -> {
-            arrastreX = e.getX();
-            arrastreY = e.getY();
+        setOnMouseExited(e -> {
+            if (!e.isSynthesized()) ocultarConsulta();
         });
-        setOnMouseDragged(e -> {
-            double dx = (arrastreX - e.getX()) / lienzo.getWidth() * ventana.ancho();
-            double dy = (e.getY() - arrastreY) / lienzo.getHeight() * ventana.alto();
-            ventana = ventana.mover(dx, dy);
-            arrastreX = e.getX();
-            arrastreY = e.getY();
-            cursorX = Double.NaN;
-            dibujar();
+        setOnTouchPressed(e -> {
+            toqueX = e.getTouchPoint().getX();
+            toqueY = e.getTouchPoint().getY();
+            toqueDeslizado = false;
         });
-        setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                restablecer();
+        setOnTouchMoved(e -> {
+            if (Math.hypot(e.getTouchPoint().getX() - toqueX,
+                    e.getTouchPoint().getY() - toqueY) > 10) {
+                toqueDeslizado = true;
+                ocultarConsulta();
             }
         });
-        setOnMouseMoved(e -> actualizarCursor(e.getX(), e.getY()));
-        setOnMouseExited(e -> {
-            cursorX = Double.NaN;
-            dibujar();
+        setOnTouchReleased(e -> {
+            if (!toqueDeslizado) actualizarCursor(e.getTouchPoint().getX(), e.getTouchPoint().getY());
         });
+    }
+
+    private void ocultarConsulta() {
+        cursorX = Double.NaN;
+        dibujarConsulta();
     }
 
     /** El punto de la curva más cercano al cursor (en pantalla), si está a menos de {@link #CERCANIA} px. */
     private void actualizarCursor(double mx, double my) {
         cursorX = Double.NaN;
         double mejor = CERCANIA;
-        for (double sx = Math.max(0, mx - CERCANIA); sx <= Math.min(lienzo.getWidth(), mx + CERCANIA); sx += 1) {
-            double x = planoX(sx);
-            double y = funcion.valor(x);
-            if (!Double.isFinite(y)) {
-                continue;
-            }
-            double d = Math.hypot(sx - mx, py(y) - my);
-            if (d < mejor) {
-                mejor = d;
-                cursorX = x;
-                cursorY = y;
+        DatosGrafica.Calculo calculo = datos.extra().calculo();
+        FuncionReal segunda = calculo == null ? null : calculo.segunda();
+        for (double a : discontinuidades()) {
+            if (Math.abs(px(a) - mx) <= 2) {
+                dibujarConsulta();
+                return;
             }
         }
-        dibujar();
+        FuncionReal[] funciones = segunda == null ? new FuncionReal[] {funcion}
+                : new FuncionReal[] {funcion, segunda};
+        for (int curva = 0; curva < funciones.length; curva++) {
+            for (double sx = Math.max(0, mx - CERCANIA); sx <= Math.min(lienzo.getWidth(), mx + CERCANIA); sx += 1) {
+                double x = planoX(sx);
+                double y = funciones[curva].valor(x);
+                if (!Double.isFinite(y) || !ventana.contiene(x, y)) continue;
+                double d = Math.hypot(sx - mx, py(y) - my);
+                if (d < mejor) {
+                    mejor = d;
+                    cursorX = x;
+                    cursorY = y;
+                    nombreCursor = curva == 0 ? (segunda == null ? "f" : calculo.nombre())
+                            : calculo.nombreSegunda();
+                }
+            }
+        }
+        if (segunda == null) {
+            for (Raiz r : datos.raices()) {
+                double x = FuncionReal.aDouble(r.valor());
+                double d = Math.hypot(px(x) - mx, py(0) - my);
+                if (d < mejor && ventana.contiene(x, 0)) {
+                    mejor = d;
+                    cursorX = x;
+                    cursorY = 0;
+                }
+            }
+            if (datos.corteY().isPresent()) {
+                double y = FuncionReal.aDouble(datos.corteY().get());
+                double d = Math.hypot(px(0) - mx, py(y) - my);
+                if (d < mejor && ventana.contiene(0, y)) {
+                    cursorX = 0;
+                    cursorY = y;
+                }
+            }
+        }
+        dibujarConsulta();
+    }
+
+    private List<Double> discontinuidades() {
+        List<Double> xs = new ArrayList<>();
+        datos.asintotas().forEach(a -> xs.add(FuncionReal.aDouble(a)));
+        xs.addAll(datos.extra().verticales());
+        xs.addAll(periodicas());
+        return xs;
     }
 
     // ------------------------------------------------------------------ dibujo
@@ -214,7 +283,7 @@ public final class GraficaFuncion extends Region {
         puntos(g);
         leyendaArriba(g, w);
         leyendaCurvas(g);
-        cursor(g, w);
+        dibujarConsulta();
     }
 
     private void cuadriculaYEjes(GraphicsContext g, double w, double h) {
@@ -546,8 +615,8 @@ public final class GraficaFuncion extends Region {
     private void etiqueta(GraphicsContext g, double sx, double sy, String texto) {
         g.setFont(FUENTE_ETIQUETA);
         double ancho = texto.length() * 6.4 + 8;
-        double x = Math.min(sx + 7, lienzo.getWidth() - ancho - 2);
-        double y = Math.max(2, sy - 22);
+        double x = Math.max(2, Math.min(sx + 7, lienzo.getWidth() - ancho - 2));
+        double y = Math.max(2, Math.min(sy - 22, lienzo.getHeight() - 18));
         g.setFill(Color.color(1, 1, 1, 0.85));
         g.fillRoundRect(x, y, ancho, 16, 6, 6);
         g.setFill(TEXTO);
@@ -564,14 +633,40 @@ public final class GraficaFuncion extends Region {
         double lh = leyenda.getHeight() * lw / leyenda.getWidth();
         double x = w - lw - 12;
         g.setFill(Color.color(1, 1, 1, 0.9));
-        g.fillRoundRect(x - 6, 6, lw + 12, lh + 8, 8, 8);
+        g.fillRoundRect(x - 6, 39, lw + 12, lh + 8, 8, 8);
         g.setStroke(Color.web("#e2e8f0"));
         g.setLineWidth(1);
-        g.strokeRoundRect(x - 6, 6, lw + 12, lh + 8, 8, 8);
-        g.drawImage(leyenda, x, 10, lw, lh);
+        g.strokeRoundRect(x - 6, 39, lw + 12, lh + 8, 8, 8);
+        g.drawImage(leyenda, x, 43, lw, lh);
     }
 
-    private void cursor(GraphicsContext g, double w) {
+    private void dibujarConsulta() {
+        GraphicsContext g = consulta.getGraphicsContext2D();
+        g.clearRect(0, 0, consulta.getWidth(), consulta.getHeight());
+        cursor(g);
+    }
+
+    private void etiquetaConsulta(GraphicsContext g, double sx, double sy, String texto) {
+        double ancho = Math.min(lienzo.getWidth() - 8, texto.length() * 6.5 + 18);
+        double x = sx + 12;
+        if (x + ancho > lienzo.getWidth() - 4) x = sx - ancho - 12;
+        x = Math.max(4, Math.min(x, lienzo.getWidth() - ancho - 4));
+        double y = sy - 42;
+        if (y < 4) y = sy + 16;
+        y = Math.max(4, Math.min(y, lienzo.getHeight() - 25));
+        g.setFill(Color.color(1, 1, 1, 0.97));
+        g.fillRoundRect(x, y, ancho, 23, 6, 6);
+        g.setStroke(Color.web("#93c5fd"));
+        g.setLineWidth(1);
+        g.strokeRoundRect(x, y, ancho, 23, 6, 6);
+        g.setFill(TEXTO);
+        g.setFont(FUENTE_ETIQUETA);
+        g.setTextAlign(TextAlignment.LEFT);
+        g.setTextBaseline(VPos.CENTER);
+        g.fillText(texto, x + 9, y + 11.5, ancho - 12);
+    }
+
+    private void cursor(GraphicsContext g) {
         if (Double.isNaN(cursorX) || progreso.get() < 1) {
             return;
         }
@@ -596,8 +691,10 @@ public final class GraficaFuncion extends Region {
         g.setStroke(AZUL);
         g.setLineWidth(1);
         g.strokeOval(sx - 6, sy - 6, 12, 12);
-        String texto = "(" + aproximado(cursorX) + ", " + aproximado(cursorY) + ")";
-        etiqueta(g, Math.min(sx, w - 10), sy, pendiente == null ? texto : texto + " · " + pendiente);
+        String nombre = datos.extra().calculo() == null || datos.extra().calculo().segunda() == null
+                ? "f(" + datos.variable() + ")" : nombreCursor;
+        String texto = datos.variable() + " = " + aproximado(cursorX) + " · " + nombre + " = " + aproximado(cursorY);
+        etiquetaConsulta(g, sx, sy, pendiente == null ? texto : texto + " · " + pendiente);
     }
 
     /** El punto bajo el cursor es aproximado: dos decimales. */
@@ -606,6 +703,8 @@ public final class GraficaFuncion extends Region {
         if (s.equals("-0.00")) {
             s = "0.00";
         }
+        if (s.endsWith(".00")) s = s.substring(0, s.length() - 3);
+        else if (s.endsWith("0")) s = s.substring(0, s.length() - 1);
         return s.startsWith("-") ? FormateadorTexto.MENOS + s.substring(1) : s;
     }
 }

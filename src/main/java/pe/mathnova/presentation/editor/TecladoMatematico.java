@@ -24,6 +24,9 @@ import javafx.scene.layout.VBox;
  */
 public class TecladoMatematico extends VBox {
 
+    /** El ancho de partida de cada columna de teclas, antes de repartir el ancho del panel. */
+    private static final double ANCHO_COLUMNA = 64;
+
     private final EditorMatematico editor;
     private final StackPane contenido = new StackPane();
     private final ToggleGroup grupo = new ToggleGroup();
@@ -113,9 +116,12 @@ public class TecladoMatematico extends VBox {
         g.setVgap(6);
         int columnas = b.columnas();
         for (int c = 0; c < columnas; c++) {
+            // Todas las columnas parten del mismo ancho y crecen o se encogen por igual; al achicar el panel,
+            // la columna de "Enter" o de una plantilla se detiene en lo que mide su texto y las demás siguen.
             ColumnConstraints cc = new ColumnConstraints();
-            cc.setPercentWidth(100.0 / columnas);
+            cc.setPrefWidth(ANCHO_COLUMNA);
             cc.setHgrow(Priority.ALWAYS);
+            cc.setFillWidth(true);
             g.getColumnConstraints().add(cc);
         }
         List<List<Teclas.Tecla>> filas = b.filas();
@@ -152,6 +158,8 @@ public class TecladoMatematico extends VBox {
             b.setTooltip(tip);
         }
         b.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        // Nunca "Ent…": la tecla no baja de lo que mide su texto; el panel no deja achicar más el teclado.
+        b.setMinWidth(Region.USE_PREF_SIZE);
         b.setMinHeight(40);
         // Sin foco propio: el editor conserva el cursor.
         b.setFocusTraversable(false);

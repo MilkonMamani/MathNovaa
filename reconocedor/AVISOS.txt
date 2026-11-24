@@ -1,0 +1,44 @@
+MathNova - avisos de terceros del reconocimiento de escritura a mano
+====================================================================
+
+El paquete portable redistribuye, sin modificaciones, los siguientes componentes. Todos funcionan en el
+equipo del alumno sin red, sin cuentas, sin claves y sin activación.
+
+1. Modelo UniMERNet Small
+   Fuente: https://huggingface.co/wanderkid/unimernet_small
+   Revisión: 82cb85440138c2038680fca410c8f70bb7343d6d
+   Licencia: Apache License 2.0 (declarada en la ficha del modelo).
+   Archivos: unimernet_small.pth, config.json, preprocessor_config.json, tokenizer.json,
+   tokenizer_config.json (sumas SHA-256 en MANIFIESTO.txt).
+   Cita: Wang, B. et al. "UniMERNet: A Universal Network for Real-World Mathematical Expression
+   Recognition", arXiv:2404.15254, 2024.
+
+2. Código de inferencia UniMERNet (paquete unimernet 0.2.3)
+   Fuente: https://github.com/opendatalab/UniMERNet, commit 5a2c80d96b1d2dba447ff18d873e5fb73ba03c35
+   Licencia: Apache License 2.0 (UniMERNet-LICENSE-Apache-2.0.txt). Partes derivadas de LAVIS de
+   Salesforce indican BSD-3-Clause en sus cabeceras.
+
+3. Python 3.11.9 (distribución embebible de python.org)
+   Licencia: PSF License (Python-3.11-LICENSE.txt).
+
+4. Paquetes de Python (lista completa con versión y licencia en paquetes-python.txt; el texto de cada
+   licencia está en reconocedor\python\Lib\site-packages\<paquete>.dist-info). Los principales:
+   - PyTorch 2.3.1 (CPU) y torchvision 0.18.1: BSD-3-Clause.
+   - transformers 4.42.4, tokenizers 0.19.1, huggingface-hub 0.24.6: Apache-2.0.
+   - timm, albumentations, omegaconf, numpy, scipy, OpenCV (opencv-python-headless 4.10): MIT / BSD /
+     Apache-2.0.
+   - certifi y tqdm: MPL-2.0 (se redistribuyen sin cambios; su código fuente está disponible en PyPI).
+   - Intel MKL 2021.4 y oneTBB 2021.13: Intel Simplified Software License (redistribución permitida).
+   - Intel OpenMP 2021.4 (dependencia de PyTorch para Windows): Intel End User License Agreement for
+     Developer Tools; sus bibliotecas de ejecución son "Redistributables" según ese acuerdo.
+   Nota: OpenCV se instala como opencv-python-headless (el mismo módulo cv2 sin interfaz gráfica), porque
+   albumentations lo requiere así; UniMERNet declara opencv-python.
+
+5. Runtime de Java incluido por jpackage (OpenJDK): GPLv2 con Classpath Exception; avisos en
+   runtime\legal\.
+
+6. Editor matemático: MathLive (MIT) y fuentes KaTeX (MIT), ya incluidos en MathNova.
+
+Ninguno de estos componentes se conecta a internet durante el uso. El servidor de inferencia desactiva
+explícitamente Hugging Face Hub (HF_HUB_OFFLINE, TRANSFORMERS_OFFLINE) y la consulta de versiones de
+albumentations (NO_ALBUMENTATIONS_UPDATE), y lee el modelo solo desde reconocedor\modelo.

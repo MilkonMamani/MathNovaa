@@ -208,11 +208,24 @@ public record VistaResolucion(String subtitulo, Expresion formula, Etiqueta etiq
                     : "Los " + factores + " factores son de grado 1: ya no se pueden factorizar más.");
         }
         String sinPasos = pasos.isEmpty() ? "No se aplicó ningún método: el polinomio no se parte en " + c + "." : null;
+        // Cardano con Δ > 0: la raíz real se llama r y se reutiliza (en vez de repetir los radicales anidados).
+        String latex = FactorizacionService.latex(r);
+        var legible = FormaLegible.de(r);
+        if (legible.isPresent()) {
+            latex = legible.get().latex();
+            notas.clear();
+            notas.addAll(legible.get().notas());
+            for (int i = 0; i < pasos.size(); i++) {
+                if ("F27".equals(pasos.get(i).codigo())) {
+                    pasos.set(i, pasos.get(i).conDesarrollo(legible.get().desarrollo()));
+                }
+            }
+        }
         return new VistaResolucion(subtitulo, forma.aExpresion(), etiqueta,
                 notas.isEmpty() ? List.of() : List.of(String.join(" ", notas)), pasos, sinPasos,
                 descartados(r.descartados(), codigos), verificacion(v), v.coincide(),
                 r.alternativas().stream().map(a -> new Alternativa(a, nombre(a, codigos), Tecnicas.nombre(a))).toList(),
-                FactorizacionService.latex(r), ayuda);
+                latex, ayuda);
     }
 
     /**

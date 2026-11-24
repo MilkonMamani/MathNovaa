@@ -1,0 +1,27 @@
+MathNova - carpeta portable para Windows 10/11 de 64 bits
+=========================================================
+
+No hace falta instalar nada ni tener internet.
+
+1. Copia la carpeta MathNova completa (por ejemplo, desde la USB) a tu equipo, por ejemplo a
+   Documentos\MathNova. No muevas ni borres la subcarpeta "reconocedor".
+2. Abre MathNova.exe.
+3. Entra a la pestaña "Escribir" (a la izquierda). La primera vez aparece
+   "Preparando el reconocedor… (solo la primera vez)": tarda unos segundos.
+4. Escribe la fórmula en el lienzo con el dedo, el lápiz o el mouse; por ejemplo  ∫ 2x dx.
+   Puedes levantar el dedo entre símbolos. Al dejar de escribir aparece "Reconociendo…" y, enseguida,
+   la fórmula en el campo de arriba, donde la puedes corregir con el teclado.
+5. Pulsa "Resolver".
+
+Si algo no se reconoce bien, corrige el símbolo en el campo de arriba o usa Deshacer / Borrador en el
+lienzo. Si sale "No pude reconocer tu escritura", tus trazos se conservan: pulsa "Reintentar".
+
+Memoria: el reconocedor usa alrededor de 2,5 GB de RAM mientras MathNova está abierto. En un equipo
+con 8 GB conviene cerrar otros programas pesados.
+
+Comprobar la instalación sin escribir a mano (abre MathNova, escribe solas las muestras de
+reconocedor\pruebas, que son trazos SIMULADOS, las resuelve y se cierra). En PowerShell, dentro de la carpeta:
+   .\MathNova.exe --mathnova.autoprueba=reconocedor\pruebas --mathnova.autoprueba.salir=true
+El informe queda en %USERPROFILE%\.mathnovautoprueba.txt
+
+Registro de errores del reconocedor: %USERPROFILE%\.mathnova\reconocedor.log

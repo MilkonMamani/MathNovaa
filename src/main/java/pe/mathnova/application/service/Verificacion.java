@@ -146,7 +146,7 @@ public record Verificacion(String resultado, List<String> productos, String expa
                 boolean igual = a.cercano(b, EvaluacionNumerica.CIFRAS_IGUALES, EvaluacionNumerica.MC);
                 coincide &= igual;
                 definidos++;
-                lineas.add("x = " + p + ":  " + a.texto(12) + " = " + b.texto(12) + (igual ? "  ✓" : "  ✗"));
+                lineas.add("x = " + p + ":  " + a.texto(12) + " ≈ " + b.texto(12) + (igual ? "  ✓" : "  ✗"));
             } catch (ArithmeticException e) {
                 // fuera del dominio: el punto no cuenta
             }
@@ -170,7 +170,7 @@ public record Verificacion(String resultado, List<String> productos, String expa
                 ComplejoDecimal a = EvaluacionNumerica.evaluar(entrada, v, EvaluacionNumerica.MC);
                 ComplejoDecimal b = EvaluacionNumerica.evaluar(resultado, v, EvaluacionNumerica.MC);
                 boolean igual = a.cercano(b, EvaluacionNumerica.CIFRAS_IGUALES, EvaluacionNumerica.MC);
-                lineas.add(x + " = " + p + ":  " + a.texto(12) + " = " + b.texto(12) + (igual ? "  ✓" : "  ✗"));
+                lineas.add(x + " = " + p + ":  " + a.texto(12) + " ≈ " + b.texto(12) + (igual ? "  ✓" : "  ✗"));
             } catch (ArithmeticException e) {
                 lineas.add(x + " = " + p + ": no se pudo evaluar");
             }

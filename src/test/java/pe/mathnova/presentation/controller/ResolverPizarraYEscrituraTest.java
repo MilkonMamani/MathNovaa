@@ -3,7 +3,9 @@ package pe.mathnova.presentation.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pe.mathnova.presentation.Fx.enFx;
 
@@ -31,6 +33,8 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.editor.EditorMatematico;
+import pe.mathnova.presentation.grafica.GraficaFuncion;
+import pe.mathnova.presentation.grafica.VentanaGrafica;
 
 /**
  * La pantalla "Resolver ejercicio" completa (resolucion.fxml, el editor MathLive y la Pizarra): ya no hay
@@ -125,6 +129,57 @@ class ResolverPizarraYEscrituraTest {
     }
 
     @Test
+    void laGraficaCubicaAparecePrimeroYConservaSuZoomAlVolver() throws Exception {
+        enFx(() -> controlador.resolver("x^3 - 2*x^2 - x + 2"));
+        Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió el cúbico");
+        enFx(() -> {
+            javafx.scene.layout.VBox vista = (javafx.scene.layout.VBox) raiz.lookup("#vistaGrafica");
+            assertEquals("tarjetaGrafica", vista.getChildren().getFirst().getId());
+            assertNull(raiz.lookup("#tarjetaSolucion"));
+            GraficaFuncion grafica = (GraficaFuncion) raiz.lookup(".grafica-funcion");
+            assertNotNull(grafica);
+            assertTrue(seVe(grafica));
+            assertTrue(seVe(raiz.lookup(".pizarra-paso")));
+            raiz.applyCss();
+            raiz.layout();
+            assertTrue(grafica.getWidth() > 200, "gráfica sin ancho al consultar: " + grafica.getWidth());
+            assertTrue(grafica.getHeight() > 200, "gráfica sin alto al consultar: " + grafica.getHeight());
+            assertEquals(1, grafica.progresoProperty().get(), 1e-9);
+            VentanaGrafica inicial = grafica.ventana();
+            double x = (1 - inicial.xMin()) / inicial.ancho() * grafica.getWidth();
+            double y = inicial.yMax() / inicial.alto() * grafica.getHeight();
+            grafica.getOnMouseMoved().handle(new javafx.scene.input.MouseEvent(javafx.scene.input.MouseEvent.MOUSE_MOVED,
+                    x, y, x, y, javafx.scene.input.MouseButton.NONE, 0, false, false, false, false,
+                    false, false, false, false, false, false, null));
+            try {
+                java.lang.reflect.Field cursor = GraficaFuncion.class.getDeclaredField("cursorX");
+                cursor.setAccessible(true);
+                assertEquals(1, cursor.getDouble(grafica), 0.03);
+            } catch (ReflectiveOperationException ex) {
+                throw new AssertionError(ex);
+            }
+            assertEquals(inicial, grafica.ventana());
+            if (Boolean.getBoolean("mathnova.capturaGrafica")) {
+                try {
+                    java.nio.file.Path destino = java.nio.file.Path.of("target", "grafica-cubica-punto-1-0.png");
+                    javax.imageio.ImageIO.write(javafx.embed.swing.SwingFXUtils.fromFXImage(
+                            raiz.snapshot(null, null), null), "png", destino.toFile());
+                } catch (java.io.IOException ex) {
+                    throw new java.io.UncheckedIOException(ex);
+                }
+            }
+            javafx.scene.layout.HBox controles = (javafx.scene.layout.HBox) grafica.getChildrenUnmodifiable().get(2);
+            ((Button) controles.getChildren().getFirst()).fire();
+            VentanaGrafica elegida = grafica.ventana();
+            assertNotEquals(inicial, elegida);
+            ((ToggleButton) raiz.lookup("#pestanaAnalisis")).fire();
+            ((ToggleButton) raiz.lookup("#pestanaGrafica")).fire();
+            assertEquals(elegida, grafica.ventana());
+            assertSame(grafica, raiz.lookup(".grafica-funcion"));
+        });
+    }
+
+    @Test
     void yaNoHayLineaDeResultadoBajoElEditorNiSeCalculaNada() throws Exception {
         enFx(() -> {
             assertNull(raiz.lookup("#resultadoEnVivo"));
@@ -152,33 +207,23 @@ class ResolverPizarraYEscrituraTest {
                     "ninguna nota a la vista");
             assertEquals(pasos.size(), raiz.lookupAll(".pizarra-metodo").stream()
                     .filter(ResolverPizarraYEscrituraTest::seVe).count(), "cada paso con su método en la flecha");
-            assertTrue(seVe(raiz.lookup(".pizarra-resultado-doble")), "el resultado al final de la pizarra");
+            assertTrue(seVe(raiz.lookup(".pizarra-resultado-final")), "el resultado al final de la pizarra");
             assertEquals("FACTORIZA", ((javafx.scene.control.Label) raiz.lookup(".pizarra-rotulo")).getText());
         });
         assertEquals(0, EN_VIVO.get());
     }
 
     @Test
-    void escribirAManoLlenaElEditorPeroNoResuelve() throws Exception {
+    void escribirAManoLlenaElEditorSoloPeroNoResuelve() throws Exception {
         enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
         Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
         enFx(() -> {
             assertTrue(seVe(canvas));
             Fx.trazo(canvas, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60});
         });
-        Fx.esperar(() -> seVe(raiz.lookup(".tarjeta-entendi")), "no apareció \"Lo que entendí\"");
-
-        enFx(() -> {
-            Button por = (Button) raiz.lookupAll(".boton-alternativa-simbolo").stream()
-                    .filter(n -> "×".equals(((Button) n).getText())).findFirst().orElseThrow();
-            por.fire();
-            ((Button) raiz.lookup(".boton-usar-escritura")).fire();
-        });
-        Fx.esperar(() -> editor.getLatex().contains("\\times"), "el editor no recibió el ejercicio");
-        enFx(() -> {
-            assertNotEquals(ReconocedorSimulado.LATEX, editor.getLatex());
-            assertTrue(controlador.escritoAMano(), "falta \"✎ Escrito a mano\"");
-        });
+        // Sin pulsar nada: lo reconocido aparece en el campo de arriba.
+        Fx.esperar(() -> ReconocedorSimulado.LATEX.equals(editor.getLatex()), "el editor no recibió el ejercicio");
+        enFx(() -> assertTrue(controlador.escritoAMano(), "falta \"✎ Escrito a mano\""));
         Thread.sleep(1000);
         enFx(() -> {
             EstadoResolucion e = controlador.estado();
@@ -188,11 +233,44 @@ class ResolverPizarraYEscrituraTest {
         });
 
         // Al editar con el teclado la etiqueta se va; Resolver sigue siendo cosa del estudiante.
-        enFx(() -> editor.setLatex(ReconocedorSimulado.LATEX));
+        enFx(() -> editor.setLatex("x^2-1"));
         Fx.esperar(() -> !controlador.escritoAMano(), "\"Escrito a mano\" sigue tras editar");
         Fx.esperar(() -> !raiz.lookup("#botonResolver").isDisabled(), "Resolver no se activó");
         enFx(() -> assertNull(controlador.ultimaResolucion()));
         enFx(() -> ((Button) raiz.lookup("#botonResolver")).fire());
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió al pulsar Resolver");
+    }
+
+    @Test
+    void resolverJustoDespuesDelUltimoTrazoEsperaLaLectura() throws Exception {
+        enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
+        enFx(() -> assertTrue(raiz.lookup("#botonResolver").isDisabled(), "sin nada escrito, Resolver está apagado"));
+        Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
+        enFx(() -> {
+            Fx.trazo(canvas, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60});
+            // Con el campo todavía vacío, la escritura pendiente deja Resolver activo.
+            assertFalse(raiz.lookup("#botonResolver").isDisabled(), "Resolver activo con escritura sin leer");
+            ((Button) raiz.lookup("#botonResolver")).fire(); // antes de la pausa
+        });
+        Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió");
+        enFx(() -> {
+            assertEquals(ReconocedorSimulado.LATEX, editor.getLatex(), "se resolvió lo último escrito a mano");
+            assertNotNull(controlador.ultimaResolucion());
+        });
+    }
+
+    @Test
+    void cambiarDePestanaConservaElEjercicio() throws Exception {
+        enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
+        Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
+        enFx(() -> Fx.trazo(canvas, new double[] {20, 60}, new double[] {60, 100}));
+        Fx.esperar(() -> ReconocedorSimulado.LATEX.equals(editor.getLatex()), "el editor no recibió el ejercicio");
+        enFx(() -> ((ToggleButton) raiz.lookup("#pestanaTeclado")).fire());
+        enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
+        Thread.sleep(500);
+        enFx(() -> {
+            assertEquals(ReconocedorSimulado.LATEX, editor.getLatex());
+            assertFalse(controlador.panelEscritura().leyendo(), "volver a la pestaña no relee");
+        });
     }
 }

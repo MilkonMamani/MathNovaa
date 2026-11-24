@@ -9,7 +9,6 @@ import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -17,14 +16,14 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -35,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import pe.mathnova.application.editor.LatexReconocido;
 import pe.mathnova.application.editor.TraductorLatex;
 import pe.mathnova.application.service.ConfiguracionService;
 import pe.mathnova.application.service.FactorizacionService;
@@ -58,7 +58,7 @@ import pe.mathnova.presentation.editor.EditorMatematico;
 import pe.mathnova.presentation.editor.TecladoMatematico;
 import pe.mathnova.presentation.escritura.PanelEscritura;
 import pe.mathnova.presentation.grafica.GraficaFuncion;
-import pe.mathnova.presentation.latex.ImagenLatex;
+import pe.mathnova.application.service.Verificacion;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 import pe.mathnova.presentation.resolucion.ContenidoEcuacion;
 import pe.mathnova.presentation.resolucion.ContenidoFactorizacion;
@@ -101,14 +101,18 @@ import pe.mathnova.presentation.resolucion.VistaResolucion;
 @Scope("prototype")
 public class ResolucionController {
 
-    /** Por debajo de este ancho de ventana, el procedimiento pasa debajo del panel izquierdo. */
-    static final double ANCHO_DOS_COLUMNAS = 1100;
     /** Por debajo de este ancho, el selector Q/R/C y Resolver bajan a una segunda fila. */
     static final double ANCHO_BARRA_UNA_FILA = 760;
-    /** El panel de pestañas, a la izquierda de la Pizarra. */
-    static final double ANCHO_PANEL_MIN = 360;
-    static final double ANCHO_PANEL = 420;
-    static final double ANCHO_PANEL_MAX = 460;
+    /**
+     * Hasta dónde se arrastra el separador. El panel de herramientas no baja de lo que mide el teclado más
+     * ancho (f(x): unos 410 px con "lím(x,y)", "sen⁻¹" y "Enter" enteros) más el relleno de la tarjeta y del
+     * panel. La Pizarra no baja de 480 px: así nada se sale de la tarjeta y la fórmula de cada paso conserva
+     * un ancho al lado de la columna fija de notas (220 px). Son fijos: ninguna pestaña mueve el separador.
+     */
+    static final double ANCHO_HERRAMIENTAS_MIN = 480;
+    static final double ANCHO_PIZARRA_MIN = 480;
+    /** La parte del ancho útil que lleva el panel de herramientas al abrir la pantalla. */
+    static final double PROPORCION_HERRAMIENTAS = 0.4;
     /** Opacidad de los paneles que muestran el resultado de una entrada anterior. */
     static final double OPACIDAD_ATENUADA = 0.4;
     /** El tooltip del selector cuando el campo no cambia el cálculo. */
@@ -117,6 +121,8 @@ public class ResolucionController {
     static final Duration ESPERA_ERROR = Duration.millis(400);
 
     private static final PseudoClass MAL = PseudoClass.getPseudoClass("mal");
+    /** El alumno está arrastrando el separador. */
+    private static final PseudoClass ARRASTRANDO = PseudoClass.getPseudoClass("arrastrando");
     private static final PseudoClass NEUTRA = PseudoClass.getPseudoClass("neutra");
     private static final String PROXIMAMENTE = "Disponible próximamente";
 
@@ -146,6 +152,8 @@ public class ResolucionController {
         }
     }
 
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ResolucionController.class);
+
     /** Sin reconocedor de escritura (pruebas que no usan "Escribir"). */
     private static final ReconocedorEscritura SIN_RECONOCEDOR = trazos -> {
         throw new UnsupportedOperationException("No hay un reconocedor de escritura configurado");
@@ -166,7 +174,6 @@ public class ResolucionController {
     private final HBox filaAcciones = new HBox(8);
     private Tooltip ayudaCampo;
     private final RenderizadorLatex latexPasos = new RenderizadorLatex(18f);
-    private final RenderizadorLatex latexComparacion = new RenderizadorLatex(16f);
     private final RenderizadorLatex latexLeyenda = new RenderizadorLatex(14f);
     private final PauseTransition espera = new PauseTransition(ESPERA_ERROR);
     private final ToggleGroup grupoPestanas = new ToggleGroup();
@@ -180,8 +187,14 @@ public class ResolucionController {
     private Runnable onConfiguracion = this::configuracionNoDisponible;
     /** El LaTeX que "Usar este ejercicio" puso en el editor; null si no vino de la escritura a mano. */
     private String latexEscrito;
-    /** El próximo aviso del editor es el eco de "Usar este ejercicio" (MathLive puede reescribir el LaTeX). */
+    /** El próximo aviso del editor es el eco de lo reconocido (MathLive puede reescribir el LaTeX). */
     private boolean ecoEscritura;
+    /** Cambia cada vez que el estudiante edita el campo por su cuenta: una lectura anterior no lo pisa. */
+    private long generacionEditor;
+    private String ultimoLatexEditor = "";
+    private PanelEscritura panelEscritura;
+    /** Pausa sin escribir antes de reconocer (mathnova.escritura.pausa-ms). */
+    private javafx.util.Duration pausaEscritura;
 
     @FXML
     private ScrollPane raiz;
@@ -212,9 +225,15 @@ public class ResolucionController {
     @FXML
     private HBox selectorCampo;
     @FXML
-    private GridPane columnas;
+    private SplitPane division;
+    @FXML
+    private VBox panelHerramientas;
+    @FXML
+    private VBox panelPizarra;
     @FXML
     private VBox columnaIzquierda;
+    @FXML
+    private StackPane contenidoIzquierda;
     @FXML
     private ToggleButton pestanaTeclado;
     @FXML
@@ -248,7 +267,7 @@ public class ResolucionController {
     @FXML
     private Label sinMetodos;
     @FXML
-    private GridPane comparacion;
+    private VBox comparacion;
     @FXML
     private Label tituloComparacion;
     @FXML
@@ -305,10 +324,6 @@ public class ResolucionController {
     private VBox sugerencias;
     @FXML
     private VBox secciones;
-    @FXML
-    private TitledPane panelVerificacion;
-    @FXML
-    private VBox lineasVerificacion;
 
     /** Cambia con cada Resolver: los resultados de un ejercicio anterior se descartan. */
     private int ejecucion;
@@ -318,7 +333,8 @@ public class ResolucionController {
     private String metodoForzado;
     /** Para la tecla "ans". */
     private String ultimaRespuesta;
-    private Boolean dosColumnas;
+    /** El 40 / 60 inicial ya se aplicó: desde ahí manda el alumno. */
+    private boolean divisionInicial;
     /** El campo de la barra (Q, R o C). */
     private Campo campo = Campo.Q;
     private final ToggleGroup grupoCampos = new ToggleGroup();
@@ -362,7 +378,24 @@ public class ResolucionController {
         teclado.setOnConfiguracion(() -> onConfiguracion.run());
         zonaTeclado.getChildren().setAll(teclado);
 
-        zonaEscritura.getChildren().setAll(new PanelEscritura(reconocedor, this::usarEscritura));
+        PanelEscritura.Destino destino = new PanelEscritura.Destino() {
+            @Override
+            public long generacion() {
+                return generacionEditor;
+            }
+
+            @Override
+            public String poner(String latex) {
+                return ponerEscritura(latex);
+            }
+        };
+        panelEscritura = pausaEscritura == null ? new PanelEscritura(reconocedor, destino)
+                : new PanelEscritura(reconocedor, destino, pausaEscritura,
+                        Boolean.getBoolean("mathnova.muestras")
+                                ? pe.mathnova.infrastructure.escritura.ArchivoMuestras.carpetaPorDefecto() : null);
+        zonaEscritura.getChildren().setAll(panelEscritura);
+        // Con escritura sin leer, "Resolver" queda activo: primero lee lo último y después resuelve.
+        panelEscritura.pendienteProperty().addListener((obs, antes, ahora) -> pintar());
 
         pizarra = new PizarraResolucion(latexPasos, animador, configuracion.mostrarExplicaciones());
         pizarra.setOnExplicaciones(configuracion::guardarMostrarExplicaciones);
@@ -378,18 +411,16 @@ public class ResolucionController {
         // La fórmula de la tarjeta Solución, con "Verificado" al costado o debajo.
         formulaSolucion.setLateral(etiquetaVerificado);
         recuadroFormula.getChildren().setAll(formulaSolucion);
+        // La pizarra contiene la solución; la pestaña Gráfica empieza directamente con el plano.
+        vistaGrafica.getChildren().remove(tarjetaSolucion);
         filaAcciones.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
         filaAcciones.getStyleClass().add("fila-acciones");
         botonResolver.setMinWidth(120);
         notaActualizar.setText(PantallaResolucion.PULSA_RESOLVER);
 
-        // Cada tarjeta mide lo que su contenido: ninguna se estira para igualar a la de al lado.
-        GridPane.setValignment(columnaIzquierda, VPos.TOP);
-        GridPane.setValignment(tarjetaProcedimiento, VPos.TOP);
-        GridPane.setFillHeight(columnaIzquierda, false);
-        GridPane.setFillHeight(tarjetaProcedimiento, false);
+        prepararDivision();
         raiz.sceneProperty().addListener((obs, antes, escena) -> seguirAncho(escena));
-        acomodar(ANCHO_DOS_COLUMNAS);
+        acomodarBarra(ANCHO_BARRA_UNA_FILA);
 
         sinMetodosInicial = sinMetodos.getText();
         limpiarResultado();
@@ -516,6 +547,8 @@ public class ResolucionController {
                 }
                 if (b != pestanaEscribir) {
                     editor.enfocar(); // en Escribir el foco no se va al editor: se escribe en el lienzo
+                } else {
+                    panelEscritura.alMostrar(); // carga el modelo la primera vez, en segundo plano
                 }
             });
         }
@@ -531,13 +564,62 @@ public class ResolucionController {
 
     // ---------------------------------------------------------------- escritura a mano
 
-    /** "Usar este ejercicio": el LaTeX va al editor con "✎ Escrito a mano". No se resuelve. */
-    private void usarEscritura(String latex) {
+    /**
+     * Lo reconocido en "Escribir" va al editor de arriba con "✎ Escrito a mano", adaptado por
+     * {@link LatexReconocido}: desde ahí sigue el mismo camino que lo escrito con el teclado. No se
+     * resuelve solo y el foco se queda en el lienzo.
+     *
+     * @return null si MathNova entiende la expresión; si no, "Revisa la expresión: …"
+     */
+    String ponerEscritura(String reconocido) {
+        String latex = LatexReconocido.adaptar(reconocido);
+        LOG.info("Escritura a mano: modelo «{}» → editor «{}»", reconocido, latex);
         latexEscrito = null;
         ecoEscritura = true;
         mostrar(etiquetaEscritoAMano, true);
         editor.setLatex(latex); // el editor avisa el cambio (alCambiar) con el LaTeX como quedó
-        editor.enfocar();
+        PantallaResolucion.Analisis a = PantallaResolucion.analizar(latex, resolverService);
+        if (a.tipo() == PantallaResolucion.Tipo.ERROR || a.tipo() == PantallaResolucion.Tipo.INCOMPLETO) {
+            return PanelEscritura.revisa(a.mensaje());
+        }
+        return null;
+    }
+
+    /** La pausa de "Escribir" antes de reconocer (la pone Spring desde mathnova.escritura.pausa-ms). */
+    @Autowired(required = false)
+    void setPausaEscritura(@org.springframework.beans.factory.annotation.Value("${mathnova.escritura.pausa-ms:700}")
+                           long ms) {
+        pausaEscritura = javafx.util.Duration.millis(Math.max(150, ms));
+    }
+
+    /** Para las pruebas y la autoprueba. */
+    public PanelEscritura panelEscritura() {
+        return panelEscritura;
+    }
+
+    /** Abre "Escribir" (como si el estudiante pulsara la pestaña). */
+    public void abrirEscribir() {
+        pestanaEscribir.fire();
+    }
+
+    /** Pulsa "Resolver" (como el botón: si hay escritura sin leer, la lee primero). */
+    public void pulsarResolver() {
+        resolver();
+    }
+
+    /** El LaTeX del campo de arriba. */
+    public String latexEditor() {
+        return editor.getLatex();
+    }
+
+    /** El aviso rojo bajo el campo, o "". */
+    public String aviso() {
+        return avisoEntrada.isVisible() ? avisoEntrada.getText() : "";
+    }
+
+    /** Para las pruebas y la autoprueba: el LaTeX de la tarjeta Solución (null si no hay). */
+    public String latexSolucion() {
+        return formulaSolucion.getLatex();
     }
 
     private void quitarEscritoAMano() {
@@ -565,7 +647,8 @@ public class ResolucionController {
         mostrar(avisoEntrada, mensaje != null);
         editor.marcarFalta(e == EstadoResolucion.INCOMPLETO);
 
-        botonResolver.setDisable(!pantalla.botonActivo());
+        botonResolver.setDisable(!pantalla.botonActivo()
+                && !(panelEscritura != null && panelEscritura.pendienteProperty().get()));
 
         boolean importa = campoImporta(pantalla.analisis().plan());
         for (ToggleButton b : List.of(campoQ, campoR, campoC)) {
@@ -602,9 +685,15 @@ public class ResolucionController {
         if (ecoEscritura) {
             ecoEscritura = false;
             latexEscrito = latex;
-        } else if (latexEscrito != null && !latexEscrito.equals(latex)) {
-            quitarEscritoAMano(); // se editó con el teclado
+        } else {
+            if (latexEscrito != null && !latexEscrito.equals(latex)) {
+                quitarEscritoAMano(); // se editó con el teclado
+            }
+            if (!latex.equals(ultimoLatexEditor)) {
+                generacionEditor++; // una corrección del estudiante: las lecturas anteriores no la pisan
+            }
         }
+        ultimoLatexEditor = latex;
         boolean cambio = pantalla.cambiar(PantallaResolucion.analizar(latex, resolverService));
         if (cambio) {
             metodoForzado = null;
@@ -627,6 +716,16 @@ public class ResolucionController {
      */
     @FXML
     void resolver() {
+        if (panelEscritura != null && panelEscritura.leyendo()) {
+            // Recién se escribió: primero se lee lo último y se pone en el editor; después se resuelve.
+            panelEscritura.alTerminar(this::resolverEditor, this::pintar);
+            return;
+        }
+        resolverEditor();
+    }
+
+    /** Resolver con lo que hay en el editor. */
+    private void resolverEditor() {
         espera.stop();
         alCambiar(editor.getLatex()); // por si el aviso del editor todavía no llegó
         PantallaResolucion.Analisis a = pantalla.analisis();
@@ -895,22 +994,18 @@ public class ResolucionController {
         }
         mostrar(alternativas, !alternativas.getChildren().isEmpty());
 
+        java.util.Optional<pe.mathnova.presentation.resolucion.FormaLegible> legible =
+                resultado.resolucion() instanceof pe.mathnova.domain.factorizacion.Resolucion res
+                        ? pe.mathnova.presentation.resolucion.FormaLegible.de(res) : java.util.Optional.empty();
         pizarra.mostrar(new PizarraResolucion.Contenido(resultado.rotulo(), resultado.latexEntrada(),
-                v.pasos(), contenido.latexSolucion(), comprobacion(v)));
+                v.pasos(), contenido.latexSolucion(), comprobacion(v, resultado.rotulo(), resultado.resolucion()),
+                legible.map(pe.mathnova.presentation.resolucion.FormaLegible::pie).orElse(List.of())));
         if (v.sinPasos() != null) {
             sinPasos.setText(v.sinPasos());
             mostrar(sinPasos, true);
         }
 
-        // HU18
-        for (String linea : v.verificacion()) {
-            lineasVerificacion.getChildren().add(nota(linea, "linea-verificacion"));
-        }
-        if (!v.verificacion().isEmpty()) {
-            lineasVerificacion.getChildren().add(nota(v.coincide() ? "✓ coincide con la entrada"
-                    : "✗ NO coincide con la entrada", v.coincide() ? "coincide" : "no-coincide"));
-        }
-        mostrar(panelVerificacion, !v.verificacion().isEmpty());
+        // HU18: la verificación va en la sección "Comprobación", debajo de la Pizarra.
         mostrar(secciones, true);
 
         // Análisis: la tabla de valores (límites), las propiedades (RF66, también en el panel derecho) y
@@ -956,12 +1051,10 @@ public class ResolucionController {
         mostrar(ayudaGrafica, hayGrafica);
         mostrar(graficaNoDisponible, !hayGrafica);
         mostrar(tarjetaGrafica, true);
-        tarjetaGrafica.setOpacity(animador.activas() ? 0 : 1);
+        tarjetaGrafica.setOpacity(1);
 
         panelPropiedades.setAnimated(animador.activas());
-        panelVerificacion.setAnimated(animador.activas());
 
-        GraficaFuncion graficaFinal = grafica;
         List<Node> solucion = new ArrayList<>(List.of(iconoSolucion, subtituloSolucion, formulaSolucion, irreducibles,
                 alternativas, secciones));
         if (v.sinPasos() != null) {
@@ -971,8 +1064,7 @@ public class ResolucionController {
             solucion.add(zonaSugerencias);
         }
         solucion.addAll(pizarra.cierre());
-        animador.presentar(pizarra.filasPasos(), pizarra.numeros(), solucion, etiquetaVerificado, () -> animador.presentarGrafica(tarjetaGrafica,
-                        graficaFinal == null ? null : graficaFinal.progresoProperty()));
+        animador.presentar(pizarra.filasPasos(), pizarra.numeros(), solucion, etiquetaVerificado, () -> {});
     }
 
     /** El rótulo de la Pizarra según lo que hace Resolver ("FACTORIZA"); null si no hay uno. */
@@ -1003,15 +1095,136 @@ public class ResolucionController {
     }
 
     /**
-     * El texto que sigue a "Comprobación." al pie de la Pizarra: los renglones de la verificación (HU18)
-     * con si coinciden, o lo que dice la etiqueta; null si no se comprobó nada.
+     * La sección "Comprobación" debajo de la Pizarra (HU18): cómo se comprobó, el estado real que dio el
+     * motor y los renglones del detalle; null si no se comprobó nada. No recalcula nada.
+     *
+     * @param rotulo lo que hace Resolver ("FACTORIZA", "INTEGRA"…), para nombrar el método
      */
-    static String comprobacion(VistaResolucion v) {
-        if (!v.verificacion().isEmpty()) {
-            return String.join("; ", v.verificacion())
-                    + (v.coincide() ? ". ✓ Coincide con la entrada." : ". ✗ No coincide con la entrada.");
+    static PizarraResolucion.Comprobacion comprobacion(VistaResolucion v, String rotulo) {
+        return comprobacion(v, rotulo, null);
+    }
+
+    /**
+     * Con la resolución del motor: en una factorización, "Ver expansión" es la cadena del resultado completo
+     * a la entrada (exacta); con radicales anidados se dice qué se comprobó de verdad: la expansión exacta
+     * con r y P(r) = 0, o solo la coincidencia numérica en cinco puntos (≈).
+     */
+    static PizarraResolucion.Comprobacion comprobacion(VistaResolucion v, String rotulo, Object resolucion) {
+        if ("FACTORIZA".equals(rotulo) && resolucion instanceof pe.mathnova.domain.factorizacion.Resolucion r) {
+            PizarraResolucion.Comprobacion c = comprobacionFactorizacion(v, r);
+            if (c != null) {
+                return c;
+            }
         }
-        return v.ayudaEtiqueta() == null ? null : v.ayudaEtiqueta() + ".";
+        if (v.verificacion().isEmpty()) {
+            return v.ayudaEtiqueta() == null ? null
+                    : new PizarraResolucion.Comprobacion(null, null, List.of(),
+                            v.etiqueta() == VistaResolucion.Etiqueta.VERIFICADO
+                                    ? PizarraResolucion.Comprobacion.Estado.COINCIDE
+                                    : PizarraResolucion.Comprobacion.Estado.SIN_COMPROBAR,
+                            v.ayudaEtiqueta());
+        }
+        boolean numerica = v.verificacion().getFirst().startsWith("Se evalúan")
+                || Verificacion.AYUDA_NUMERICA.equals(v.ayudaEtiqueta());
+        String metodo;
+        String accion;
+        String bien;
+        String mal;
+        switch (rotulo == null ? "" : rotulo) {
+            case "SIMPLIFICA" -> {
+                metodo = "Por productos cruzados";
+                accion = "Ver productos";
+                bien = "Coincide con la fracción original";
+                mal = "No coincide con la fracción original";
+            }
+            case "RESUELVE" -> {
+                metodo = "Sustituyendo las soluciones";
+                accion = "Ver sustitución";
+                bien = "Las soluciones cumplen la ecuación";
+                mal = "Alguna solución no cumple la ecuación";
+            }
+            case "INTEGRA" -> {
+                metodo = "Derivando el resultado";
+                accion = "Ver derivación";
+                bien = "La derivada coincide con el integrando";
+                mal = "La derivada no coincide con el integrando";
+            }
+            case "FACTORIZA" -> {
+                metodo = numerica ? "Evaluando con " + pe.mathnova.domain.numeros.EvaluacionNumerica.CIFRAS
+                        + " cifras" : "Por expansión";
+                accion = numerica ? "Ver evaluación" : "Ver expansión";
+                bien = numerica ? coincidenciaNumerica(v.verificacion()) : "Coincide con la entrada";
+                mal = "No coincide con la entrada";
+            }
+            default -> {
+                metodo = null;
+                accion = "Ver detalle";
+                bien = "Comprobado";
+                mal = "No coincide";
+            }
+        }
+        return new PizarraResolucion.Comprobacion(metodo, accion, v.verificacion(),
+                v.coincide() ? PizarraResolucion.Comprobacion.Estado.COINCIDE
+                        : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
+                v.coincide() ? bien : mal);
+    }
+
+    /** "Coincidencia numérica en 5 puntos": los puntos que de verdad se evaluaron y coincidieron. */
+    static String coincidenciaNumerica(List<String> lineas) {
+        long puntos = lineas.stream().filter(l -> l.strip().endsWith("✓")).count();
+        return "Coincidencia numérica en " + puntos + (puntos == 1 ? " punto" : " puntos");
+    }
+
+    /** Los renglones de la evaluación en puntos (sin la frase de arriba ni la igualdad final). */
+    private static List<String> puntos(List<String> lineas) {
+        return lineas.stream().filter(l -> l.contains("≈") && (l.strip().endsWith("✓") || l.strip().endsWith("✗")))
+                .toList();
+    }
+
+    private static PizarraResolucion.Comprobacion comprobacionFactorizacion(VistaResolucion v,
+            pe.mathnova.domain.factorizacion.Resolucion r) {
+        var entrada = pe.mathnova.domain.algebra.Polinomio.desde(r.entrada());
+        var ext = r.extension();
+        var legible = pe.mathnova.presentation.resolucion.FormaLegible.de(r);
+        if (legible.isPresent() && !legible.get().cadena().isEmpty()) {
+            var l = legible.get();
+            boolean algebra = l.algebraExacta();
+            boolean raiz = l.raizComprobada();
+            List<String> numericos = puntos(v.verificacion());
+            String metodo = "Expansión exacta con r"
+                    + (raiz ? " · P(r) ≈ 0 con " + pe.mathnova.domain.numeros.EvaluacionNumerica.CIFRAS + " cifras" : "");
+            boolean ok = algebra && raiz;
+            return new PizarraResolucion.Comprobacion(metodo, "Ver expansión", List.of(),
+                    ok ? PizarraResolucion.Comprobacion.Estado.COINCIDE : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
+                    ok ? "Coincide con la entrada (usando P(r) = 0)" : "No coincide con la entrada", l.cadena(),
+                    numericos.isEmpty() ? null : coincidenciaNumerica(numericos)
+                            + " (valor de Cardano de r, " + pe.mathnova.domain.numeros.EvaluacionNumerica.CIFRAS + " cifras)",
+                    numericos);
+        }
+        if (v.latexFormula() == null || v.verificacion().isEmpty()) {
+            return null;
+        }
+        pe.mathnova.presentation.resolucion.CadenaExpansion.Resultado cadena;
+        if (ext == null || ext.pasos().isEmpty()) {
+            cadena = pe.mathnova.presentation.resolucion.CadenaExpansion.de(r.resultado(), entrada, v.latexFormula());
+        } else {
+            cadena = pe.mathnova.presentation.resolucion.CadenaExpansion.de(ext.resultado(), entrada, v.latexFormula())
+                    .orElse(null);
+        }
+        if (cadena == null) {
+            return null;
+        }
+        if (cadena.expresiones().size() < 2) {
+            // Ya está expandido (no hubo factores): no hay nada que desplegar, ni un "P = P".
+            return new PizarraResolucion.Comprobacion("Por expansión", null, List.of(),
+                    cadena.coincide() ? PizarraResolucion.Comprobacion.Estado.COINCIDE
+                            : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
+                    cadena.coincide() ? "Coincide con la entrada" : "No coincide con la entrada");
+        }
+        boolean ok = cadena.coincide();
+        return new PizarraResolucion.Comprobacion("Por expansión", "Ver expansión", List.of(),
+                ok ? PizarraResolucion.Comprobacion.Estado.COINCIDE : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
+                ok ? "Coincide con la entrada" : "No coincide con la entrada", cadena.eslabones(), null, List.of());
     }
 
     /**
@@ -1085,7 +1298,10 @@ public class ResolucionController {
             estado.getStyleClass().addAll("metodo-estado", "metodo-" + t.estado().name().toLowerCase().replace('_', '-'));
             VBox tarjeta = new VBox(6, estado, nombre);
             tarjeta.getStyleClass().add("tarjeta-metodo");
-            tarjeta.setPrefWidth(170);
+            // Hasta 170 px, pero nunca más que el panel: así ninguna tarjeta se recorta.
+            tarjeta.setMinWidth(0);
+            tarjeta.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                    () -> Math.max(120, Math.min(170, vistaExploracion.getWidth() - 48)), vistaExploracion.widthProperty()));
             Tooltip.install(tarjeta, new Tooltip(t.ayuda()));
             if (t.motivo() != null) {
                 Label motivo = new Label(t.motivo());
@@ -1151,14 +1367,7 @@ public class ResolucionController {
     }
 
     private void mostrarComparacionCalculando() {
-        comparacion.getChildren().clear();
-        Campo[] campos = Campo.values();
-        for (int i = 0; i < campos.length; i++) {
-            comparacion.add(rotuloCampo(campos[i]), 0, i);
-            Label l = new Label("Calculando…");
-            l.getStyleClass().add("comparacion-pendiente");
-            comparacion.add(l, 1, i);
-        }
+        comparacion.getChildren().setAll(pe.mathnova.presentation.resolucion.ComparacionCampos.calculando());
     }
 
     /**
@@ -1170,46 +1379,11 @@ public class ResolucionController {
         if (c == null) {
             Label l = new Label("Todavía no hay un resultado");
             l.getStyleClass().add("comparacion-pendiente");
-            comparacion.add(l, 0, 0, 2, 1);
+            comparacion.getChildren().add(l);
             return;
         }
-        if (c.iguales()) {
-            Label rotulo = new Label("Q = R = C");
-            rotulo.getStyleClass().addAll("comparacion-campo", "comparacion-campo-elegido");
-            comparacion.add(rotulo, 0, 0);
-            comparacion.add(imagenComparacion(c.latex().get(Campo.Q)), 1, 0);
-            Label nota = new Label(c.nota());
-            nota.getStyleClass().add("comparacion-nota");
-            nota.setWrapText(true);
-            comparacion.add(nota, 0, 1, 2, 1);
-            return;
-        }
-        int fila = 0;
-        for (Campo cada : Campo.values()) {
-            String latex = c.latex().get(cada);
-            if (latex == null) {
-                continue; // la operación no tiene sentido o no hay resultado en ese campo
-            }
-            Label rotulo = rotuloCampo(cada);
-            if (cada == campo) {
-                rotulo.getStyleClass().add("comparacion-campo-elegido");
-            }
-            comparacion.add(rotulo, 0, fila);
-            comparacion.add(imagenComparacion(latex), 1, fila);
-            fila++;
-        }
-    }
-
-    private ImageView imagenComparacion(String latex) {
-        ImageView img = new ImageView(ImagenLatex.de(latexComparacion, latex));
-        img.setPreserveRatio(true);
-        return img;
-    }
-
-    private static Label rotuloCampo(Campo c) {
-        Label l = new Label(c.name());
-        l.getStyleClass().add("comparacion-campo");
-        return l;
+        comparacion.getChildren().add(new pe.mathnova.presentation.resolucion.ComparacionCampos(
+                pe.mathnova.presentation.resolucion.ComparacionCampos.filas(c), campo));
     }
 
     /** HU08: el método elegido no aplica. No es un error: se muestra el motivo. */
@@ -1241,7 +1415,6 @@ public class ResolucionController {
 
     private void limpiarResultado() {
         pizarra.limpiar();
-        lineasVerificacion.getChildren().clear();
         irreducibles.getChildren().clear();
         alternativas.getChildren().clear();
         formulaSolucion.setLatex(null);
@@ -1260,7 +1433,6 @@ public class ResolucionController {
         zonaGrafica.getChildren().clear();
         mostrar(tarjetaGrafica, false);
         panelPropiedades.setExpanded(false);
-        panelVerificacion.setExpanded(false);
         mostrar(iconoSolucion, false);
         mostrar(etiquetaVerificado, false);
         mostrar(alternativas, false);
@@ -1295,37 +1467,67 @@ public class ResolucionController {
 
     private void seguirAncho(Scene escena) {
         if (escena != null) {
-            escena.widthProperty().addListener((obs, antes, ancho) -> acomodar(ancho.doubleValue()));
-            acomodar(escena.getWidth());
+            escena.widthProperty().addListener((obs, antes, ancho) -> acomodarBarra(ancho.doubleValue()));
+            acomodarBarra(escena.getWidth());
         }
     }
 
+    // ---------------------------------------------------------------- separador herramientas | Pizarra
+
     /**
-     * Dos columnas desde 1100 px de ancho: el panel de pestañas (360–460 px) y la Pizarra con el resto;
-     * por debajo, la Pizarra pasa debajo del panel.
+     * Un solo separador para las cinco pestañas: los dos paneles son los contenedores de siempre, solo cambia
+     * su ancho (nada se vuelve a crear al arrastrar). Los límites son fijos para que ninguna pestaña empuje
+     * el separador al abrirse, y los paneles no se estiran a lo alto: cada tarjeta mide lo que su contenido.
      */
-    private void acomodar(double anchoVentana) {
-        acomodarBarra(anchoVentana);
-        boolean dos = anchoVentana >= ANCHO_DOS_COLUMNAS;
-        if (dosColumnas != null && dosColumnas == dos) {
+    private void prepararDivision() {
+        panelHerramientas.setMinWidth(ANCHO_HERRAMIENTAS_MIN);
+        panelPizarra.setMinWidth(ANCHO_PIZARRA_MIN);
+        for (VBox panel : List.of(panelHerramientas, panelPizarra)) {
+            panel.setMaxWidth(Double.MAX_VALUE);
+            panel.setFillWidth(true);
+        }
+        // El panel de herramientas guarda el ancho elegido en píxeles: si cambia el ancho disponible (la
+        // ventana, la barra lateral o la barra de desplazamiento que aparece al resolver), lo absorbe la Pizarra.
+        SplitPane.setResizableWithParent(panelHerramientas, false);
+        // Lo de adentro no fija el mínimo del panel: el separador manda.
+        columnaIzquierda.setMinWidth(0);
+        contenidoIzquierda.setMinWidth(0);
+        tarjetaProcedimiento.setMinWidth(0);
+
+        // El 40 / 60 se aplica una vez, cuando el SplitPane ya tiene su ancho real; antes, con un ancho
+        // provisional, el SplitPane lo recortaría a los mínimos y se quedaría ahí.
+        division.setDividerPositions(PROPORCION_HERRAMIENTAS);
+        division.widthProperty().addListener((obs, antes, ancho) -> posicionInicial(ancho.doubleValue()));
+
+        // Mientras se arrastra, la línea se pinta de azul.
+        division.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.getTarget() instanceof Node n && enSeparador(n)) {
+                division.pseudoClassStateChanged(ARRASTRANDO, true);
+            }
+        });
+        division.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> division.pseudoClassStateChanged(ARRASTRANDO, false));
+    }
+
+    private void posicionInicial(double ancho) {
+        if (divisionInicial || ancho < ANCHO_HERRAMIENTAS_MIN + ANCHO_PIZARRA_MIN) {
             return;
         }
-        dosColumnas = dos;
-        if (dos) {
-            ColumnConstraints panel = new ColumnConstraints(ANCHO_PANEL_MIN, ANCHO_PANEL, ANCHO_PANEL_MAX);
-            panel.setFillWidth(true);
-            ColumnConstraints resto = new ColumnConstraints();
-            resto.setHgrow(javafx.scene.layout.Priority.ALWAYS);
-            resto.setFillWidth(true);
-            resto.setMinWidth(0);
-            columnas.getColumnConstraints().setAll(panel, resto);
-            GridPane.setConstraints(columnaIzquierda, 0, 0);
-            GridPane.setConstraints(tarjetaProcedimiento, 1, 0);
-        } else {
-            columnas.getColumnConstraints().setAll(columna(100));
-            GridPane.setConstraints(columnaIzquierda, 0, 0);
-            GridPane.setConstraints(tarjetaProcedimiento, 0, 1);
+        divisionInicial = true;
+        division.setDividerPositions(PROPORCION_HERRAMIENTAS);
+    }
+
+    private boolean enSeparador(Node n) {
+        for (Node x = n; x != null && x != division; x = x.getParent()) {
+            if (x.getStyleClass().contains("split-pane-divider")) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    /** Dónde está el separador, de 0 a 1 (pruebas). */
+    double posicionSeparador() {
+        return division.getDividers().get(0).getPosition();
     }
 
     /**
@@ -1352,12 +1554,5 @@ public class ResolucionController {
     /** La barra está en dos filas (pruebas). */
     boolean barraEnDosFilas() {
         return !barraEntrada.getChildren().contains(botonResolver);
-    }
-
-    private static ColumnConstraints columna(double porcentaje) {
-        ColumnConstraints c = new ColumnConstraints();
-        c.setPercentWidth(porcentaje);
-        c.setFillWidth(true);
-        return c;
     }
 }
