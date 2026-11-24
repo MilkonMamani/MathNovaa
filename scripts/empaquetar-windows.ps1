@@ -17,14 +17,16 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\empaquetar-windows.ps1 [-Zip] [-SinPruebas]
 param(
     [switch]$Zip,
-    [switch]$SinPruebas
+    [switch]$SinPruebas,
+    # Dónde queda la carpeta MathNova. Debe ser una ruta corta: hay archivos a 190 caracteres de ella.
+    [string]$Destino
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $repo = Split-Path $PSScriptRoot -Parent
 Set-Location $repo
-$dist = Join-Path $repo 'dist'
+$dist = if ($Destino) { $Destino } else { Join-Path $repo 'dist' }
 $app = Join-Path $dist 'MathNova'
 $rec = Join-Path $repo 'reconocedor'
 
@@ -67,6 +69,13 @@ robocopy (Join-Path $rec 'modelo\unimernet_small') (Join-Path $destRec 'modelo\u
     /NFL /NDL /NJH /NJS /NP | Out-Null
 robocopy (Join-Path $rec 'pruebas') (Join-Path $destRec 'pruebas') *.json /NFL /NDL /NJH /NJS /NP | Out-Null
 if ($LASTEXITCODE -ge 8) { throw 'robocopy falló' }
+# Los scripts de conversión de checkpoints de transformers nunca se importan al usar el modelo y tienen
+# los nombres más largos: quitarlos da margen frente al límite de 260 caracteres de las rutas de Windows.
+Get-ChildItem (Join-Path $destRec 'python\Lib\site-packages\transformers\models') -Recurse -File -Filter 'convert_*' |
+    Remove-Item -Force
+$largo = (Get-ChildItem $app -Recurse -File | ForEach-Object { $_.FullName.Length - $app.Length } | Measure-Object -Maximum).Maximum
+Write-Host "Ruta relativa más larga: $largo caracteres (la carpeta de MathNova puede medir hasta $(259 - $largo))"
+
 
 # 4. Licencias y avisos.
 $lic = Join-Path $app 'LICENCIAS'
