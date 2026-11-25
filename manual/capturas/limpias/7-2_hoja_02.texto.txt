@@ -1,0 +1,86 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Historial
+Historial
+Cada ejercicio que resuelves se guarda solo. Pulsa el ojo para ver su hoja con todos los pasos.
+Cada ejercicio que resuelves se guarda solo. Pulsa el ojo para ver su hoja con todos los pasos.
+Buscar por expresión, operación o tema
+Todos
+Todos
+Cualquier fecha
+Cualquier fecha
+Solo favoritos
+Solo favoritos
+Ejercicio
+Ejercicio
+Operación
+Operación
+Tema
+Tema
+Campo
+Campo
+Fecha
+Fecha
+Acciones
+Acciones
+[latex] x^{3} - 2x^{2} - x + 2
+Factorizar
+Factorizar
+Factorización en Q
+Factorización en Q
+Q
+Q
+Hoy, 13:57
+Hoy, 13:57
+[latex] x^{4} - 4
+Factorizar
+Factorizar
+Factorización en Q
+Factorización en Q
+Q
+Q
+Hoy, 13:57
+Hoy, 13:57
+2 ejercicios
+2 ejercicios
+Factorizar
+Factorizar
+[latex] x^{3} - 2x^{2} - x + 2
+1
+1
+Agrupación de términos
+Agrupación de términos
+[latex] x^{3} - 2x^{2} - x + 2 = \left(x - 2\right)\left(x^{2} - 1\right)
+Los grupos (x³ − 2x²) y (−x + 2) comparten (x − 2)
+Los grupos (x³ − 2x²) y (−x + 2) comparten (x − 2)
+2
+2
+Diferencia de cuadrados
+Diferencia de cuadrados
+[latex] x^{2} - 1 = \left(x + 1\right)\left(x - 1\right)
+x² = (x)² y 1 = 1²
+x² = (x)² y 1 = 1²
+Métodos que no aplicaron
+Métodos que no aplicaron
+Factor común monomio
+Factor común monomio
+MCD(1, 2, 1, 2) = 1 y no todos los términos tienen x
+MCD(1, 2, 1, 2) = 1 y no todos los términos tienen x
+Cubo perfecto de binomio
+Cubo perfecto de binomio
+2 no es un cubo perfecto
+2 no es un cubo perfecto
+Resultado
+Resultado
+[latex] \left(x + 1\right)\left(x - 1\right)\left(x - 2\right)
+Abrir en Resolver
+Abrir en Resolver
+Practicar
+Practicar
+Exportar PDF
+Exportar PDF
+Cerrar
+Cerrar

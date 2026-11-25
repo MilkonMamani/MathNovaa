@@ -1,0 +1,116 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Resolver ejercicio
+Resolver ejercicio
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+[editor] 
+Q
+Q
+R
+R
+C
+C
+Resolver
+Resolver
+Teclado
+Teclado
+Escribir
+Escribir
+Gráfica
+Gráfica
+Análisis
+Análisis
+Exploración
+Exploración
+123
+123
+f(x)
+f(x)
+ABC
+ABC
+#&¬
+#&¬
+•••
+•••
+sen
+sen
+cos
+cos
+tan
+tan
+sen⁻¹
+sen⁻¹
+cos⁻¹
+cos⁻¹
+tan⁻¹
+tan⁻¹
+ln
+ln
+log₁₀
+log₁₀
+log□
+log□
+e^□
+e^□
+ⁿ√□
+ⁿ√□
+|□|
+|□|
+lím
+lím
+d/dx
+d/dx
+∂/∂x
+∂/∂x
+∫
+∫
+∬
+∬
+∭
+∭
+∞
+∞
+i
+i
+lím(x,y)
+lím(x,y)
+extr
+extr
+□₍□₎
+□₍□₎
+∇f
+∇f
+Dᵤf
+Dᵤf
+∂
+∂
+⌫
+⌫
+→
+→
+,
+,
+←
+←
+→
+→
+Enter
+Enter
+Pizarra
+Pizarra
+‹
+‹
+Todos los pasos
+Todos los pasos
+›
+›
+Paso a paso
+Paso a paso
+Explicaciones
+Explicaciones
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.

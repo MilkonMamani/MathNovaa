@@ -1,0 +1,89 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Resolver ejercicio
+Resolver ejercicio
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+[editor] x^3-2x^2-x+2
+Q
+Q
+R
+R
+C
+C
+Resolver
+Resolver
+Teclado
+Teclado
+Escribir
+Escribir
+Gráfica
+Gráfica
+Análisis
+Análisis
+Exploración
+Exploración
+Gráfica de la función
+Gráfica de la función
++
++
+−
+−
+Restablecer vista
+Restablecer vista
+Acerca el cursor para consultar un punto · Usa +, − o Restablecer vista para ajustar el plano
+Acerca el cursor para consultar un punto · Usa +, − o Restablecer vista para ajustar el plano
+Pizarra
+Pizarra
+‹
+‹
+Todos los pasos
+Todos los pasos
+›
+›
+Paso a paso
+Paso a paso
+Explicaciones
+Explicaciones
+FACTORIZA
+FACTORIZA
+[latex] x^{3} - 2x^{2} - x + 2
+1
+1
+Agrupación
+Agrupación
+[latex] \begin{aligned} x^{3} - 2x^{2} &= x^{2}(x - 2) \\ -x + 2 &= -(x - 2) \\ x^{3} - 2x^{2} - x + 2 &= \left(x - 2\right)\left(x^{2} - 1\right) \end{aligned}
+2
+2
+Diferencia de cuadrados
+Diferencia de cuadrados
+Se trabaja con
+Se trabaja con
+[latex] x^{2} - 1
+[latex] \begin{aligned} a^{2} - b^{2} &= (a + b)(a - b)\ \text{con}\ a = x\ \text{y}\ b = 1 \\ x^{2} - 1 &= \left(x + 1\right)\left(x - 1\right) \end{aligned}
+Resultado
+Resultado
+[latex] \left(x + 1\right)\left(x - 1\right)\left(x - 2\right)
+Los 3 factores son de grado 1: ya no se pueden factorizar más.
+Los 3 factores son de grado 1: ya no se pueden factorizar más.
+También se puede resolver con:
+También se puede resolver con:
+Ruffini
+Ruffini
+Comprobación
+Comprobación
+Ver comprobación
+Ver comprobación
+Elegir dónde guardar
+Elegir dónde guardar
+Cancelar
+Cancelar
+Exportar PDF
+Exportar PDF
+Se guardan los pasos con sus explicaciones, el resultado y la comprobación, en una hoja A4.
+Se guardan los pasos con sus explicaciones, el resultado y la comprobación, en una hoja A4.
+Incluir gráfica
+Incluir gráfica

@@ -1,0 +1,48 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Resolver ejercicio
+Resolver ejercicio
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+[editor] 3x^{2}+2x-1
+✎ Escrito a mano
+✎ Escrito a mano
+Q
+Q
+R
+R
+C
+C
+Resolver
+Resolver
+Teclado
+Teclado
+Escribir
+Escribir
+Gráfica
+Gráfica
+Análisis
+Análisis
+Exploración
+Exploración
+Escribe con el dedo, lápiz o mouse
+Escribe con el dedo, lápiz o mouse
+Listo: revisa la expresión arriba y pulsa Resolver.
+Listo: revisa la expresión arriba y pulsa Resolver.
+Pizarra
+Pizarra
+‹
+‹
+Todos los pasos
+Todos los pasos
+›
+›
+Paso a paso
+Paso a paso
+Explicaciones
+Explicaciones
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.

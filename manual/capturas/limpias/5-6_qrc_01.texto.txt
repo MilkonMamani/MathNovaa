@@ -1,0 +1,73 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Resolver ejercicio
+Resolver ejercicio
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+[editor] x^4-4
+Q
+Q
+R
+R
+C
+C
+Resolver
+Resolver
+Teclado
+Teclado
+Escribir
+Escribir
+Gráfica
+Gráfica
+Análisis
+Análisis
+Exploración
+Exploración
+Gráfica de la función
+Gráfica de la función
++
++
+−
+−
+Restablecer vista
+Restablecer vista
+Acerca el cursor para consultar un punto · Usa +, − o Restablecer vista para ajustar el plano
+Acerca el cursor para consultar un punto · Usa +, − o Restablecer vista para ajustar el plano
+Pizarra
+Pizarra
+‹
+‹
+Todos los pasos
+Todos los pasos
+›
+›
+Paso a paso
+Paso a paso
+Explicaciones
+Explicaciones
+FACTORIZA
+FACTORIZA
+[latex] x^{4} - 4
+1
+1
+Diferencia de cuadrados
+Diferencia de cuadrados
+[latex] \begin{aligned} a^{2} - b^{2} &= (a + b)(a - b)\ \text{con}\ a = x^{2}\ \text{y}\ b = 2 \\ x^{4} - 4 &= \left(x^{2} + 2\right)\left(x^{2} - 2\right) \end{aligned}
+Resultado
+Resultado
+[latex] \left(x^{2} + 2\right)\left(x^{2} - 2\right)
+x² + 2 no se factoriza en Q porque Δ = −8 < 0. x² − 2 no se factoriza en Q porque Δ = 8 no es un cuadrado perfecto.
+x² + 2 no se factoriza en Q porque Δ = −8 < 0. x² − 2 no se factoriza en Q porque Δ = 8 no es un cuadrado perfecto.
+También se puede resolver con:
+También se puede resolver con:
+Aspa doble especial
+Aspa doble especial
+Coeficientes indeterminados
+Coeficientes indeterminados
+Comprobación
+Comprobación
+Ver comprobación
+Ver comprobación

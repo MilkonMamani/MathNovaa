@@ -1,0 +1,51 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Práctica
+Práctica
+El motor ya lo resolvió por dentro: en cada paso eliges tú el método.
+El motor ya lo resolvió por dentro: en cada paso eliges tú el método.
+Factorizar
+Factorizar
+Paso 3 de 3
+Paso 3 de 3
+Aciertos a la primera
+Aciertos a la primera
+1
+1
+Intentos fallidos
+Intentos fallidos
+1
+1
+Ver una pista
+Ver una pista
+Elegir otro ejercicio
+Elegir otro ejercicio
+Pizarra
+Pizarra
+FACTORIZAR
+FACTORIZAR
+[latex] x^{3} - 2x^{2} - x + 2
+1
+1
+Agrupación de términos
+Agrupación de términos
+[latex] x^{3} - 2x^{2} - x + 2 = \left(x - 2\right)\left(x^{2} - 1\right)
+Los grupos (x³ − 2x²) y (−x + 2) comparten (x − 2)
+Los grupos (x³ − 2x²) y (−x + 2) comparten (x − 2)
+2
+2
+Diferencia de cuadrados
+Diferencia de cuadrados
+[latex] x^{2} - 1 = \left(x + 1\right)\left(x - 1\right)
+x² = (x)² y 1 = 1²
+x² = (x)² y 1 = 1²
+Paso 3. ¿Terminaste?
+Paso 3. ¿Terminaste?
+[latex] \left(x + 1\right)\left(x - 1\right)\left(x - 2\right)
+No, todavía se puede factorizar
+No, todavía se puede factorizar
+Sí, todos los factores son irreducibles
+Sí, todos los factores son irreducibles

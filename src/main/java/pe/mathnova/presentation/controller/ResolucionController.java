@@ -356,6 +356,7 @@ public class ResolucionController {
 
         formulaSolucion.setLateral(etiquetaVerificado);
         recuadroFormula.getChildren().setAll(formulaSolucion);
+        pizarra.agregarAlResultado(irreducibles, alternativas);
         vistaGrafica.getChildren().remove(tarjetaSolucion);
         filaAcciones.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
         filaAcciones.getStyleClass().add("fila-acciones");
@@ -628,6 +629,7 @@ public class ResolucionController {
                 && !etiquetaVerificado.getText().isEmpty();
         mostrar(etiquetaVerificado, etiqueta);
         mostrar(iconoSolucion, pantalla.etiquetaVisible());
+        pizarra.setComprobacionPermitida(pantalla.etiquetaVisible());
     }
 
     private void alCambiar(String latex) {

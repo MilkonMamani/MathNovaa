@@ -1,0 +1,21 @@
+{
+  "sistema": "MathNova",
+  "subtitulo": "Resolución de ejercicios paso a paso",
+  "version_software": "1.0",
+  "version_documento": "1.0",
+  "logo": "[COMPLETAR: logo de la institución]",
+  "universidad": "[COMPLETAR: Universidad]",
+  "facultad": "[COMPLETAR: Facultad]",
+  "escuela": "[COMPLETAR: Escuela Profesional]",
+  "curso": "[COMPLETAR: Curso]",
+  "docente": "[COMPLETAR: Docente]",
+  "autores": ["Milkon Eddy Mamani Ccama", "Diana Vanessa Huanca Cruz", "Yanil Perez Foraquita"],
+  "ciudad": "[COMPLETAR: Ciudad]",
+  "pais": "Perú",
+  "fecha": "23 de noviembre de 2026",
+  "versiones": [
+    {"version": "1.0", "fecha": "23/11/2026",
+     "autores": "M. E. Mamani Ccama, D. V. Huanca Cruz, Y. Perez Foraquita",
+     "cambio": "Versión inicial del manual"}
+  ]
+}

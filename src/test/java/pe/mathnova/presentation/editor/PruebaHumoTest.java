@@ -209,7 +209,7 @@ class PruebaHumoTest {
                 return;
             }
             resolverYEsperar(contexto);
-            String error = enFx(() -> visible("#errorSolucion") ? textoDe("#errorSolucion") : null);
+            String error = enFx(() -> controlador.estado() == EstadoResolucion.ERROR ? textoDe("#sinPasos") : null);
             resultado = error != null ? error : resumen(enFx(controlador::ultimaResolucion));
             assertFalse(enFx(() -> visible("#avisoEntrada")), () -> contexto + ": aviso " + textoDe("#avisoEntrada"));
             assertNull(error, contexto + ": " + error);
@@ -263,7 +263,7 @@ class PruebaHumoTest {
 
     private static String pantalla() {
         StringBuilder sb = new StringBuilder();
-        for (String id : List.of("#tarjetaSolucion", "#tarjetaProcedimiento", "#vistaAnalisis")) {
+        for (String id : List.of("#tarjetaProcedimiento", "#vistaAnalisis")) {
             Node n = raiz.lookup(id);
             if (n != null) {
                 textos(n, sb);
@@ -280,6 +280,10 @@ class PruebaHumoTest {
             sb.append(l.getText()).append('\n');
         } else if (n instanceof javafx.scene.text.Text t && t.getText() != null) {
             sb.append(t.getText()).append('\n');
+        } else if (n instanceof pe.mathnova.presentation.resolucion.FormulaAjustable f && f.getLatex() != null) {
+            sb.append(f.getLatex()).append('\n');
+        } else if (n instanceof pe.mathnova.presentation.latex.VistaLatex v && v.getLatex() != null) {
+            sb.append(v.getLatex()).append('\n');
         }
         if (n.getAccessibleText() != null) {
             sb.append(n.getAccessibleText()).append('\n');
@@ -310,11 +314,10 @@ class PruebaHumoTest {
             fallarFactorizacion = true;
             entrar(List.of("x^2-1"));
             resolverYEsperar("x^2 - 1 con el motor fallando");
-            assertTrue(enFx(() -> visible("#errorSolucion")), "falta el error en la tarjeta Solución");
-            String error = enFx(() -> textoDe("#errorSolucion"));
-            assertTrue(error.contains("fallo de prueba en el motor"), error);
             assertTrue(enFx(() -> visible("#sinPasos")), "el panel de Procedimiento no dice nada");
-            assertEquals(error, enFx(() -> textoDe("#sinPasos")));
+            String error = enFx(() -> textoDe("#sinPasos"));
+            assertTrue(error.contains("fallo de prueba en el motor"), error);
+            assertFalse(enFx(() -> comprobacionVisible()), "la pizarra sigue mostrando una comprobación");
         } finally {
             fallarFactorizacion = false;
         }
@@ -325,17 +328,17 @@ class PruebaHumoTest {
         entrar(List.of("x^3-2x^2-x+2"));
         resolverYEsperar("x^3 - 2x^2 - x + 2");
         assertEquals(EstadoResolucion.RESUELTO, enFx(controlador::estado));
-        assertTrue(enFx(() -> visible("#etiquetaVerificado")));
+        assertTrue(enFx(PruebaHumoTest::comprobacionVisible), "falta la comprobación en la pizarra");
 
         entrar(List.of("x^2+*3"));
         Thread.sleep(900);
         enFx(() -> null);
         assertEquals(EstadoResolucion.ERROR, enFx(controlador::estado));
-        assertFalse(enFx(() -> visible("#etiquetaVerificado")), "sigue \"Verificado\" del ejercicio anterior");
+        assertFalse(enFx(PruebaHumoTest::comprobacionVisible), "sigue la comprobación del ejercicio anterior");
         assertTrue(enFx(() -> visible("#avisoEntrada")), "falta el mensaje de error");
         assertTrue(enFx(() -> raiz.lookup("#botonResolver").isDisabled()), "Resolver debe quedar desactivado");
-        assertEquals(0.4, enFx(() -> raiz.lookup("#tarjetaSolucion").getOpacity()), 1e-9,
-                "la tarjeta Solución debe verse atenuada");
+        assertEquals(0.4, enFx(() -> raiz.lookup("#tarjetaProcedimiento").getOpacity()), 1e-9,
+                "la tarjeta Procedimiento debe verse atenuada");
     }
 
     @Test
@@ -399,11 +402,13 @@ class PruebaHumoTest {
             assertEquals(EstadoResolucion.RESUELTO, enFx(controlador::estado));
             Thread.sleep(200);
             enFx(() -> {
-                Node tarjeta = raiz.lookup("#tarjetaSolucion");
-                tarjeta.applyCss();
-                assertTrue(tarjeta.lookupAll(".scroll-pane").isEmpty(), "hay un ScrollPane en la tarjeta Solución");
+                Node bloque = raiz.lookup("#tarjetaProcedimiento .pizarra-resultado-bloque");
+                assertNotNull(bloque, "falta el bloque Resultado en la pizarra");
+                bloque.applyCss();
+                assertTrue(bloque.isVisible(), "el bloque Resultado no se ve");
+                assertTrue(bloque.lookupAll(".scroll-pane").isEmpty(), "hay un ScrollPane en el Resultado");
                 pe.mathnova.presentation.resolucion.FormulaAjustable f =
-                        (pe.mathnova.presentation.resolucion.FormulaAjustable) tarjeta.lookup(".formula-ajustable");
+                        (pe.mathnova.presentation.resolucion.FormulaAjustable) bloque.lookup(".pizarra-resultado-formula");
                 assertNotNull(f);
                 for (Node n : f.getChildrenUnmodifiable()) {
                     if (n.isVisible() && n.isManaged()) {
@@ -552,6 +557,11 @@ class PruebaHumoTest {
             assertTrue(System.nanoTime() < limite, mensaje);
             Thread.sleep(50);
         }
+    }
+
+    private static boolean comprobacionVisible() {
+        Node n = raiz.lookup("#tarjetaProcedimiento .pizarra-comprobacion-seccion");
+        return n != null && n.isVisible() && n.isManaged();
     }
 
     private static boolean visible(String id) {

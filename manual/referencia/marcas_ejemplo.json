@@ -1,0 +1,44 @@
+[
+ {
+  "cajas": [
+   [
+    233,
+    80,
+    771.1875,
+    30
+   ]
+  ],
+  "tipo": "accion",
+  "n": 1,
+  "texto": "Escribe el ejercicio",
+  "lado": "abajo"
+ },
+ {
+  "cajas": [
+   [
+    233,
+    244,
+    366,
+    138
+   ]
+  ],
+  "tipo": "accion",
+  "n": 2,
+  "texto": "O usa estas teclas",
+  "lado": "derecha"
+ },
+ {
+  "cajas": [
+   [
+    1142.1875,
+    77,
+    94.8125,
+    36
+   ]
+  ],
+  "tipo": "accion",
+  "n": 3,
+  "texto": "Haz clic en Resolver",
+  "lado": "abajo"
+ }
+]

@@ -114,6 +114,7 @@ public final class PizarraResolucion extends VBox {
     private Runnable alExportar;
     private EstadoPizarra.Modo modoInicial = EstadoPizarra.Modo.TODOS;
     private boolean hayResultado;
+    private boolean comprobacionPermitida = true;
     private final Label rotulo = new Label();
     private final FormulaAjustable enunciado = new FormulaAjustable(TAMANO_RESULTADO, TAMANO_MINIMO);
     private final VBox filas = new VBox();
@@ -467,6 +468,17 @@ public final class PizarraResolucion extends VBox {
         return pasos.stream().map(f -> (Node) f.numero).toList();
     }
 
+    public void agregarAlResultado(Node... extras) {
+        bloqueResultado.getChildren().addAll(extras);
+    }
+
+    public void setComprobacionPermitida(boolean si) {
+        if (comprobacionPermitida != si) {
+            comprobacionPermitida = si;
+            pintar();
+        }
+    }
+
     public List<Node> cierre() {
         return List.of(bloqueResultado, seccionComprobacion);
     }
@@ -486,7 +498,7 @@ public final class PizarraResolucion extends VBox {
         }
         boolean cierre = estado.resultadoVisible() && cuerpo.isVisible();
         mostrarNodo(bloqueResultado, cierre && bloqueResultado.getUserData() != null);
-        mostrarNodo(seccionComprobacion, cierre && seccionComprobacion.getUserData() != null);
+        mostrarNodo(seccionComprobacion, cierre && comprobacionPermitida && seccionComprobacion.getUserData() != null);
     }
 
     private void conservarLectura(Runnable cambio) {

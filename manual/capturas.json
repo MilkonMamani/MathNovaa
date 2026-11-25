@@ -1,0 +1,1783 @@
+[
+ {
+  "id": "2-2_abrir",
+  "tarea": "2.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "MathNova abre en Resolver",
+    "lado": "derecha",
+    "control": "titulo_resolver"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Lista para escribir",
+    "lado": "abajo",
+    "control": "barra_ejercicio"
+   }
+  ],
+  "reiniciar": true
+ },
+ {
+  "id": "5-1_resolver_01_pasos",
+  "tarea": "5.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_teclado"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Escribe el ejercicio",
+    "lado": "abajo",
+    "control": "entrada_ejercicio"
+   },
+   {
+    "tipo": "accion",
+    "texto": "O usa estas teclas",
+    "lado": "derecha",
+    "control": "teclado"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Resolver",
+    "lado": "abajo",
+    "control": "btn_resolver"
+   }
+  ]
+ },
+ {
+  "id": "3-1_menu",
+  "tarea": "3.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": ""
+   },
+   {
+    "accion": "clic",
+    "control": "btn_menu"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en el menú",
+    "lado": "derecha",
+    "control": "cabecera_menu"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige una sección",
+    "lado": "derecha",
+    "control": "menu_historial"
+   }
+  ]
+ },
+ {
+  "id": "4_teclado",
+  "tarea": "4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_menu"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_teclado"
+   },
+   {
+    "accion": "escribir",
+    "valor": ""
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Grupos de teclas",
+    "lado": "derecha",
+    "controles": [
+     "pildora_123",
+     "pildora_fx",
+     "pildora_abc",
+     "pildora_sim"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Borra",
+    "lado": "derecha",
+    "control": "tecla_borrar"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Mueven el cursor",
+    "lado": "abajo",
+    "controles": [
+     "tecla_izq",
+     "tecla_der"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Resuelve",
+    "lado": "derecha",
+    "control": "tecla_enter"
+   }
+  ]
+ },
+ {
+  "id": "4-1_teclado_01",
+  "tarea": "4.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_teclado"
+   },
+   {
+    "accion": "clic",
+    "control": "pildora_fx"
+   },
+   {
+    "accion": "escribir",
+    "valor": ""
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Teclado",
+    "lado": "arriba",
+    "control": "pestana_teclado"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige un grupo",
+    "lado": "derecha",
+    "control": "pildora_fx"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en las teclas",
+    "lado": "derecha",
+    "control": "teclado"
+   }
+  ]
+ },
+ {
+  "id": "4-2_corregir_01",
+  "tarea": "4.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_teclado"
+   },
+   {
+    "accion": "clic",
+    "control": "pildora_123"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+"
+   },
+   {
+    "accion": "esperar",
+    "control": "aviso_entrada"
+   },
+   {
+    "accion": "pausa",
+    "valor": "400"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Te dice qué falta",
+    "lado": "derecha",
+    "control": "aviso_entrada"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic donde corriges",
+    "lado": "abajo",
+    "control": "entrada_ejercicio"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Borra con esta tecla",
+    "lado": "derecha",
+    "control": "tecla_borrar"
+   }
+  ]
+ },
+ {
+  "id": "4-5_plantilla_01",
+  "tarea": "4.5",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_teclado"
+   },
+   {
+    "accion": "clic",
+    "control": "pildora_fx"
+   },
+   {
+    "accion": "escribir",
+    "valor": "\\lim_{x\\to2}\\frac{x^2-4}{x-2}"
+   },
+   {
+    "accion": "pausa",
+    "valor": "500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre f(x)",
+    "lado": "derecha",
+    "control": "pildora_fx"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en lím",
+    "lado": "derecha",
+    "control": "tecla_lim"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Llena cada casilla",
+    "lado": "abajo",
+    "control": "entrada_ejercicio"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Pasa a la siguiente casilla",
+    "lado": "abajo",
+    "control": "tecla_cursor_der"
+   }
+  ]
+ },
+ {
+  "id": "5-1_resolver_02_solucion",
+  "tarea": "5.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "MathNova reconoce qué hacer",
+    "lado": "derecha",
+    "control": "pizarra_rotulo"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Cada paso de la solución",
+    "lado": "izquierda",
+    "control": "pizarra_pasos"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Este es el resultado",
+    "lado": "izquierda",
+    "control": "caja_resultado"
+   }
+  ]
+ },
+ {
+  "id": "3_zonas",
+  "tarea": "3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "control": "menu_lateral",
+    "tipo": "zona",
+    "pos": [
+     0.5,
+     0.6
+    ]
+   },
+   {
+    "control": "barra_ejercicio",
+    "tipo": "zona",
+    "pos": [
+     0.6,
+     0.5
+    ]
+   },
+   {
+    "control": "columna_izquierda",
+    "tipo": "zona",
+    "pos": [
+     0.5,
+     0.35
+    ],
+    "ajuste": [
+     0,
+     0,
+     -14,
+     0
+    ]
+   },
+   {
+    "control": "pizarra",
+    "tipo": "zona",
+    "pos": [
+     0.85,
+     0.45
+    ]
+   }
+  ],
+  "sin_oscurecer": true
+ },
+ {
+  "id": "5-2_pasos_01",
+  "tarea": "5.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Paso a paso",
+    "lado": "arriba",
+    "control": "btn_modo_paso"
+   }
+  ]
+ },
+ {
+  "id": "5-2_pasos_02",
+  "tarea": "5.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_modo_paso"
+   },
+   {
+    "accion": "clic",
+    "control": "flecha_siguiente"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Avanza o retrocede",
+    "lado": "arriba",
+    "controles": [
+     "flecha_anterior",
+     "flecha_siguiente"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Paso en el que estás",
+    "lado": "abajo",
+    "control": "etiqueta_pasos"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Vuelve a ver todo",
+    "lado": "abajo",
+    "control": "btn_ver_todo",
+    "dist": 130
+   }
+  ]
+ },
+ {
+  "id": "5-3_explicacion_01",
+  "tarea": "5.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en ?",
+    "lado": "derecha",
+    "control": "btn_nota_1"
+   }
+  ]
+ },
+ {
+  "id": "5-3_explicacion_02",
+  "tarea": "5.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "btn_nota_1"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Por qué se hizo",
+    "lado": "abajo",
+    "control": "nota_paso"
+   },
+   {
+    "tipo": "accion",
+    "texto": "O muéstralas todas",
+    "lado": "abajo",
+    "control": "interruptor_explicaciones"
+   }
+  ]
+ },
+ {
+  "id": "5-4_comprobacion_01",
+  "tarea": "5.4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "ver",
+    "control": "ver_comprobacion"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Ver comprobación",
+    "lado": "izquierda",
+    "control": "ver_comprobacion"
+   }
+  ]
+ },
+ {
+  "id": "5-4_comprobacion_02",
+  "tarea": "5.4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "ver_comprobacion"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   },
+   {
+    "accion": "ver",
+    "control": "comprobacion"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Coincide con el ejercicio",
+    "lado": "izquierda",
+    "control": "comprobacion"
+   }
+  ]
+ },
+ {
+  "id": "5-5_exportar_01",
+  "tarea": "5.5",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_exportar"
+   },
+   {
+    "accion": "pausa",
+    "valor": "2500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Exportar PDF",
+    "lado": "izquierda",
+    "control": "btn_exportar"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige si va la gráfica",
+    "lado": "derecha",
+    "control": "dlg_incluir_grafica"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic aquí",
+    "lado": "abajo",
+    "control": "dlg_elegir_donde"
+   }
+  ]
+ },
+ {
+  "id": "6-1_grafica_01",
+  "tarea": "6.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_grafica"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Gráfica",
+    "lado": "derecha",
+    "control": "pestana_grafica"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Corta el eje x en las raíces",
+    "lado": "abajo",
+    "control": "zona_grafica"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Acerca o aleja",
+    "lado": "arriba",
+    "controles": [
+     "graf_mas",
+     "graf_menos",
+     "graf_restablecer"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "6-2_analisis_01",
+  "tarea": "6.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_analisis"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Análisis",
+    "lado": "arriba",
+    "control": "pestana_analisis"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Datos de la función",
+    "lado": "abajo",
+    "control": "analisis"
+   }
+  ]
+ },
+ {
+  "id": "6-3_probar_01",
+  "tarea": "6.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_exploracion"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Exploración",
+    "lado": "derecha",
+    "control": "pestana_exploracion"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Métodos usados y posibles",
+    "lado": "abajo",
+    "control": "metodos"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Probar",
+    "lado": "derecha",
+    "control": "btn_probar"
+   }
+  ]
+ },
+ {
+  "id": "6-3_probar_02",
+  "tarea": "6.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_exploracion"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_probar"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "ver",
+    "control": "caja_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Resuelto con ese método",
+    "lado": "izquierda",
+    "control": "pizarra_pasos"
+   }
+  ]
+ },
+ {
+  "id": "5-6_qrc_01",
+  "tarea": "5.6",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^4-4"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_q"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Resultado en Q",
+    "lado": "izquierda",
+    "control": "caja_resultado"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en R",
+    "lado": "abajo",
+    "control": "btn_r"
+   }
+  ]
+ },
+ {
+  "id": "5-6_qrc_02",
+  "tarea": "5.6",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^4-4"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_r"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   },
+   {
+    "accion": "esperar_resultado"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "R elegido",
+    "lado": "abajo",
+    "control": "btn_r"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Ahora con raíces",
+    "lado": "izquierda",
+    "control": "caja_resultado"
+   }
+  ]
+ },
+ {
+  "id": "6-4_comparar_01",
+  "tarea": "6.4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^4-4"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_q"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_exploracion"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Exploración",
+    "lado": "derecha",
+    "control": "pestana_exploracion"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Resultado en Q, R y C",
+    "lado": "derecha",
+    "control": "comparacion"
+   }
+  ]
+ },
+ {
+  "id": "4-3_mano_01",
+  "tarea": "4.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": ""
+   },
+   {
+    "accion": "clic",
+    "control": "pestana_escribir"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1000"
+   },
+   {
+    "accion": "muestra",
+    "valor": "reconocedor/pruebas/A.json"
+   },
+   {
+    "accion": "esperar",
+    "control": "listo_escritura",
+    "valor": "300"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Escribir",
+    "lado": "derecha",
+    "control": "pestana_escribir"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Escribe con el mouse",
+    "lado": "derecha",
+    "control": "zona_escritura"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Aquí aparece lo leído",
+    "lado": "abajo",
+    "control": "entrada_ejercicio"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Resolver",
+    "lado": "abajo",
+    "control": "btn_resolver"
+   }
+  ],
+  "reiniciar": true
+ },
+ {
+  "id": "4-3_mano_02",
+  "tarea": "4.3",
+  "escala": 2,
+  "preparar": [],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Lápiz y borrador",
+    "lado": "abajo",
+    "controles": [
+     "herr_lapiz",
+     "herr_borrador"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Deshacer y borrar todo",
+    "lado": "derecha",
+    "controles": [
+     "herr_deshacer",
+     "herr_borrar_todo"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Qué está haciendo",
+    "lado": "abajo",
+    "control": "estado_escritura"
+   }
+  ]
+ },
+ {
+  "id": "7-1_buscar_01",
+  "tarea": "7.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^4-4"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "ir",
+    "valor": "Resolver"
+   },
+   {
+    "accion": "escribir",
+    "valor": "x^3-2x^2-x+2"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_resolver"
+   },
+   {
+    "accion": "esperar_resultado"
+   },
+   {
+    "accion": "ir",
+    "valor": "Historial"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   },
+   {
+    "accion": "texto",
+    "control": "buscador",
+    "valor": "x^3"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Escribe lo que buscas",
+    "lado": "arriba",
+    "control": "buscador"
+   },
+   {
+    "tipo": "accion",
+    "texto": "O filtra la lista",
+    "lado": "arriba",
+    "controles": [
+     "selector_curso",
+     "selector_fecha",
+     "solo_favoritos"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Tus ejercicios",
+    "lado": "abajo",
+    "control": "filas_historial"
+   }
+  ],
+  "reiniciar": true
+ },
+ {
+  "id": "7-2_hoja_01",
+  "tarea": "7.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Historial"
+   },
+   {
+    "accion": "texto",
+    "control": "buscador",
+    "valor": ""
+   },
+   {
+    "accion": "pausa",
+    "valor": "1000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en el ojo",
+    "lado": "abajo",
+    "control": "btn_ojo"
+   }
+  ]
+ },
+ {
+  "id": "7-2_hoja_02",
+  "tarea": "7.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "btn_ojo"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Todos los pasos",
+    "lado": "izquierda",
+    "control": "cuerpo_hoja"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Cerrar",
+    "lado": "arriba",
+    "control": "cerrar_hoja"
+   }
+  ]
+ },
+ {
+  "id": "7-3_abrir_01",
+  "tarea": "7.3",
+  "escala": 2,
+  "preparar": [],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Abrir en Resolver",
+    "lado": "izquierda",
+    "control": "abrir_en_resolver",
+    "dist": 120
+   }
+  ]
+ },
+ {
+  "id": "7-4_exportar_01",
+  "tarea": "7.4",
+  "escala": 2,
+  "preparar": [],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Exportar PDF",
+    "lado": "arriba",
+    "control": "hoja_exportar"
+   }
+  ]
+ },
+ {
+  "id": "7-5_favorito_01",
+  "tarea": "7.5",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "cerrar_hoja"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   },
+   {
+    "accion": "clic",
+    "control": "btn_estrella"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en la estrella",
+    "lado": "abajo",
+    "control": "btn_estrella"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Activa Solo favoritos",
+    "lado": "izquierda",
+    "control": "solo_favoritos"
+   }
+  ]
+ },
+ {
+  "id": "7-6_eliminar_01",
+  "tarea": "7.6",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "btn_papelera"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en la papelera",
+    "lado": "abajo",
+    "control": "btn_papelera"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Eliminar",
+    "lado": "abajo",
+    "control": "confirmar_eliminar"
+   }
+  ]
+ },
+ {
+  "id": "10-1_resolucion_01",
+  "tarea": "10.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "cancelar_eliminar"
+   },
+   {
+    "accion": "pausa",
+    "valor": "500"
+   },
+   {
+    "accion": "ir",
+    "valor": "Configuración"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1200"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Elige el campo",
+    "lado": "derecha",
+    "controles": [
+     "cfg_campo_q",
+     "cfg_campo_r",
+     "cfg_campo_c"
+    ]
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige cómo se abre",
+    "lado": "derecha",
+    "controles": [
+     "cfg_modo_todos",
+     "cfg_modo_paso"
+    ]
+   },
+   {
+    "tipo": "accion",
+    "texto": "Muestra las explicaciones",
+    "lado": "izquierda",
+    "control": "cfg_explicaciones"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Muestra los códigos",
+    "lado": "izquierda",
+    "control": "cfg_codigos"
+   }
+  ]
+ },
+ {
+  "id": "10-2_apariencia_01",
+  "tarea": "10.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Configuración"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Elige el tamaño",
+    "lado": "derecha",
+    "controles": [
+     "cfg_letra_normal",
+     "cfg_letra_grande",
+     "cfg_letra_muy_grande"
+    ]
+   },
+   {
+    "tipo": "ok",
+    "texto": "Así se verá",
+    "lado": "derecha",
+    "control": "cfg_vista_previa"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige el tema",
+    "lado": "derecha",
+    "controles": [
+     "cfg_tema_claro",
+     "cfg_tema_oscuro"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "10-4_version_01",
+  "tarea": "10.4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Configuración"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   },
+   {
+    "accion": "ver",
+    "control": "cfg_versiones"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Versión de MathNova",
+    "lado": "izquierda",
+    "control": "cfg_versiones"
+   }
+  ]
+ },
+ {
+  "id": "10-3_borrar_01",
+  "tarea": "10.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Configuración"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   },
+   {
+    "accion": "clic",
+    "control": "cfg_borrar"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Borrar todo el historial",
+    "lado": "derecha",
+    "control": "cfg_borrar"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Borrar todo",
+    "lado": "abajo",
+    "control": "dlg_borrar_todo"
+   }
+  ]
+ },
+ {
+  "id": "8-1_empezar_01",
+  "tarea": "8.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Práctica"
+   },
+   {
+    "accion": "pausa",
+    "valor": "3000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Abre Práctica",
+    "lado": "derecha",
+    "control": "menu_practica"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Empezar",
+    "lado": "derecha",
+    "control": "practica_empezar"
+   }
+  ],
+  "reiniciar": true
+ },
+ {
+  "id": "8-2_metodo_01",
+  "tarea": "8.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "practica_empezar"
+   },
+   {
+    "accion": "pausa",
+    "valor": "2500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Qué se pregunta",
+    "lado": "arriba",
+    "control": "practica_pregunta"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige el método",
+    "lado": "izquierda",
+    "control": "practica_opciones"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Tu avance",
+    "lado": "derecha",
+    "control": "practica_avance"
+   }
+  ]
+ },
+ {
+  "id": "8-3_pista_01",
+  "tarea": "8.3",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "ver_pista"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Ver una pista",
+    "lado": "abajo",
+    "control": "ver_pista"
+   },
+   {
+    "tipo": "ok",
+    "texto": "Esta es la pista",
+    "lado": "abajo",
+    "control": "caja_pista"
+   }
+  ]
+ },
+ {
+  "id": "8-2_metodo_02",
+  "tarea": "8.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "op_cubo"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Te dice por qué no",
+    "lado": "abajo",
+    "control": "aviso_no_aplica"
+   }
+  ]
+ },
+ {
+  "id": "8-2_metodo_03",
+  "tarea": "8.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "op_agrupacion"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "El paso se agrega aquí",
+    "lado": "arriba",
+    "control": "practica_pasos"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Sigue con el próximo",
+    "lado": "izquierda",
+    "control": "practica_opciones"
+   }
+  ]
+ },
+ {
+  "id": "8-2_metodo_04",
+  "tarea": "8.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "op_diferencia"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Último paso: ¿Terminaste?",
+    "lado": "arriba",
+    "control": "practica_pregunta"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige Sí si ya no se puede factorizar",
+    "lado": "abajo",
+    "control": "op_si_terminaste"
+   }
+  ]
+ },
+ {
+  "id": "8-4_terminar_01",
+  "tarea": "8.4",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "clic",
+    "control": "op_si_terminaste"
+   },
+   {
+    "accion": "pausa",
+    "valor": "2000"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "ok",
+    "texto": "Tu resultado",
+    "lado": "izquierda",
+    "control": "caja_final"
+   },
+   {
+    "tipo": "accion",
+    "texto": "Practica otro",
+    "lado": "izquierda",
+    "control": "practicar_otro"
+   },
+   {
+    "tipo": "accion",
+    "texto": "O repite este",
+    "lado": "abajo",
+    "control": "repetir"
+   }
+  ]
+ },
+ {
+  "id": "9-1_ejemplo_01",
+  "tarea": "9.1",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Ejemplos"
+   },
+   {
+    "accion": "pausa",
+    "valor": "1500"
+   },
+   {
+    "accion": "clic",
+    "control": "curso_fundamentos"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Elige el curso",
+    "lado": "derecha",
+    "control": "curso_fundamentos",
+    "dist": 330
+   },
+   {
+    "tipo": "accion",
+    "texto": "Elige el tema",
+    "lado": "abajo",
+    "control": "tema_primero",
+    "dist": 150
+   },
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Resolver",
+    "lado": "derecha",
+    "control": "ejemplo_resolver"
+   }
+  ]
+ },
+ {
+  "id": "9-2_practicar_01",
+  "tarea": "9.2",
+  "escala": 2,
+  "preparar": [
+   {
+    "accion": "ir",
+    "valor": "Ejemplos"
+   },
+   {
+    "accion": "pausa",
+    "valor": "800"
+   }
+  ],
+  "marcas": [
+   {
+    "tipo": "accion",
+    "texto": "Haz clic en Practicar",
+    "lado": "derecha",
+    "control": "ejemplo_practicar"
+   }
+  ]
+ }
+]

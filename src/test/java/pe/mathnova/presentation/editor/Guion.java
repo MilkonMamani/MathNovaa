@@ -320,7 +320,7 @@ final class Guion {
             assertEquals("0", valores.get("y = mx"), valores::toString);
             assertEquals("1/2", valores.get("y = x²"), valores::toString);
             assertTrue(s.pantalla().contains("y = mx"), s.pantalla());
-            assertTrue(s.pantalla().contains("y = x²"), s.pantalla());
+            assertTrue(s.pantalla().contains("y = x²") || s.pantalla().contains("y = x^{2}"), s.pantalla());
             assertTrue(s.pantalla().contains("el límite no existe (RN38)"), s.pantalla());
             assertEquals(1, s.curvas().size(), "no se dibujaron las curvas de nivel");
             long trayectorias = s.curvas().getFirst().curvas().stream()

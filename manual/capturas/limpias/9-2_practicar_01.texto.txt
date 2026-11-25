@@ -1,0 +1,64 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Ejemplos
+Ejemplos
+Ejercicios preparados por curso y tema. Ábrelos para ver la solución o para practicarlos tú.
+Ejercicios preparados por curso y tema. Ábrelos para ver la solución o para practicarlos tú.
+Fundamentos de Matemática
+Fundamentos de Matemática
+Cálculo 1
+Cálculo 1
+Cálculo 2
+Cálculo 2
+Cálculo 3
+Cálculo 3
+Temas
+Temas
+Factorización en Q
+4
+4
+Factorización en R y C
+5
+5
+Fracciones algebraicas
+2
+2
+FACTORIZA
+FACTORIZA
+[latex] x^{3} - 2x^{2} - x + 2
+Agrupación y diferencia de cuadrados
+Agrupación y diferencia de cuadrados
+Resolver
+Resolver
+Practicar
+Practicar
+FACTORIZA
+FACTORIZA
+[latex] 2x^{3} - 3x^{2} - 3x + 2
+Ruffini y aspa simple
+Ruffini y aspa simple
+Resolver
+Resolver
+Practicar
+Practicar
+FACTORIZA
+FACTORIZA
+[latex] x^{4} + 5x^{3} + 11x^{2} + 14x + 4
+Aspa doble especial
+Aspa doble especial
+Resolver
+Resolver
+Practicar
+Practicar
+FACTORIZA
+FACTORIZA
+[latex] x^{4} + 4
+Quita y pon: se completa un cuadrado
+Quita y pon: se completa un cuadrado
+Resolver
+Resolver
+Practicar
+Practicar

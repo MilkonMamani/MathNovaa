@@ -1,0 +1,76 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Práctica
+Práctica
+El motor ya lo resolvió por dentro: en cada paso eliges tú el método.
+El motor ya lo resolvió por dentro: en cada paso eliges tú el método.
+Elige un ejercicio
+Elige un ejercicio
+Factorización en Q · 3 pasos
+Factorización en Q · 3 pasos
+Factoriza
+Factoriza
+[latex] x^{3} - 2x^{2} - x + 2
+Empezar
+Empezar
+Factorización en Q · 3 pasos
+Factorización en Q · 3 pasos
+Factoriza
+Factoriza
+[latex] 2x^{3} - 3x^{2} - 3x + 2
+Empezar
+Empezar
+Factorización en Q · 2 pasos
+Factorización en Q · 2 pasos
+Factoriza
+Factoriza
+[latex] x^{4} + 5x^{3} + 11x^{2} + 14x + 4
+Empezar
+Empezar
+Factorización en Q · 2 pasos
+Factorización en Q · 2 pasos
+Factoriza
+Factoriza
+[latex] x^{4} + 4
+Empezar
+Empezar
+Límites · 3 pasos
+Límites · 3 pasos
+Calcula el límite
+Calcula el límite
+[latex] \lim_{x \to 2} \frac{x^{2} - 4}{x - 2}
+Empezar
+Empezar
+Límites · 5 pasos
+Límites · 5 pasos
+Calcula el límite
+Calcula el límite
+[latex] \lim_{x \to 0} \frac{e^{x} - 1 - x}{x^{2}}
+Empezar
+Empezar
+Límites · 2 pasos
+Límites · 2 pasos
+Calcula el límite
+Calcula el límite
+[latex] \lim_{x \to 2} \frac{1}{x - 2}
+Empezar
+Empezar
+Factorización en varias variables · 2 pasos
+Factorización en varias variables · 2 pasos
+Factoriza
+Factoriza
+[latex] x^{2} + 3xy + 2y^{2} + 4x + 5y + 3
+Empezar
+Empezar
+Factorización en varias variables · 2 pasos
+Factorización en varias variables · 2 pasos
+Factoriza
+Factoriza
+[latex] xy + x + y + 1
+Empezar
+Empezar
+También puedes practicar cualquier ejercicio desde Ejemplos o desde el Historial.
+También puedes practicar cualquier ejercicio desde Ejemplos o desde el Historial.

@@ -1,0 +1,124 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Resolver ejercicio
+Resolver ejercicio
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+Escribe una expresión o una ecuación con el teclado o a mano y pulsa Resolver.
+[editor] x^3-2x^2-x+2
+Q
+Q
+R
+R
+C
+C
+Resolver
+Resolver
+Teclado
+Teclado
+Escribir
+Escribir
+Gráfica
+Gráfica
+Análisis
+Análisis
+Exploración
+Exploración
+123
+123
+f(x)
+f(x)
+ABC
+ABC
+#&¬
+#&¬
+•••
+•••
+x
+x
+y
+y
+π
+π
+e
+e
+□²
+□²
+□ⁿ
+□ⁿ
+√□
+√□
+□/□
+□/□
+<
+<
+>
+>
+(
+(
+)
+)
+ans
+ans
+,
+,
+≤
+≤
+≥
+≥
+7
+7
+8
+8
+9
+9
+×
+×
+÷
+÷
+4
+4
+5
+5
+6
+6
++
++
+−
+−
+1
+1
+2
+2
+3
+3
+=
+=
+⌫
+⌫
+0
+0
+.
+.
+←
+←
+→
+→
+Enter
+Enter
+Pizarra
+Pizarra
+‹
+‹
+Todos los pasos
+Todos los pasos
+›
+›
+Paso a paso
+Paso a paso
+Explicaciones
+Explicaciones
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.
+Escribe un ejercicio y pulsa Resolver para verlo resuelto en la pizarra.

@@ -1,0 +1,86 @@
+Resolver
+Historial
+Práctica
+Ejemplos
+Configuración
+Configuración
+Configuración
+Los cambios se guardan solos y se aplican en toda la app.
+Los cambios se guardan solos y se aplican en toda la app.
+Resolución
+Resolución
+Campo por defecto
+Campo por defecto
+Con qué campo empieza Resolver. Q es el de siempre (RN27).
+Con qué campo empieza Resolver. Q es el de siempre (RN27).
+Q
+Q
+R
+R
+C
+C
+Cómo se abre la pizarra
+Cómo se abre la pizarra
+Con todos los pasos a la vista, o de uno en uno.
+Con todos los pasos a la vista, o de uno en uno.
+Todos los pasos
+Todos los pasos
+Paso a paso
+Paso a paso
+Mostrar explicaciones
+Mostrar explicaciones
+Las notas al costado de cada paso: por qué aplica el método.
+Las notas al costado de cada paso: por qué aplica el método.
+Mostrar códigos de técnica
+Mostrar códigos de técnica
+Encendido, la pizarra muestra «F16 · Ruffini».
+Encendido, la pizarra muestra «F16 · Ruffini».
+Apariencia
+Apariencia
+Tamaño de letra de la pizarra
+Tamaño de letra de la pizarra
+También en la hoja del Historial, en Práctica y en el PDF.
+También en la hoja del Historial, en Práctica y en el PDF.
+Normal
+Normal
+Grande
+Grande
+Muy grande
+Muy grande
+[latex] x^{2} - 5x + 6 = \left(x - 2\right)\left(x - 3\right)
+Tema
+Tema
+En oscuro solo cambian el fondo y el texto; el azul se mantiene.
+En oscuro solo cambian el fondo y el texto; el azul se mantiene.
+Claro
+Claro
+Oscuro
+Oscuro
+Datos
+Datos
+2 ejercicios guardados. Se guardan en ~/.mathnova/mathnova.db.
+2 ejercicios guardados. Se guardan en ~/.mathnova/mathnova.db.
+Borrar todo el historial
+Borrar todo el historial
+Acerca de
+Acerca de
+MathNova
+MathNova
+0.0.1-SNAPSHOT
+0.0.1-SNAPSHOT
+Motor de resolución
+Motor de resolución
+0.2.0
+0.2.0
+Java
+Java
+21.0.13.1
+21.0.13.1
+JavaFX
+JavaFX
+21.0.5+1
+21.0.5+1
+SQLite
+SQLite
+3.53.4
+3.53.4

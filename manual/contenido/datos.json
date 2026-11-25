@@ -1,0 +1,28 @@
+{
+  "sistema": "MathNova",
+  "subtitulo": "Manual de usuario",
+  "version_software": "0.0.1-SNAPSHOT",
+  "version_documento": "1.0",
+  "logo": "[COMPLETAR: logo de la institución]",
+  "universidad": "[COMPLETAR: Universidad]",
+  "facultad": "[COMPLETAR: Facultad]",
+  "escuela": "[COMPLETAR: Escuela Profesional]",
+  "curso": "[COMPLETAR: Curso]",
+  "docente": "[COMPLETAR: Docente]",
+  "autores": [
+    "Milkon Eddy Mamani Ccama",
+    "Diana Vanessa Huanca Cruz",
+    "Yanil Perez Foraquita"
+  ],
+  "ciudad": "[COMPLETAR: Ciudad]",
+  "pais": "Perú",
+  "fecha": "25 de noviembre de 2026",
+  "versiones": [
+    {
+      "version": "1.0",
+      "fecha": "25/11/2026",
+      "autores": "M. E. Mamani Ccama, D. V. Huanca Cruz, Y. Perez Foraquita",
+      "cambio": "Versión inicial del manual"
+    }
+  ]
+}

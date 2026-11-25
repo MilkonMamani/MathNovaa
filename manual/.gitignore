@@ -1,0 +1,3 @@
+# Carpeta de usuario temporal del arnés (se recrea en cada corrida)
+.casa_capturas/
+__pycache__/
