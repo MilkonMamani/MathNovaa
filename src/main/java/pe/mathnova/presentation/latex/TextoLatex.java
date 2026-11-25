@@ -33,6 +33,7 @@ public final class TextoLatex {
             Map.entry('÷', "\\div "), Map.entry('≈', "\\approx "), Map.entry('≠', "\\neq "),
             Map.entry('≤', "\\leq "), Map.entry('≥', "\\geq "), Map.entry('<', "<"), Map.entry('>', ">"),
             Map.entry('→', "\\to "), Map.entry('⇒', "\\Rightarrow "), Map.entry('∞', "\\infty "),
+            Map.entry('∪', "\\cup "), Map.entry('∩', "\\cap "), Map.entry('∅', "\\varnothing "),
             Map.entry('π', "\\pi "), Map.entry('∫', "\\int "), Map.entry('∂', "\\partial "),
             Map.entry('±', "\\pm "), Map.entry('∓', "\\mp "), Map.entry('α', "\\alpha "),
             Map.entry('β', "\\beta "), Map.entry('γ', "\\gamma "), Map.entry('δ', "\\delta "),
@@ -68,6 +69,12 @@ public final class TextoLatex {
             return null;
         }
         return unir(piezas);
+    }
+
+    /** Un espacio fino antes de cada diferencial: "2x\,dx", "u^{5}\,du" (no en \frac{d}{dx} ni en \cdot). */
+    public static String conDiferenciales(String latex) {
+        return latex == null ? null
+                : latex.replaceAll("(?<![a-zA-Z\\\\{,])d([a-z]|\\\\theta)(?![a-zA-Z])", "\\\\,d$1");
     }
 
     /** El "=" de afuera (fuera de llaves y paréntesis); -1 si no hay. */
@@ -110,6 +117,17 @@ public final class TextoLatex {
                     j++;
                 }
                 String palabra = s.substring(i, j);
+                if (palabra.equals("sqrt") && j < n && s.charAt(j) == '(') {
+                    // sqrt(x + 4) es √(x + 4)
+                    int[] fin = new int[1];
+                    String radicando = radicando(s, j, fin);
+                    if (radicando == null) {
+                        return false;
+                    }
+                    piezas.add(new Pieza(Tipo.MATE, "\\sqrt{" + radicando + "}"));
+                    i = fin[0];
+                    continue;
+                }
                 piezas.add(palabra(palabra, s, i, j));
                 i = j;
                 continue;
@@ -333,7 +351,185 @@ public final class TextoLatex {
         return leer(s.strip(), piezas) ? unir(piezas) : null;
     }
 
-    private static String unir(List<Pieza> piezas) {
+    // ------------------------------------------------------------------ fracciones
+
+    /**
+     * "x²/2", "(3² − 9)/(3 − 3)", "1/x", "((x + 3)(x − 3))/(x − 3)": cada "/" pegado a sus dos operandos se
+     * escribe como fracción vertical. El numerador es lo que va pegado a la izquierda (un número, letras con
+     * su exponente, un paréntesis, varios factores juntos); el denominador, lo que va pegado a la derecha (un
+     * número, una letra con su exponente o un paréntesis). Con un espacio de por medio el "/" queda en línea.
+     * Los paréntesis de afuera de cada parte se quitan: la raya de la fracción ya agrupa.
+     */
+    private static List<Pieza> fracciones(List<Pieza> piezas) {
+        List<Pieza> ps = new ArrayList<>(piezas);
+        boolean cambio = true;
+        while (cambio) {
+            cambio = false;
+            for (int k = 1; k + 1 < ps.size(); k++) {
+                Pieza p = ps.get(k);
+                if (p.tipo() != Tipo.MATE || !"/".equals(p.latex())) {
+                    continue;
+                }
+                int ini = inicioNumerador(ps, k - 1);
+                int fin = finDenominador(ps, k + 1);
+                if (ini < 0 || fin < 0) {
+                    continue;
+                }
+                String num = unir(sinParentesis(ps.subList(ini, k)));
+                String den = unir(sinParentesis(ps.subList(k + 1, fin + 1)));
+                if (num.isEmpty() || den.isEmpty()) {
+                    continue;
+                }
+                List<Pieza> nuevo = new ArrayList<>(ps.subList(0, ini));
+                nuevo.add(new Pieza(Tipo.MATE, "\\frac{" + num + "}{" + den + "}"));
+                nuevo.addAll(ps.subList(fin + 1, ps.size()));
+                ps = nuevo;
+                cambio = true;
+                break;
+            }
+        }
+        return ps;
+    }
+
+    private static boolean esExponente(Pieza p) {
+        return p.tipo() == Tipo.MATE && (p.latex().startsWith("^{") || p.latex().startsWith("_{")
+                || p.latex().equals("'"));
+    }
+
+    private static boolean esFuncion(Pieza p) {
+        String l = p.latex();
+        return p.tipo() == Tipo.MATE && (l.startsWith("\\mathrm{") || l.matches("\\\\[a-z]+ ")
+                && FUNCIONES.contains(l.substring(1).strip()));
+    }
+
+    /** Un número, letras, una raíz, una fracción o una constante (π, ∞). */
+    private static boolean esAtomo(Pieza p) {
+        if (p.tipo() != Tipo.MATE || esFuncion(p) || esExponente(p)) {
+            return false;
+        }
+        String l = p.latex();
+        if (l.isEmpty()) {
+            return false;
+        }
+        char c = l.charAt(0);
+        if (Character.isLetterOrDigit(c)) {
+            return true;
+        }
+        return l.startsWith("\\sqrt") || l.startsWith("\\frac") || l.startsWith("\\pi") || l.startsWith("\\infty")
+                || l.startsWith("\\alpha") || l.startsWith("\\beta") || l.startsWith("\\theta")
+                || l.startsWith("\\lambda") || l.startsWith("\\mathbb");
+    }
+
+    private static boolean es(Pieza p, String latex) {
+        return p.tipo() == Tipo.MATE && latex.equals(p.latex());
+    }
+
+    /** Dónde empieza el numerador que termina en {@code fin}; -1 si no hay uno pegado. */
+    private static int inicioNumerador(List<Pieza> ps, int fin) {
+        int i = fin;
+        int inicio = -1;
+        while (i >= 0) {
+            int j = i;
+            while (j >= 0 && esExponente(ps.get(j))) {
+                j--;
+            }
+            if (j < 0) {
+                return -1;
+            }
+            Pieza p = ps.get(j);
+            int comienzo;
+            if (es(p, ")")) {
+                comienzo = abre(ps, j);
+                if (comienzo < 0) {
+                    return -1;
+                }
+                if (comienzo > 0 && esFuncion(ps.get(comienzo - 1))) {
+                    comienzo--;
+                }
+            } else if (esAtomo(p)) {
+                comienzo = j;
+            } else {
+                break;
+            }
+            inicio = comienzo;
+            i = comienzo - 1;
+            // Factores juntos ("2x", "(x + 3)(x − 3)"): sigue mientras no haya espacio ni operador.
+            if (i < 0 || !(es(ps.get(i), ")") || esAtomo(ps.get(i)) || esExponente(ps.get(i)))) {
+                break;
+            }
+        }
+        // "sen u/u", "csc²θ/9": la función (con su exponente) va con su argumento en el numerador.
+        if (inicio > 0) {
+            int k = inicio - 1;
+            if (k >= 0 && ps.get(k).tipo() == Tipo.ESPACIO) {
+                k--;
+            }
+            while (k >= 0 && esExponente(ps.get(k))) {
+                k--;
+            }
+            if (k >= 0 && esFuncion(ps.get(k))) {
+                inicio = k;
+            }
+        }
+        return inicio;
+    }
+
+    /** Dónde termina el denominador que empieza en {@code ini}; -1 si no hay uno pegado. */
+    private static int finDenominador(List<Pieza> ps, int ini) {
+        Pieza p = ps.get(ini);
+        int fin;
+        if (es(p, "(")) {
+            fin = cierra(ps, ini);
+        } else if (esFuncion(p) && ini + 1 < ps.size() && es(ps.get(ini + 1), "(")) {
+            fin = cierra(ps, ini + 1);
+        } else if (esAtomo(p)) {
+            fin = ini;
+        } else {
+            return -1;
+        }
+        if (fin < 0) {
+            return -1;
+        }
+        while (fin + 1 < ps.size() && esExponente(ps.get(fin + 1))) {
+            fin++;
+        }
+        return fin;
+    }
+
+    private static int abre(List<Pieza> ps, int cierre) {
+        int nivel = 0;
+        for (int k = cierre; k >= 0; k--) {
+            if (es(ps.get(k), ")")) {
+                nivel++;
+            } else if (es(ps.get(k), "(") && --nivel == 0) {
+                return k;
+            }
+        }
+        return -1;
+    }
+
+    private static int cierra(List<Pieza> ps, int abre) {
+        int nivel = 0;
+        for (int k = abre; k < ps.size(); k++) {
+            if (es(ps.get(k), "(")) {
+                nivel++;
+            } else if (es(ps.get(k), ")") && --nivel == 0) {
+                return k;
+            }
+        }
+        return -1;
+    }
+
+    /** Sin el par de paréntesis de afuera, si encierra todo. */
+    private static List<Pieza> sinParentesis(List<Pieza> ps) {
+        if (ps.size() >= 2 && es(ps.getFirst(), "(") && cierra(ps, 0) == ps.size() - 1) {
+            return ps.subList(1, ps.size() - 1);
+        }
+        return ps;
+    }
+
+    private static String unir(List<Pieza> entrada) {
+        List<Pieza> piezas = entrada.stream().anyMatch(p -> es(p, "/")) ? fracciones(entrada) : entrada;
         StringBuilder sb = new StringBuilder();
         for (int k = 0; k < piezas.size(); k++) {
             Pieza p = piezas.get(k);

@@ -46,6 +46,14 @@ public sealed interface ContenidoPestanas
         return Optional.empty();
     }
 
+    /**
+     * La factorización de un polinomio de una variable: propiedades, raíces y conjunto solución. Si está, va en
+     * lugar de {@link #propiedades()} y la Pizarra no repite las propiedades debajo.
+     */
+    default Optional<AnalisisFactorizacion> analisisFactorizacion() {
+        return Optional.empty();
+    }
+
     /** La tabla de valores de un límite, que va primero en Análisis. */
     default Optional<TablaLimite> tabla() {
         return Optional.empty();

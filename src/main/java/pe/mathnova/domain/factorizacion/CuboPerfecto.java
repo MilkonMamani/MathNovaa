@@ -44,4 +44,10 @@ public final class CuboPerfecto extends MetodoBase {
                 + " y b = " + Formato.termino(b.abs()));
         return resultado(justificacion, p, List.of(new Factor(binomio, 3)), trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Son cuatro términos: ¿el primero y el último son cubos y los del medio son el triple de los productos cruzados?";
+    }
 }

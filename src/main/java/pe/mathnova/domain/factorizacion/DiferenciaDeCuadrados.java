@@ -76,4 +76,10 @@ public final class DiferenciaDeCuadrados extends MetodoBase {
         }
         return Optional.empty();
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "¿Son dos términos restados y cada uno es el cuadrado de algo?";
+    }
 }

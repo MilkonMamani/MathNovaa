@@ -29,7 +29,7 @@ import lombok.Setter;
 
 /**
  * Tabla resolucion de V1. RN25: una sola fila por (ejercicio, operación, clave de parámetros).
- * tecnica_forzada (HU08, Sprint 3) todavía no se mapea; queda nula.
+ * V3 (Sprint 9): el texto que se resolvió, su LaTeX y el tema de la fila del Historial.
  */
 @Entity
 @Table(name = "resolucion")
@@ -81,6 +81,19 @@ public class ResolucionEntity {
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn;
 
+    /** V3: el texto (sección 9) que se resolvió: "lim(x→2, …)", "d/dx(…)". Nulo en filas de antes de V3. */
+    @Column(name = "entrada_texto")
+    private String entradaTexto;
+
+    /** V3: la fórmula de la fila del Historial. */
+    @Column(name = "entrada_latex")
+    private String entradaLatex;
+
+    /** V3: el tema de esta resolución (Límites, Derivadas…). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tema_id")
+    private TemaEntity tema;
+
     @OneToMany(mappedBy = "resolucion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden")
     private List<PasoEntity> pasos = new ArrayList<>();
@@ -89,6 +102,11 @@ public class ResolucionEntity {
     @OneToMany(mappedBy = "resolucion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden")
     private List<SugerenciaEntity> sugerencias = new ArrayList<>();
+
+    /** RN14, RN34: las restricciones de dominio que se mostraron con el resultado. */
+    @OneToMany(mappedBy = "resolucion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<RestriccionDominioEntity> restricciones = new ArrayList<>();
 
     /** Tabla parametro_resolucion: variable, punto y lado de un límite. */
     @ElementCollection
@@ -100,6 +118,11 @@ public class ResolucionEntity {
     public void agregarPaso(PasoEntity paso) {
         paso.setResolucion(this);
         pasos.add(paso);
+    }
+
+    public void agregarRestriccion(RestriccionDominioEntity r) {
+        r.setResolucion(this);
+        restricciones.add(r);
     }
 
     public void agregarSugerencia(SugerenciaEntity s) {

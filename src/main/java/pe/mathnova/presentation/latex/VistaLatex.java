@@ -59,13 +59,26 @@ public final class VistaLatex extends ImageView {
 
     private void dibujar() {
         double s = ImagenLatex.escala(this);
-        if (s == escala && getImage() != null) {
+        double f = Apariencia.factor(this);
+        int v = Apariencia.version().get();
+        if (s == escala && f == factor && v == version && getImage() != null) {
             return;
         }
         escala = s;
-        Image img = ImagenLatex.de(renderizador, latex, s);
+        factor = f;
+        version = v;
+        // Con letra grande se dibuja a s·f píxeles por píxel y se muestra como si fueran s: queda f veces más grande
+        Image img = ImagenLatex.de(renderizador, latex, s * f);
         setImage(img);
         setFitWidth(ImagenLatex.anchoLogico(img, s));
         setFitHeight(ImagenLatex.altoLogico(img, s));
+    }
+
+    private double factor = 1;
+    private int version = -1;
+    /** Sprint 9, parte E: el tamaño de letra o el tema cambiaron (referencia fuerte para el listener débil). */
+    private final javafx.beans.InvalidationListener cambioApariencia = obs -> dibujar();
+    {
+        Apariencia.version().addListener(new javafx.beans.WeakInvalidationListener(cambioApariencia));
     }
 }

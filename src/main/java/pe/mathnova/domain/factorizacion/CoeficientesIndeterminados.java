@@ -215,4 +215,10 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         }
         return Formato.numero(v);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Supón que se parte en dos factores con coeficientes que aún no conoces, multiplícalos e iguala término a término.";
+    }
 }

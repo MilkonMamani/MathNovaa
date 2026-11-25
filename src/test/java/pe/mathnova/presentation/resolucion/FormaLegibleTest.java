@@ -21,7 +21,7 @@ import pe.mathnova.domain.parser.Parser;
 class FormaLegibleTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService SERVICIO = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService SERVICIO = new FactorizacionService(MOTOR);
     private static final String CUBICA = "3*x^3 + 8*x^2 - x + 10";
     private static final String OCTAVO = "2*x^8 - 12*x^6 + 18*x^4 - 8*x^2";
 
@@ -103,6 +103,8 @@ class FormaLegibleTest {
                 "2x^{2}\\left(x + 2\\right)\\left(x - 2\\right)\\left[\\left(x + 1\\right)\\left(x - 1\\right)\\right]^{2}",
                 "2x^{2}\\left(x^{2} - 4\\right)\\left(x^{2} - 1\\right)^{2}",
                 "2x^{2}\\left(x^{2} - 4\\right)\\left(x^{4} - 2x^{2} + 1\\right)",
+                // cada término por cada término, y después reducido: una transformación por renglón
+                "2x^{2}\\left(x^{6} - 2x^{4} + x^{2} - 4x^{4} + 8x^{2} - 4\\right)",
                 "2x^{2}\\left(x^{6} - 6x^{4} + 9x^{2} - 4\\right)",
                 "2x^{8} - 12x^{6} + 18x^{4} - 8x^{2}"), c.expresiones());
         assertTrue(c.coincide());

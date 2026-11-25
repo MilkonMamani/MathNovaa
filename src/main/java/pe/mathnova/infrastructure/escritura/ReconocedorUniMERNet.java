@@ -90,8 +90,31 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         return carpeta;
     }
 
+    /** Empieza así el mensaje cuando faltan los archivos del reconocedor (no vienen con Git). */
+    public static final String FALTA = "Falta el reconocedor de escritura";
+
+    /**
+     * Los pesos y el Python del reconocedor no están en Git (pesan ~3,4 GB): quien clona el repositorio no
+     * los tiene. En vez de un error genérico, se dice qué falta y cómo conseguirlo.
+     */
+    static void verificar(Path carpeta) {
+        List<String> faltan = new ArrayList<>();
+        for (String f : List.of("python/python.exe", "servidor/servidor_unimernet.py",
+                "modelo/unimernet_small/unimernet_small.pth", "modelo/unimernet_small/tokenizer.json")) {
+            if (!Files.isRegularFile(carpeta.resolve(f))) {
+                faltan.add(f.replace('/', java.io.File.separatorChar));
+            }
+        }
+        if (!faltan.isEmpty()) {
+            throw new IllegalStateException(FALTA + " en " + carpeta + " (no está: " + String.join(", ", faltan)
+                    + "). Copia la carpeta \"reconocedor\" del paquete de MathNova o ejecuta"
+                    + " reconocedor\\preparar\\preparar-reconocedor.ps1 con internet.");
+        }
+    }
+
     @Override
     public ResultadoReconocimiento reconocer(List<Trazo> trazos) {
+        verificar(carpeta);
         byte[] png = ImagenTrazos.png(trazos);
         if (png == null) {
             return new ResultadoReconocimiento("", List.of());
@@ -119,6 +142,7 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
 
     @Override
     public void preparar() {
+        verificar(carpeta);
         try {
             proceso.iniciar();
         } catch (InterruptedException e) {

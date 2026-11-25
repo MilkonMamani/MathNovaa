@@ -73,4 +73,10 @@ public final class TrinomioCuadradoPerfecto extends MetodoBase {
                 + Formato.termino(an.a()) + " y b = " + Formato.termino(an.c()));
         return resultado(justificacion, p, List.of(new Factor(an.binomio(), 2)), trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "¿Los extremos son cuadrados y el término del medio es el doble del producto de sus raíces?";
+    }
 }

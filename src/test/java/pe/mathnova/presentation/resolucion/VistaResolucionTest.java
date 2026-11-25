@@ -40,7 +40,7 @@ class VistaResolucionTest {
     /** Verificacion.de es del paquete de aplicación: se llega por el servicio, sin historial. */
     private static final class VerificacionDePrueba {
         private final pe.mathnova.application.service.FactorizacionService servicio =
-                new pe.mathnova.application.service.FactorizacionService(new OrquestadorFactorizacion(), null);
+                new pe.mathnova.application.service.FactorizacionService(new OrquestadorFactorizacion());
 
         pe.mathnova.application.service.Verificacion de(Resolucion r) {
             return servicio.verificar(r);

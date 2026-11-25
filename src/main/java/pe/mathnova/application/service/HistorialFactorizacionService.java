@@ -41,6 +41,8 @@ import pe.mathnova.infrastructure.persistence.ResolucionEntity;
 import pe.mathnova.infrastructure.persistence.ResolucionRepository;
 import pe.mathnova.infrastructure.persistence.SugerenciaEntity;
 import pe.mathnova.infrastructure.persistence.SugerenciaRepository;
+import pe.mathnova.infrastructure.persistence.TecnicaEntity;
+import pe.mathnova.infrastructure.persistence.TecnicaRepository;
 
 /**
  * Guarda cada resolución en el historial (RN24): factorizaciones, fracciones simplificadas (P01) y
@@ -50,6 +52,9 @@ import pe.mathnova.infrastructure.persistence.SugerenciaRepository;
  *
  * <p>Un límite se guarda sobre el ejercicio de su función: lim(x→2, (x² − 4)/(x − 2)) y la fracción
  * (x² − 4)/(x − 2) son el mismo ejercicio, con operaciones LIMITE y SIMPLIFICAR.
+ *
+ * <p>Desde el Sprint 9 lo llama {@link HistorialService}, que guarda también las demás operaciones con
+ * estas mismas piezas ({@link #ejercicio}, {@link #guardarResolucion}, {@link #agregarPasoLimite}).
  */
 @Service
 public class HistorialFactorizacionService {
@@ -63,16 +68,35 @@ public class HistorialFactorizacionService {
     private final ResolucionRepository resoluciones;
     private final PasoRepository pasos;
     private final SugerenciaRepository sugerencias;
+    private final TecnicaRepository tecnicas;
     private final String versionMotor;
+    /** Los códigos de la tabla tecnica (V2 y V3): paso.tecnica_codigo es clave foránea. */
+    private volatile java.util.Set<String> catalogo;
 
     public HistorialFactorizacionService(EjercicioRepository ejercicios, ResolucionRepository resoluciones,
                                          PasoRepository pasos, SugerenciaRepository sugerencias,
+                                         TecnicaRepository tecnicas,
                                          @Value("${mathnova.version-motor}") String versionMotor) {
         this.ejercicios = ejercicios;
         this.resoluciones = resoluciones;
         this.pasos = pasos;
         this.sugerencias = sugerencias;
+        this.tecnicas = tecnicas;
         this.versionMotor = versionMotor;
+    }
+
+    public String versionMotor() {
+        return versionMotor;
+    }
+
+    /** Si el código está en la tabla tecnica. */
+    boolean enCatalogo(String codigo) {
+        java.util.Set<String> c = catalogo;
+        if (c == null) {
+            c = tecnicas.findAll().stream().map(TecnicaEntity::getCodigo).collect(Collectors.toUnmodifiableSet());
+            catalogo = c;
+        }
+        return codigo != null && c.contains(codigo);
     }
 
     // ------------------------------------------------------------------ factorizar
@@ -206,14 +230,19 @@ public class HistorialFactorizacionService {
         }));
     }
 
-    private static void agregarPasoLimite(ResolucionEntity res, PasoLimite p, PasoEntity padre, int[] orden) {
-        // Los pasos internos que no son técnicas del catálogo (E01…) no se guardan.
-        if (Tecnicas.nombre(p.codigo()).equals(p.codigo())) {
-            return;
+    /**
+     * Un paso de los motores de cálculo con sus hijos (paso_padre_id). Un paso que no es técnica del
+     * catálogo (E01…) no se guarda, pero sus hijos sí: cuelgan del paso de más arriba.
+     */
+    void agregarPasoLimite(ResolucionEntity res, PasoLimite p, PasoEntity padre, int[] orden) {
+        PasoEntity e = padre;
+        if (enCatalogo(p.codigo())) {
+            String justificacion = p.justificacion() != null && !p.justificacion().isBlank() ? p.justificacion()
+                    : p.titulo() != null ? p.titulo() : Tecnicas.nombre(p.codigo());
+            e = PasoMapper.aEntidad(p.codigo(), justificacion, p.antes(), p.despues(), p.trabajo(), orden[0]++);
+            e.setPadre(padre);
+            res.agregarPaso(e);
         }
-        PasoEntity e = PasoMapper.aEntidad(p.codigo(), p.justificacion(), p.antes(), p.despues(), p.trabajo(), orden[0]++);
-        e.setPadre(padre);
-        res.agregarPaso(e);
         for (PasoLimite h : p.hijos()) {
             agregarPasoLimite(res, h, e, orden);
         }
@@ -225,7 +254,7 @@ public class HistorialFactorizacionService {
      * RN25: si ya existe con la misma versión, solo cambia la fecha; con otra versión, se borran los
      * pasos y las sugerencias viejos y se vuelven a llenar.
      */
-    private ResolucionEntity guardarResolucion(EjercicioEntity ejercicio, String operacion, String clave, Instant fecha,
+    ResolucionEntity guardarResolucion(EjercicioEntity ejercicio, String operacion, String clave, Instant fecha,
                                                String version, Consumer<ResolucionEntity> llenar) {
         Optional<ResolucionEntity> existente =
                 resoluciones.findByEjercicioAndOperacionCodigoAndClaveParametros(ejercicio, operacion, clave);
@@ -246,6 +275,7 @@ public class HistorialFactorizacionService {
             res.getSugerencias().clear();
             sugerencias.deleteAll(viejas);
             res.getParametros().clear();
+            res.getRestricciones().clear();
             pasos.flush();
         } else {
             res = new ResolucionEntity();
@@ -260,7 +290,7 @@ public class HistorialFactorizacionService {
         return resoluciones.saveAndFlush(res);
     }
 
-    private static void agregarSugerencias(ResolucionEntity res, List<Sugerencia> sugeridas) {
+    static void agregarSugerencias(ResolucionEntity res, List<Sugerencia> sugeridas) {
         int orden = 1;
         for (Sugerencia s : sugeridas) {
             SugerenciaEntity e = new SugerenciaEntity();
@@ -274,11 +304,11 @@ public class HistorialFactorizacionService {
         }
     }
 
-    private static String letras(Expresion e) {
+    static String letras(Expresion e) {
         return VariablePrincipal.de(e).variables().stream().map(String::valueOf).collect(Collectors.joining(","));
     }
 
-    private EjercicioEntity ejercicio(String entrada, Expresion e, String variables, Instant fecha) {
+    EjercicioEntity ejercicio(String entrada, Expresion e, String variables, Instant fecha) {
         String normalizada = normalizada(e);
         return ejercicios.findByExpresionNormalizada(normalizada).orElseGet(() -> {
             EjercicioEntity x = new EjercicioEntity();

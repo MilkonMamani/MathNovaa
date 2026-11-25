@@ -90,6 +90,44 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return resolver(e, campo).texto();
     }
 
+    /**
+     * Práctica (Sprint 9, parte D): el método de un código (F05, M04…); vacío si es un paso sin método propio
+     * (F03, PR…).
+     */
+    public Optional<MetodoFactorizacion> metodo(String codigo) {
+        MetodoFactorizacion m = metodos.get(codigo);
+        if (m != null) {
+            return Optional.of(m);
+        }
+        return varias.values().stream().filter(v -> v.codigo().equals(codigo)).findFirst();
+    }
+
+    /**
+     * Práctica: los métodos de la misma categoría que no aplican a {@code p} en Q, con el motivo que da cada uno
+     * (su {@code puedeAplicarse}). Si {@code p} tiene varias letras, los de varias variables; si no, los de Q. No
+     * entra A4 (no es un método que se elija) ni los que sí aplican.
+     *
+     * @return código → motivo, en el orden del orquestador
+     */
+    public Map<String, String> noAplican(Polinomio p) {
+        boolean enVarias = !varias.isEmpty() && p.variables().size() >= 2;
+        Map<String, String> r = new LinkedHashMap<>();
+        for (MetodoFactorizacion m : enVarias ? varias.values() : metodos.values()) {
+            if (NO_FORZABLES.contains(m.codigo()) || r.containsKey(m.codigo())) {
+                continue;
+            }
+            try {
+                Aplicabilidad a = m.puedeAplicarse(p, Campo.Q);
+                if (!a.aplica() && a.motivo() != null && !a.motivo().isBlank()) {
+                    r.put(m.codigo(), a.motivo());
+                }
+            } catch (RuntimeException e) {
+                // un método que no sabe qué decir de este polinomio no sirve de distractor
+            }
+        }
+        return r;
+    }
+
     /** Códigos de los métodos que se pueden forzar (HU08), en orden. */
     public List<String> metodosForzables() {
         List<String> codigos = new ArrayList<>();

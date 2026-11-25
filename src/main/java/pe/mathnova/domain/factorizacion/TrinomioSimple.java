@@ -80,4 +80,10 @@ public final class TrinomioSimple extends MetodoBase {
     private static String conSigno(Racional r) {
         return r.signo() < 0 ? Formato.numero(r) : "+" + r;
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Busca dos números que multiplicados den el término independiente y sumados den el coeficiente de x.";
+    }
 }

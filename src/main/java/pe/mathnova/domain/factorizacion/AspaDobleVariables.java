@@ -84,4 +84,10 @@ final class AspaDobleVariables extends MetodoBase {
         return Polinomio.termino(Racional.de(a), Monomio.de(x, 1)).sumar(Polinomio.termino(Racional.de(c), Monomio.de(y, 1)))
                 .sumar(Polinomio.constante(Racional.de(f)));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Hay términos en x², xy, y², x, y y un número: prueba a cruzar los productos dos veces.";
+    }
 }

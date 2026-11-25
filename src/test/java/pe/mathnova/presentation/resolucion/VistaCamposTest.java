@@ -29,7 +29,7 @@ import pe.mathnova.presentation.latex.RenderizadorLatex;
 class VistaCamposTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService SERVICIO = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService SERVICIO = new FactorizacionService(MOTOR);
     private static final RenderizadorLatex LATEX = new RenderizadorLatex(24f);
 
     @BeforeAll

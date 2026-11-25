@@ -53,7 +53,7 @@ import pe.mathnova.presentation.editor.EditorMatematico;
 class EscrituraRealIT {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
     private static final Path SALIDA = Path.of("target", "reconocimiento");
@@ -286,5 +286,24 @@ class EscrituraRealIT {
         TABLA.append("B-corregido\t").append(LECTURAS.getLast()).append('\t').append(corregido).append('\t')
                 .append(enFx(() -> controlador.texto())).append('\t').append(solucion()).append("\t\t\n");
         assertTrue(enFx(() -> controlador.texto()).contains("3x"), "se resolvió la corrección");
+    }
+
+    @Test
+    @Order(9)
+    void integralEscritaConElDedo() throws Exception {
+        Node c = canvas();
+        int dedo = 1;
+        for (Trazo t : TrazosSimulados.casoB(45.0, 1L)) {
+            double[][] ps = t.puntos().stream().map(p -> new double[] {p.x(), p.y()}).toArray(double[][]::new);
+            int este = dedo++;
+            enFx(() -> Fx.trazoTactil(c, este, ps));
+            Thread.sleep(40);
+        }
+        Fx.esperar(() -> !LECTURAS.isEmpty() && !controlador.panelEscritura().leyendo(), "no se reconoció");
+        resolverYEsperar();
+        String s = solucion();
+        TABLA.append("B-dedo\t").append(LECTURAS.getLast()).append('\t').append(enFx(() -> editor.getLatex()))
+                .append('\t').append(enFx(() -> controlador.texto())).append('\t').append(s).append("\t\t\n");
+        assertEquals("\\int 2x \\, dx = x^{2} + C", s, "con el dedo se resuelve igual que con el mouse");
     }
 }

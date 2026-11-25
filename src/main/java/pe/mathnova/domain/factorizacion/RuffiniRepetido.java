@@ -113,4 +113,10 @@ public final class RuffiniRepetido extends MetodoBase {
             default -> "de multiplicidad " + n;
         };
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "El valor que hizo cero el polinomio, ¿vuelve a hacer cero lo que quedó?";
+    }
 }

@@ -39,4 +39,10 @@ final class CoeficientesIndeterminadosVariables extends MetodoBase {
         return resultado("Ningún otro método de varias variables aplica: se buscan los coeficientes de los factores",
                 p, List.of(Factor.de(q), Factor.de(h)), new TrabajoIntermedio.Agrupacion(lineas));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Supón dos factores con coeficientes por hallar, multiplícalos e iguala los términos de cada grado.";
+    }
 }

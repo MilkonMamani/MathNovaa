@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Parte F del Sprint 5, sin JavaFX: lo que muestra la pantalla para un límite. */
 class VistaLimiteTest {
 
-    private static final LimiteService SERVICIO = new LimiteService(new OrquestadorFactorizacion(), null);
+    private static final LimiteService SERVICIO = new LimiteService(new OrquestadorFactorizacion());
 
     @Test
     void tarjetaYPasosAnidados() {

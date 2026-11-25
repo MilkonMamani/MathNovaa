@@ -1,7 +1,6 @@
 package pe.mathnova.presentation.pizarra;
 
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Arc;
@@ -11,6 +10,8 @@ import javafx.scene.shape.Rectangle;
 
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
+import pe.mathnova.presentation.latex.TextoLatex;
+import pe.mathnova.presentation.resolucion.Igualdades;
 
 /**
  * I05: el triángulo rectángulo de la sustitución trigonométrica. θ está abajo a la izquierda, el
@@ -26,7 +27,8 @@ public final class TrianguloSustitucion extends VBox {
     public TrianguloSustitucion(TrabajoIntermedio.TrianguloSustitucion t) {
         getStyleClass().addAll("pizarra", "triangulo-sustitucion");
         setSpacing(8);
-        getChildren().add(renglon("Con " + t.sustitucion()));
+        setMinWidth(0);
+        getChildren().add(renglones(java.util.List.of("Con " + t.sustitucion())));
 
         double x0 = MARGEN;
         double y0 = MARGEN + ALTO;
@@ -48,12 +50,18 @@ public final class TrianguloSustitucion extends VBox {
         dibujo.setMinSize(ANCHO + 2 * MARGEN + 80, ALTO + 2 * MARGEN);
         dibujo.setPrefSize(ANCHO + 2 * MARGEN + 80, ALTO + 2 * MARGEN);
 
-        VBox razones = new VBox(4);
-        razones.getChildren().add(renglon(t.angulo()));
-        t.razones().forEach(r -> razones.getChildren().add(renglon(r)));
-        HBox fila = new HBox(20, dibujo, razones);
+        java.util.List<String> lista = new java.util.ArrayList<>();
+        lista.add(t.angulo());
+        lista.addAll(t.razones());
+        javafx.scene.Node razones = renglones(lista);
+        // Las razones al costado del triángulo; si la pizarra se angosta, bajan.
+        javafx.scene.layout.FlowPane fila = new javafx.scene.layout.FlowPane(20, 8, dibujo, razones);
+        fila.setRowValignment(javafx.geometry.VPos.CENTER);
+        fila.setMinWidth(0);
         getChildren().add(fila);
-        t.lineas().forEach(l -> getChildren().add(renglon(l)));
+        if (!t.lineas().isEmpty()) {
+            getChildren().add(renglones(t.lineas()));
+        }
     }
 
     private static Label etiqueta(String texto, double x, double y) {
@@ -64,10 +72,17 @@ public final class TrianguloSustitucion extends VBox {
         return l;
     }
 
-    private static Label renglon(String texto) {
-        Label l = new Label(FormateadorTexto.pizarra(texto));
-        l.getStyleClass().add("pizarra-texto");
-        l.setWrapText(true);
-        return l;
+    /** Los renglones con tipografía matemática (fracciones, raíces), los "=" alineados si caben. */
+    private static javafx.scene.Node renglones(java.util.List<String> lineas) {
+        java.util.List<Igualdades.Renglon> r = new java.util.ArrayList<>();
+        for (String l : lineas) {
+            for (Igualdades.Renglon x : Igualdades.Renglon.partidos(l)) {
+                r.add(x.latex() == null ? x : new Igualdades.Renglon(TextoLatex.conDiferenciales(x.latex()),
+                        x.texto(), x.marca()));
+            }
+        }
+        Igualdades i = new Igualdades(r, Pizarra.TAMANO, Pizarra.TAMANO_MINIMO);
+        i.setMaxWidth(Double.MAX_VALUE);
+        return i;
     }
 }

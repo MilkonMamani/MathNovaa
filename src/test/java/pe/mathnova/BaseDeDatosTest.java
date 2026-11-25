@@ -24,8 +24,9 @@ class BaseDeDatosTest {
 
     @Test
     void losCatalogosVienenLlenos() {
-        assertEquals(84, jdbc.queryForObject("SELECT COUNT(*) FROM tecnica", Integer.class));
-        assertEquals(15, jdbc.queryForObject("SELECT COUNT(*) FROM operacion", Integer.class));
+        // V2: 84 técnicas y 15 operaciones; V3 (Historial): 13 pasos internos y RESOLVER_ECUACION.
+        assertEquals(84 + 13, jdbc.queryForObject("SELECT COUNT(*) FROM tecnica", Integer.class));
+        assertEquals(15 + 1, jdbc.queryForObject("SELECT COUNT(*) FROM operacion", Integer.class));
         assertEquals(13, jdbc.queryForObject("SELECT COUNT(*) FROM tema", Integer.class));
     }
 

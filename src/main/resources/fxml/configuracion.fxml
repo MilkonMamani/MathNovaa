@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- "Configuración": por ahora, solo si la Pizarra muestra las explicaciones de los pasos.
-     La preferencia es la misma del interruptor "Explicaciones" de la Pizarra (clave mostrar_explicaciones). -->
+<!-- "Configuración" (Sprint 9, parte E). Cuatro tarjetas: Resolución, Apariencia, Datos y Acerca de. Cada
+     ajuste se guarda en la tabla configuracion en el momento en que cambia, con el aviso "Guardado", y se aplica
+     en toda la app sin reiniciar (ConfiguracionService). -->
 <ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.mathnova.presentation.controller.ConfiguracionController"
             fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false" styleClass="contenido-scroll">
@@ -20,21 +22,49 @@
             <Insets top="28" right="32" bottom="32" left="32"/>
         </padding>
 
-        <Label text="Configuración" styleClass="titulo-pantalla"/>
+        <VBox spacing="4">
+            <Label text="Configuración" styleClass="titulo-pantalla"/>
+            <Label text="Los cambios se guardan solos y se aplican en toda la app." styleClass="subtitulo-pantalla"
+                   wrapText="true"/>
+        </VBox>
 
-        <VBox styleClass="tarjeta" maxWidth="720">
-            <Label text="Pizarra" styleClass="titulo-tarjeta"/>
-            <HBox spacing="16" alignment="CENTER_LEFT">
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label text="Mostrar las explicaciones" styleClass="ajuste-nombre"/>
-                    <Label text="Cada paso muestra por qué aplica el método, sin tener que pulsar «?»."
+        <!-- ============ Resolución ============ -->
+        <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
+            <Label text="Resolución" styleClass="titulo-tarjeta"/>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Campo por defecto" styleClass="ajuste-nombre"/>
+                    <Label text="Con qué campo empieza Resolver. Q es el de siempre (RN27)."
+                           styleClass="subtitulo-tarjeta" wrapText="true"/>
+                </VBox>
+                <HBox styleClass="selector-campo" minWidth="-Infinity">
+                    <ToggleButton fx:id="campoQ" text="Q" styleClass="opcion-campo" accessibleText="Campo Q"/>
+                    <ToggleButton fx:id="campoR" text="R" styleClass="opcion-campo" accessibleText="Campo R"/>
+                    <ToggleButton fx:id="campoC" text="C" styleClass="opcion-campo" accessibleText="Campo C"/>
+                </HBox>
+            </HBox>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Cómo se abre la pizarra" styleClass="ajuste-nombre"/>
+                    <Label text="Con todos los pasos a la vista, o de uno en uno." styleClass="subtitulo-tarjeta"
+                           wrapText="true"/>
+                </VBox>
+                <HBox styleClass="selector-campo" minWidth="-Infinity">
+                    <ToggleButton fx:id="modoTodos" text="Todos los pasos" styleClass="opcion-campo, opcion-ancha"/>
+                    <ToggleButton fx:id="modoPaso" text="Paso a paso" styleClass="opcion-campo, opcion-ancha"/>
+                </HBox>
+            </HBox>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Mostrar explicaciones" styleClass="ajuste-nombre"/>
+                    <Label text="Las notas al costado de cada paso: por qué aplica el método."
                            styleClass="subtitulo-tarjeta" wrapText="true"/>
                 </VBox>
                 <ToggleButton fx:id="mostrarExplicaciones" styleClass="interruptor-explicaciones"
-                              accessibleText="Mostrar las explicaciones en la pizarra" minWidth="-Infinity">
-                    <tooltip>
-                        <Tooltip text="Mostrar u ocultar todas las explicaciones de la pizarra"/>
-                    </tooltip>
+                              accessibleText="Mostrar explicaciones" minWidth="-Infinity">
                     <graphic>
                         <StackPane styleClass="interruptor-riel">
                             <Region styleClass="interruptor-perilla"/>
@@ -42,6 +72,72 @@
                     </graphic>
                 </ToggleButton>
             </HBox>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Mostrar códigos de técnica" styleClass="ajuste-nombre"/>
+                    <Label text="Encendido, la pizarra muestra «F16 · Ruffini»." styleClass="subtitulo-tarjeta"
+                           wrapText="true"/>
+                </VBox>
+                <ToggleButton fx:id="mostrarCodigos" styleClass="interruptor-explicaciones"
+                              accessibleText="Mostrar códigos de técnica" minWidth="-Infinity">
+                    <graphic>
+                        <StackPane styleClass="interruptor-riel">
+                            <Region styleClass="interruptor-perilla"/>
+                        </StackPane>
+                    </graphic>
+                </ToggleButton>
+            </HBox>
+        </VBox>
+
+        <!-- ============ Apariencia ============ -->
+        <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
+            <Label text="Apariencia" styleClass="titulo-tarjeta"/>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Tamaño de letra de la pizarra" styleClass="ajuste-nombre"/>
+                    <Label text="También en la hoja del Historial, en Práctica y en el PDF."
+                           styleClass="subtitulo-tarjeta" wrapText="true"/>
+                </VBox>
+                <HBox styleClass="selector-campo" minWidth="-Infinity">
+                    <ToggleButton fx:id="letraNormal" text="Normal" styleClass="opcion-campo, opcion-ancha"/>
+                    <ToggleButton fx:id="letraGrande" text="Grande" styleClass="opcion-campo, opcion-ancha"/>
+                    <ToggleButton fx:id="letraMuyGrande" text="Muy grande" styleClass="opcion-campo, opcion-ancha"/>
+                </HBox>
+            </HBox>
+            <!-- La vista previa crece con la letra, como la Pizarra -->
+            <StackPane fx:id="vistaPrevia" styleClass="ajuste-vista-previa, escala-letra" alignment="CENTER_LEFT"
+                       accessibleText="Vista previa del tamaño de letra"/>
+
+            <HBox styleClass="ajuste-fila">
+                <VBox styleClass="ajuste-texto" HBox.hgrow="ALWAYS">
+                    <Label text="Tema" styleClass="ajuste-nombre"/>
+                    <Label text="En oscuro solo cambian el fondo y el texto; el azul se mantiene."
+                           styleClass="subtitulo-tarjeta" wrapText="true"/>
+                </VBox>
+                <HBox styleClass="selector-campo" minWidth="-Infinity">
+                    <ToggleButton fx:id="temaClaro" text="Claro" styleClass="opcion-campo, opcion-ancha"/>
+                    <ToggleButton fx:id="temaOscuro" text="Oscuro" styleClass="opcion-campo, opcion-ancha"/>
+                </HBox>
+            </HBox>
+        </VBox>
+
+        <!-- ============ Datos ============ -->
+        <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
+            <Label text="Datos" styleClass="titulo-tarjeta"/>
+            <HBox styleClass="ajuste-fila">
+                <Label fx:id="datos" styleClass="subtitulo-tarjeta" wrapText="true" HBox.hgrow="ALWAYS"
+                       maxWidth="Infinity"/>
+                <Button fx:id="borrarHistorial" text="Borrar todo el historial" styleClass="boton-secundario, boton-peligro"
+                        onAction="#borrarHistorial" minWidth="-Infinity"/>
+            </HBox>
+        </VBox>
+
+        <!-- ============ Acerca de ============ -->
+        <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
+            <Label text="Acerca de" styleClass="titulo-tarjeta"/>
+            <GridPane fx:id="versiones" hgap="24" vgap="8"/>
         </VBox>
     </VBox>
 </ScrollPane>

@@ -127,4 +127,10 @@ public final class AspaDobleEspecial extends MetodoBase {
         return Formato.termino(new Termino(c, e == 0 ? pe.mathnova.domain.algebra.Monomio.UNO
                 : pe.mathnova.domain.algebra.Monomio.de(x, e)));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Es de grado 4 y ningún divisor del término independiente lo anula: intenta partirlo en dos trinomios de grado 2 ajustando el término del medio.";
+    }
 }

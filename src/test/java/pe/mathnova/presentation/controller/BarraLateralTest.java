@@ -57,7 +57,7 @@ class BarraLateralTest {
     private static final String EJERCICIO = "x^3-2x^2-x+2";
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 
@@ -204,8 +204,8 @@ class BarraLateralTest {
             Fx.trazo(opciones().get(0), new double[] {28, 22});
             assertEquals(List.of("Configuración", "Resolver"), NAVEGADOR.llamadas);
             assertTrue(principal.muestra(resolucion));
-            // las tres sin sección siguen deshabilitadas, como antes
-            assertTrue(opciones().subList(1, 4).stream().allMatch(Node::isDisabled));
+            // Desde el Sprint 9 (Historial, Práctica y Ejemplos) todas las opciones funcionan
+            assertTrue(opciones().stream().noneMatch(Node::isDisabled));
         });
     }
 

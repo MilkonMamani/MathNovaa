@@ -177,4 +177,10 @@ public final class Reciproco extends MetodoBase {
         c.add(Racional.UNO);
         return Univariado.de(x, c);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Los coeficientes se leen igual de izquierda a derecha que de derecha a izquierda.";
+    }
 }

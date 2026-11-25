@@ -57,8 +57,16 @@ public final class Igualdades extends Region {
          * igualdades separadas por ",  " van cada una en su renglón.
          */
         public static List<Renglon> partidos(String t) {
-            Renglon r = deTexto(t);
             String s = t == null ? "" : t.strip();
+            // "Se regresa a x: (x² + 1)⁶/6": la frase como texto y la fórmula aparte.
+            int dos = s.indexOf(": ");
+            if (dos > 0 && s.substring(0, dos).strip().matches("[A-ZÁÉÍÓÚ][a-záéíóúñ]+( [a-záéíóúñ]+)+( [a-zA-Zθ][²³]?)?")) {
+                Renglon der = deTexto(s.substring(dos + 2));
+                if (der.latex() != null) {
+                    return List.of(new Renglon(null, s.substring(0, dos + 1), null), der);
+                }
+            }
+            Renglon r = deTexto(t);
             if (r.latex() != null || r.marca() != null || s.isEmpty()) {
                 return List.of(r);
             }
@@ -95,8 +103,9 @@ public final class Igualdades extends Region {
             return new Renglon(latex, null, null);
         }
 
+        /** Una igualdad, o la continuación de la anterior ("= x + 3"). */
         boolean igualdad() {
-            return latex != null && marca == null && TextoLatex.igualDeAfuera(latex) > 0;
+            return latex != null && marca == null && TextoLatex.igualDeAfuera(latex) >= 0;
         }
     }
 
@@ -114,7 +123,7 @@ public final class Igualdades extends Region {
         for (Renglon r : renglones) {
             apilado.getChildren().add(nodo(r));
         }
-        boolean alinear = renglones.size() >= 2 && renglones.stream().allMatch(Renglon::igualdad);
+        boolean alinear = renglones.size() >= 2 && alineables(renglones);
         if (alinear) {
             alineado = formula(maximo, minimo);
             alineado.setPartible(false);
@@ -130,12 +139,30 @@ public final class Igualdades extends Region {
         return new Igualdades(lineas.stream().flatMap(l -> Renglon.partidos(l).stream()).toList(), maximo, minimo);
     }
 
+    /**
+     * Todas son igualdades (la primera con lado izquierdo) o la primera es una expresión sola y las demás la
+     * continúan: "\lim (x − 2)(x + 1)²/(x − 2)" y debajo "= \lim (x + 1)²".
+     */
+    private static boolean alineables(List<Renglon> renglones) {
+        Renglon primero = renglones.getFirst();
+        if (primero.latex() == null || primero.marca() != null) {
+            return false;
+        }
+        int k = TextoLatex.igualDeAfuera(primero.latex());
+        List<Renglon> resto = renglones.subList(1, renglones.size());
+        if (k > 0) {
+            return resto.stream().allMatch(Renglon::igualdad);
+        }
+        return k < 0 && resto.stream().allMatch(r -> r.igualdad() && TextoLatex.igualDeAfuera(r.latex()) == 0);
+    }
+
     /** {@code \begin{aligned} izq &= der \\ … \end{aligned}}. */
     static String aligned(List<Renglon> renglones) {
         List<String> filas = new ArrayList<>();
         for (Renglon r : renglones) {
             int k = TextoLatex.igualDeAfuera(r.latex());
-            filas.add(r.latex().substring(0, k).strip() + " &= " + r.latex().substring(k + 1).strip());
+            filas.add(k < 0 ? "&\\mathrel{\\phantom{=}} " + r.latex().strip()
+                    : r.latex().substring(0, k).strip() + " &= " + r.latex().substring(k + 1).strip());
         }
         return "\\begin{aligned} " + String.join(" \\\\ ", filas) + " \\end{aligned}";
     }

@@ -20,7 +20,7 @@ class ResolverServiceTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
     private static final ResolverService SERVICIO = new ResolverService(
-            new FactorizacionService(MOTOR, null), MOTOR, new ResolvedorEcuaciones(MOTOR));
+            new FactorizacionService(MOTOR), MOTOR, new ResolvedorEcuaciones(MOTOR));
 
     @Test
     void decideQueHacer() {

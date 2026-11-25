@@ -142,7 +142,12 @@ public final class Derivador implements Visitante<Expresion> {
         pila.push(hijos);
         Expresion r;
         try {
-            r = Simplificador.simplificar(calculo.apply(trabajo));
+            Expresion aplicada = calculo.apply(trabajo);
+            r = Simplificador.simplificar(aplicada);
+            // La regla con los valores puestos, antes de simplificar: "((3x² + 1)⁴)' = 4(3x² + 1)³·6x".
+            if (APLICADA.contains(codigo) && !pizarra(aplicada).equals(pizarra(r))) {
+                trabajo.add("(" + pizarra(antes) + ")' = " + pizarra(aplicada));
+            }
         } finally {
             pila.pop();
         }
@@ -151,6 +156,9 @@ public final class Derivador implements Visitante<Expresion> {
         Objects.requireNonNull(pila.peek()).add(p);
         return r;
     }
+
+    /** Las reglas que se escriben con sus valores antes de simplificar (producto, cociente, cadena…). */
+    private static final java.util.Set<String> APLICADA = java.util.Set.of("D04", "D05", "D06", "D07");
 
     private static String texto(Expresion e) {
         return ImpresoraTexto.imprimir(e);
@@ -310,7 +318,9 @@ public final class Derivador implements Visitante<Expresion> {
             return registrar(cadena("D02", b), "(uⁿ)' = n·uⁿ⁻¹·u'" + conU(b) + " y n = " + texto(n), formula, p, t -> {
                 t.add("n = " + pizarra(n));
                 Expresion du = internaConTrabajo(b, t);
-                return producto(List.of(n, potencia(b, suma(List.of(n, Constante.de(-1)))), du));
+                // Sin simplificar: así queda escrita la regla con los valores, 4(3x² + 1)³·6x.
+                return new Producto(List.of(n, new Potencia(b, Simplificador.simplificar(
+                        suma(List.of(n, Constante.de(-1))))), du));
             });
         }
         if (!depende(b)) {

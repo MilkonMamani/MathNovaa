@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GraficaCalculoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final ResolverService SERVICIO = new ResolverService(new FactorizacionService(MOTOR, null), MOTOR,
+    private static final ResolverService SERVICIO = new ResolverService(new FactorizacionService(MOTOR), MOTOR,
             new ResolvedorEcuaciones(MOTOR));
     private static final Color NARANJA = Color.web("#ea580c");
 

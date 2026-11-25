@@ -31,6 +31,13 @@
     color-borde: #e2e8f0;
     color-gris-claro: #f1f5f9;
     color-gris-hover: #f8fafc;
+    /* Sprint 9, parte E: superficies que antes eran literales (mismos valores en el tema claro) */
+    color-azul-claro: #eff6ff;
+    color-azul-claro-2: #dbeafe;
+    color-azul-tenue: #f8faff;
+    color-azul-tenue-2: #f5f9ff;
+    color-resultado: #cfe6ff;
+    color-texto-3: #334155;
 
     /* "System" es la fuente del sistema: Segoe UI en Windows */
     -fx-font-family: "System";
@@ -45,7 +52,8 @@
 }
 
 .tooltip {
-    -fx-background-color: color-texto;
+    /* literal: en el tema oscuro color-texto es claro y el texto del tooltip es blanco */
+    -fx-background-color: #0f172a;
     -fx-background-radius: 6;
     -fx-text-fill: white;
     -fx-font-size: 13px;
@@ -77,7 +85,7 @@
     nav-hover: #f3f4f6;
     nav-activo: #eff6ff;
     nav-acento: #2563eb;
-    -fx-background-color: #e5e7eb, #ffffff;
+    -fx-background-color: color-borde-tarjeta, #ffffff;
     -fx-background-insets: 0, 0 1 0 0;
     -fx-min-width: 56px;
     -fx-pref-width: 56px;
@@ -258,7 +266,7 @@
 
 /* "Usar este ejercicio" en Escribir; se va al editar con el teclado */
 .etiqueta-escrito-a-mano {
-    -fx-background-color: #eff6ff;
+    -fx-background-color: color-azul-claro;
     -fx-background-radius: 999;
     -fx-text-fill: color-primario;
     -fx-font-size: 12px;
@@ -641,7 +649,7 @@
 }
 
 .ruffini-producto:hover {
-    -fx-background-color: #dbeafe;
+    -fx-background-color: color-azul-claro-2;
     -fx-background-radius: 4;
 }
 
@@ -770,7 +778,7 @@
 
 /* Círculos numerados en azul claro con el número en azul marino, como en el prototipo */
 .paso-numero {
-    -fx-background-color: #dbeafe;
+    -fx-background-color: color-azul-claro-2;
 }
 
 .paso-numero .label {
@@ -811,7 +819,7 @@
 }
 
 .boton-alternativa:hover {
-    -fx-background-color: #dbeafe;
+    -fx-background-color: color-azul-claro-2;
     -fx-border-color: color-azul;
 }
 
@@ -834,14 +842,14 @@
     -fx-border-color: #cbd5e1;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
-    -fx-text-fill: #334155;
+    -fx-text-fill: color-texto-3;
     -fx-font-size: 11px;
     -fx-padding: 3 7;
     -fx-cursor: hand;
 }
 
 .grafica-control:hover {
-    -fx-background-color: #eff6ff;
+    -fx-background-color: color-azul-claro;
     -fx-border-color: #93c5fd;
 }
 
@@ -895,7 +903,7 @@
 
 /* ===================== Editor visual (HU36) ===================== */
 .editor-matematico {
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 10;
     -fx-border-color: color-borde;
     -fx-border-radius: 10;
@@ -918,9 +926,9 @@
 }
 
 .editor-sugerencias {
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 8;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: color-borde;
     -fx-border-radius: 8;
     -fx-padding: 4;
     -fx-effect: dropshadow(gaussian, #0f172a33, 12, 0, 0, 3);
@@ -935,11 +943,11 @@
 }
 
 .editor-sugerencia:hover {
-    -fx-background-color: #f1f5f9;
+    -fx-background-color: color-gris-claro;
 }
 
 .editor-sugerencia:selected {
-    -fx-background-color: #dbeafe;
+    -fx-background-color: color-azul-claro-2;
     -fx-text-fill: #1e3a6e;
 }
 
@@ -959,7 +967,7 @@
 }
 
 .teclado-pildora:hover {
-    -fx-background-color: #e2e8f0;
+    -fx-background-color: color-borde;
 }
 
 .teclado-pildora:selected {
@@ -982,7 +990,7 @@
 }
 
 .teclado-tecla {
-    -fx-background-color: #c7cddb, white;
+    -fx-background-color: #c7cddb, color-tarjeta;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 9, 8;
     -fx-text-fill: color-texto;
@@ -1034,7 +1042,7 @@
 .teclado-desactivada,
 .teclado-desactivada:hover,
 .teclado-desactivada:pressed {
-    -fx-background-color: #e2e8f0, #f1f5f9;
+    -fx-background-color: color-borde, color-gris-claro;
     -fx-text-fill: #94a3b8;
     -fx-cursor: default;
     -fx-effect: null;
@@ -1058,7 +1066,7 @@
 
 .division-trabajo > .split-pane-divider {
     -fx-padding: 0 4 0 4;
-    -fx-background-color: transparent, #e2e8f0;
+    -fx-background-color: transparent, color-borde;
     -fx-background-insets: 0, 12 3.5 20 3.5;
     -fx-cursor: h-resize;
 }
@@ -1116,7 +1124,7 @@
 }
 
 .tarjeta-metodo {
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 10;
     -fx-border-color: color-borde;
     -fx-border-radius: 10;
@@ -1146,7 +1154,7 @@
 }
 
 .metodo-probar {
-    -fx-background-color: #dbeafe;
+    -fx-background-color: color-azul-claro-2;
     -fx-text-fill: color-azul;
 }
 
@@ -1182,7 +1190,7 @@
 }
 
 .tarjeta-sugerencia {
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 10;
     -fx-border-color: color-borde;
     -fx-border-radius: 10;
@@ -1402,7 +1410,7 @@
 }
 
 .interruptor-perilla {
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 999;
     -fx-min-width: 16px;
     -fx-max-width: 16px;
@@ -1421,7 +1429,7 @@
 
 /* Superficie de escritura: blanca (#FFFFFF), sin cuadrícula. La cuadrícula de la Gráfica es otro componente. */
 .pizarra-cuerpo {
-    -fx-background-color: #ffffff;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 10;
     -fx-border-color: color-borde-tarjeta;
     -fx-border-radius: 10;
@@ -1593,7 +1601,7 @@
 
 .boton-nota:hover,
 .boton-nota:focus-visible {
-    -fx-background-color: #eff6ff;
+    -fx-background-color: color-azul-claro;
 }
 
 .boton-nota:hover .boton-nota-icono,
@@ -1620,7 +1628,7 @@
 }
 
 .pizarra-nota-texto {
-    -fx-text-fill: #334155;
+    -fx-text-fill: color-texto-3;
     -fx-font-size: 13px;
 }
 
@@ -1644,7 +1652,7 @@
 }
 
 .pizarra-resultado-final {
-    -fx-background-color: #cfe6ff;
+    -fx-background-color: color-resultado;
     -fx-background-radius: 8;
     -fx-background-insets: 0;
     -fx-border-color: transparent;
@@ -1696,7 +1704,7 @@
 
 .pizarra-ver-detalle:hover,
 .pizarra-ver-detalle:selected {
-    -fx-background-color: #eff6ff;
+    -fx-background-color: color-azul-claro;
 }
 
 .pizarra-comprobacion-detalle {
@@ -1782,7 +1790,7 @@
 }
 
 .tarjeta-entendi {
-    -fx-background-color: #f8faff;
+    -fx-background-color: color-azul-tenue;
     -fx-background-radius: 10;
     -fx-border-color: #bfdbfe;
     -fx-border-radius: 10;
@@ -1815,7 +1823,7 @@
 .boton-alternativa-simbolo {
     -fx-font-family: "Times New Roman";
     -fx-font-style: italic;
-    -fx-background-color: white;
+    -fx-background-color: color-tarjeta;
     -fx-background-radius: 8;
     -fx-border-color: color-borde-tarjeta;
     -fx-border-radius: 8;
@@ -1879,7 +1887,7 @@
 /* Comparación Q / R / C: etiqueta de ancho fijo y expresión flexible */
 .comparacion-fila {
     -fx-padding: 0 0 10 0;
-    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-color: transparent transparent color-borde transparent;
     -fx-border-width: 0 0 1 0;
 }
 
@@ -1890,10 +1898,942 @@
 
 .comparacion-exacta {
     -fx-background-color: transparent;
-    -fx-background: white;
+    -fx-background: color-tarjeta;
     -fx-padding: 2;
 }
 
 .comparacion-exacta-contenido {
     -fx-padding: 4 4 6 0;
+}
+
+/* ===================== Pizarra: hoja blanca, subpasos y comprobación ===================== */
+/* La Comprobación va en la misma hoja blanca, debajo del resultado; sin recuadros. */
+.pizarra-cuerpo .pizarra-comprobacion-seccion {
+    -fx-padding: 18 0 0 0;
+}
+
+/* Subpasos desplegables: un enlace azul y, al abrir, cada subpaso con el formato de los pasos. */
+.pizarra-ver-subpasos {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 2 0 2 0;
+    -fx-text-fill: color-primario;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-cursor: hand;
+}
+
+.pizarra-ver-subpasos:hover,
+.pizarra-ver-subpasos:focus-visible {
+    -fx-underline: true;
+}
+
+.pizarra-subpasos {
+    -fx-padding: 2 0 4 18;
+}
+
+.pizarra-subpaso-numero,
+.pizarra-subpaso-titulo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+}
+
+.pizarra-flecha-sub {
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+}
+
+.pizarra-subpaso-operaciones {
+    -fx-padding: 0 0 0 22;
+}
+
+/* Explicación breve dentro de un dibujo (ILATE) */
+.pizarra-resolucion .pizarra-explicacion {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+/* Aspa simple y tabla de partes: las fórmulas sin subrayados ni recuadros */
+.pizarra-resolucion .aspa-celda {
+    -fx-padding: 0 4 0 4;
+}
+
+.pizarra-resolucion .partes-grilla {
+    -fx-padding: 2 0 2 0;
+}
+
+.pizarra-resolucion .partes-celda {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ===================== Pizarra: desplegables "Ver comprobación" y "Ver desarrollo" ===================== */
+/* "Comprobación" en negro; debajo, un único control que ocupa toda la fila. */
+.pizarra-resolucion .pizarra-comprobacion-titulo {
+    -fx-text-fill: color-tinta;
+}
+
+.pizarra-desplegable {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-padding: 4 6 4 0;
+    -fx-text-fill: color-primario;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-cursor: hand;
+}
+
+.pizarra-desplegable:hover {
+    -fx-background-color: color-azul-tenue-2;
+}
+
+.pizarra-desplegable:selected {
+    -fx-background-color: transparent;
+}
+
+.pizarra-desplegable:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+.pizarra-chevron {
+    -fx-fill: transparent;
+    -fx-stroke: color-primario;
+    -fx-stroke-width: 1.8;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+/* El desarrollo de una factorización auxiliar larga: sangría pequeña y línea azul fina */
+.pizarra-desarrollo-aux {
+    -fx-padding: 4 0 4 14;
+    -fx-border-color: transparent transparent transparent color-primario;
+    -fx-border-width: 0 0 0 1.5;
+}
+
+.pizarra-desarrollo-metodo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 13px;
+    -fx-padding: 4 0 0 0;
+}
+
+.pizarra-cuerpo .pizarra-comprobacion-detalle {
+    -fx-padding: 6 0 2 14;
+    -fx-border-color: transparent transparent transparent color-primario;
+    -fx-border-width: 0 0 0 1.5;
+}
+
+/* ===================== Análisis: tabla compacta (etiqueta → valor) ===================== */
+.tabla-analisis {
+    -fx-padding: 2 0 0 0;
+}
+
+.analisis-seccion {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.analisis-nombre {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.analisis-valor {
+    -fx-text-fill: color-texto;
+    -fx-font-size: 13px;
+}
+
+.analisis-nota {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+}
+
+/* Selector discreto de la condición: f(x) > 0, ≥ 0, < 0, ≤ 0, = 0 */
+.selector-condicion .condicion {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 6;
+    -fx-padding: 3 9 3 9;
+    -fx-font-size: 12px;
+    -fx-text-fill: color-texto-2;
+    -fx-cursor: hand;
+}
+
+.selector-condicion .condicion:hover {
+    -fx-background-color: color-azul-claro;
+}
+
+.selector-condicion .condicion:selected {
+    -fx-background-color: color-azul-claro;
+    -fx-border-color: color-azul;
+    -fx-text-fill: color-primario;
+    -fx-font-weight: bold;
+}
+
+/* La recta real del conjunto solución */
+.recta-solucion-eje {
+    -fx-stroke: #94a3b8;
+    -fx-stroke-width: 1.2;
+}
+
+.recta-solucion-eje-flecha {
+    -fx-fill: #94a3b8;
+}
+
+.recta-solucion-tramo {
+    -fx-stroke: color-azul;
+    -fx-stroke-width: 4;
+    -fx-stroke-line-cap: butt;
+}
+
+.recta-solucion-flecha {
+    -fx-fill: color-azul;
+}
+
+.recta-solucion-punto {
+    -fx-fill: #94a3b8;
+    -fx-stroke: transparent;
+}
+
+.recta-solucion-punto:extremo {
+    -fx-fill: white;
+    -fx-stroke: color-azul;
+    -fx-stroke-width: 1.6;
+}
+
+.recta-solucion-punto:incluida {
+    -fx-fill: color-azul;
+}
+
+.tabla-analisis .recta-raiz {
+    -fx-font-size: 12px;
+    -fx-text-fill: color-texto;
+}
+
+.tabla-analisis .recta-signo {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.tabla-analisis .recta-signo:positivo {
+    -fx-text-fill: color-verde;
+}
+
+.tabla-analisis .recta-signo:negativo {
+    -fx-text-fill: color-rojo;
+}
+
+/* ===================== Historial (Sprint 9, HU15) ===================== */
+/* Botón secundario: blanco con borde gris; el primario sigue siendo el azul */
+.boton-secundario {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-texto;
+    -fx-font-size: 14px;
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+    -fx-padding: 0 18 0 18;
+    -fx-cursor: hand;
+}
+
+.boton-secundario:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.boton-secundario:pressed {
+    -fx-background-color: color-gris-claro;
+}
+
+.boton-secundario:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+.boton-secundario:disabled {
+    -fx-opacity: 0.5;
+}
+
+.pantalla-historial {
+    -fx-background-color: color-fondo;
+}
+
+/* Barra: buscador, selectores y "Solo favoritos", todos de 44 px */
+.historial-buscador,
+.historial-selector,
+.historial-favoritos {
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 8;
+    -fx-border-color: color-borde;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+}
+
+.historial-buscador {
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: color-texto;
+    -fx-prompt-text-fill: color-gris-texto;
+}
+
+.historial-buscador:focused,
+.historial-selector:focused {
+    -fx-border-color: color-primario;
+}
+
+.historial-selector {
+    -fx-pref-width: 210px;
+}
+
+.historial-selector .list-cell {
+    -fx-text-fill: color-texto;
+    -fx-padding: 0 8 0 8;
+}
+
+.historial-selector .arrow {
+    -fx-background-color: color-gris-texto;
+}
+
+.historial-selector .list-view .list-cell:filled:selected,
+.historial-selector .list-view .list-cell:filled:selected:hover {
+    -fx-background-color: #0b0f19;
+    -fx-text-fill: white;
+}
+
+.historial-selector .list-view .list-cell:filled:hover {
+    -fx-background-color: color-gris-claro;
+}
+
+.historial-favoritos {
+    -fx-text-fill: color-texto;
+    -fx-padding: 0 16 0 16;
+    -fx-cursor: hand;
+}
+
+.historial-favoritos:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.historial-favoritos:marcado,
+.historial-favoritos:marcado:hover {
+    -fx-background-color: color-primario;
+    -fx-border-color: color-primario;
+    -fx-text-fill: white;
+}
+
+.historial-favoritos:focus-visible {
+    -fx-border-color: color-nova;
+}
+
+/* La tabla, en una tarjeta blanca: encabezado gris claro y filas separadas por una línea */
+.historial-tarjeta {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+
+.historial-encabezado {
+    -fx-padding: 0 12 0 12;
+    -fx-min-height: 44px;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent color-borde transparent;
+}
+
+.historial-cabecera {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.historial-celda {
+    -fx-padding: 0 8 0 8;
+}
+
+.historial-scroll,
+.historial-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.historial-fila {
+    -fx-padding: 6 12 6 12;
+    -fx-min-height: 60px;
+    -fx-border-color: transparent transparent color-gris-claro transparent;
+}
+
+.historial-fila:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.historial-texto {
+    -fx-text-fill: color-texto;
+    -fx-font-size: 14px;
+}
+
+.historial-texto-2 {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.historial-vacio {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 14px;
+    -fx-padding: 32;
+}
+
+.historial-conteo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+/* Ojo, estrella y papelera: 44 × 44, trazo gris; la estrella marcada se rellena de azul */
+.boton-icono-historial {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-min-width: 44px;
+    -fx-min-height: 44px;
+    -fx-pref-width: 44px;
+    -fx-pref-height: 44px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.boton-icono-historial:hover {
+    -fx-background-color: color-gris-claro;
+}
+
+.boton-icono-historial:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+.historial-icono {
+    -fx-fill: transparent;
+    -fx-stroke: color-texto-2;
+    -fx-stroke-width: 1.6;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.boton-icono-historial:hover .historial-icono {
+    -fx-stroke: color-tinta;
+}
+
+.boton-estrella:marcado .historial-icono,
+.boton-estrella:marcado:hover .historial-icono {
+    -fx-fill: color-primario;
+    -fx-stroke: color-primario;
+}
+
+/* Velo oscuro detrás de la hoja y del diálogo */
+.historial-velo {
+    -fx-background-color: rgba(11, 15, 25, 0.45);
+}
+
+/* La hoja: un panel blanco a la derecha, de arriba abajo */
+.historial-hoja {
+    -fx-background-color: color-tarjeta;
+    -fx-effect: dropshadow(gaussian, rgba(11, 15, 25, 0.25), 24, 0, -4, 0);
+}
+
+.historial-hoja-cabecera {
+    -fx-padding: 24 28 16 28;
+    -fx-border-color: transparent transparent color-borde transparent;
+}
+
+.historial-hoja-verbo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.historial-hoja-cuerpo {
+    -fx-padding: 20 28 24 28;
+    -fx-spacing: 18;
+}
+
+.historial-hoja-pie {
+    -fx-padding: 14 28 18 28;
+    -fx-border-color: color-borde transparent transparent transparent;
+}
+
+.historial-paso {
+    -fx-spacing: 6;
+}
+
+.historial-paso-numero {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.historial-hoja-seccion {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0 0 0;
+}
+
+.historial-descartado {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 14px;
+}
+
+/* ¿Eliminar este ejercicio? */
+.historial-dialogo {
+    -fx-spacing: 14;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(11, 15, 25, 0.25), 24, 0, 0, 6);
+}
+
+.historial-dialogo-formula {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14 10 14;
+}
+
+/* ===================== Ejemplos (Sprint 9, parte B) ===================== */
+.pantalla-ejemplos {
+    -fx-background-color: color-fondo;
+}
+
+/* Pestañas de curso: las mismas .pestana de la pizarra (activa subrayada en azul), un poco más grandes */
+.ejemplos-pestanas .pestana {
+    -fx-font-size: 15px;
+    -fx-padding: 10 12 10 12;
+}
+
+.ejemplos-pestanas .pestana:focus-visible {
+    -fx-text-fill: color-primario;
+}
+
+/* Lista de temas a la izquierda */
+.ejemplos-temas {
+    -fx-padding: 12;
+    -fx-spacing: 2;
+}
+
+.ejemplos-temas-rotulo {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10 8 10;
+}
+
+.ejemplos-tema {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-padding: 8 10 8 10;
+    -fx-min-height: 44px;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.ejemplos-tema:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.ejemplos-tema:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+.ejemplos-tema-nombre {
+    -fx-fill: color-texto;
+    -fx-font-size: 14px;
+}
+
+.ejemplos-tema-cantidad {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 10;
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 12px;
+    -fx-padding: 1 8 1 8;
+}
+
+/* El tema activo: fondo azul claro, nombre y cantidad en azul */
+.ejemplos-tema:activo,
+.ejemplos-tema:activo:hover {
+    -fx-background-color: color-azul-claro;
+}
+
+.ejemplos-tema:activo .ejemplos-tema-nombre {
+    -fx-fill: color-primario;
+    -fx-font-weight: bold;
+}
+
+.ejemplos-tema:activo .ejemplos-tema-cantidad {
+    -fx-background-color: color-azul-claro-2;
+    -fx-text-fill: color-primario;
+}
+
+/* Tarjetas a la derecha */
+.ejemplos-tarjetas {
+    -fx-padding: 2 4 12 2;
+}
+
+.ejemplo-tarjeta {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 12;
+    -fx-border-color: color-borde-tarjeta;
+    -fx-border-radius: 12;
+    -fx-padding: 18 20 18 20;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.06), 12, 0, 0, 2);
+}
+
+.ejemplo-verbo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.ejemplo-formula {
+    -fx-min-height: 52px;
+    -fx-padding: 2 0 2 0;
+}
+
+.ejemplo-nota {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.ejemplo-tarjeta .ejemplo-boton {
+    -fx-min-height: 38px;
+    -fx-pref-height: 38px;
+    -fx-font-size: 14px;
+    -fx-padding: 0 18 0 18;
+}
+
+/* ===================== Exportar PDF (Sprint 9, parte C) ===================== */
+/* Mensaje corto abajo: "PDF guardado en <ruta>" */
+.aviso-breve {
+    -fx-background-color: color-texto;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 10 16 10 16;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.25), 14, 0, 0, 4);
+}
+
+.dialogo-exportar {
+    -fx-padding: 4 4 8 4;
+}
+
+.exportar-grafica {
+    -fx-font-size: 14px;
+    -fx-padding: 4 0 0 0;
+}
+
+/* ===================== Práctica (Sprint 9, parte D) ===================== */
+.pantalla-practica {
+    -fx-background-color: color-fondo;
+}
+
+.practica-nota-pie {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.practica-propuestas {
+    -fx-padding: 2 4 12 2;
+}
+
+.practica-tarjeta-tema {
+    -fx-text-fill: color-gris-texto;
+    -fx-font-size: 12px;
+}
+
+.practica-tarjeta-titulo {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* Izquierda: el avance */
+.practica-avance {
+    -fx-spacing: 14;
+}
+
+.practica-paso-actual {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.practica-progreso {
+    -fx-pref-height: 10px;
+    -fx-accent: color-primario;
+}
+
+.practica-progreso > .track {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+}
+
+.practica-progreso > .bar {
+    -fx-background-color: color-primario;
+    -fx-background-radius: 5;
+    -fx-background-insets: 0;
+    -fx-padding: 4;
+}
+
+.practica-dato {
+    -fx-padding: 8 0 8 0;
+    -fx-border-color: color-borde transparent transparent transparent;
+}
+
+.practica-dato-nombre {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+.practica-dato-valor {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Derecha: la pizarra */
+.practica-cuerpo {
+    -fx-spacing: 14;
+}
+
+.practica-pasos {
+    -fx-spacing: 18;
+}
+
+/* La pregunta del paso: recuadro con borde punteado */
+.practica-pregunta {
+    -fx-spacing: 12;
+    -fx-padding: 16 18 18 18;
+    -fx-border-color: color-gris-texto;
+    -fx-border-style: dashed;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+}
+
+.practica-pregunta-texto {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+/* Opciones: botones de borde negro */
+.practica-opcion {
+    -fx-background-color: color-tarjeta;
+    -fx-background-radius: 8;
+    -fx-border-color: color-tinta;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 14px;
+    -fx-min-height: 44px;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.practica-opcion:hover {
+    -fx-background-color: color-gris-hover;
+}
+
+.practica-opcion:focus-visible {
+    -fx-border-color: color-primario;
+}
+
+/* Opción equivocada: tachada y gris, sin poder pulsarse otra vez */
+.practica-opcion:descartada,
+.practica-opcion:descartada:disabled {
+    -fx-opacity: 1;
+    -fx-background-color: color-gris-claro;
+    -fx-border-color: color-borde;
+    -fx-text-fill: color-gris-texto;
+}
+
+.practica-opcion:descartada .text {
+    -fx-strikethrough: true;
+}
+
+.practica-no-aplica {
+    -fx-spacing: 2;
+}
+
+.practica-no-aplica-titulo {
+    -fx-text-fill: color-rojo;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.practica-no-aplica-motivo {
+    -fx-text-fill: color-texto-2;
+    -fx-font-size: 13px;
+}
+
+/* Pista: "Pista." y la frase, en azul */
+.practica-pista-titulo {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.practica-pista-texto {
+    -fx-text-fill: color-primario;
+    -fx-font-size: 14px;
+}
+
+.practica-resumen {
+    -fx-text-fill: color-tinta;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+
+/* ===================== Tema oscuro (Sprint 9, parte E) ===================== */
+/* Solo cambian fondo y texto; el azul se mantiene. El Navegador pone tema-oscuro en la raíz de la escena. */
+.root.tema-oscuro {
+    color-fondo: #0b1220;
+    color-tarjeta: #162032;
+    color-tinta: #f1f5f9;
+    color-texto: #e2e8f0;
+    color-texto-2: #a3b1c6;
+    color-texto-3: #cbd5e1;
+    color-gris-texto: #94a3b8;
+    color-borde: #2c3a50;
+    color-borde-tarjeta: #2c3a50;
+    color-gris-claro: #22304a;
+    color-gris-hover: #1d2a40;
+    color-cuadricula: #1d2a40;
+    color-azul-claro: #1b2b47;
+    color-azul-claro-2: #22396a;
+    color-azul-tenue: #18243a;
+    color-azul-tenue-2: #18243a;
+    color-resultado: #1e3a6e;
+    -fx-base: #22304a;
+    -fx-background: color-fondo;
+    -fx-control-inner-background: #162032;
+    -fx-background-color: color-fondo;
+}
+
+.root.tema-oscuro .text-field,
+.root.tema-oscuro .combo-box-base,
+.root.tema-oscuro .check-box .box {
+    -fx-background-color: color-borde, color-tarjeta;
+    -fx-text-fill: color-texto;
+}
+
+.root.tema-oscuro .scroll-pane,
+.root.tema-oscuro .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ===================== Tamaño de letra (Sprint 9, parte E) ===================== */
+/* Solo dentro de la Pizarra, la hoja del Historial y Práctica (.escala-letra). Las fórmulas crecen aparte. */
+.letra-grande .escala-letra .pizarra-metodo,
+.letra-grande .escala-letra .pizarra-numero,
+.letra-grande .escala-letra .historial-paso-numero,
+.letra-grande .escala-letra .practica-pregunta-texto {
+    -fx-font-size: 18px;
+}
+
+.letra-grande .escala-letra .pizarra-nota-texto,
+.letra-grande .escala-letra .historial-hoja-verbo {
+    -fx-font-size: 15.5px;
+}
+
+.letra-grande .escala-letra .pizarra-rotulo {
+    -fx-font-size: 14.5px;
+}
+
+.letra-grande .escala-letra .pizarra-resultado-rotulo {
+    -fx-font-size: 19px;
+}
+
+.letra-grande .escala-letra .practica-opcion {
+    -fx-font-size: 17px;
+}
+
+.letra-muy-grande .escala-letra .pizarra-metodo,
+.letra-muy-grande .escala-letra .pizarra-numero,
+.letra-muy-grande .escala-letra .historial-paso-numero,
+.letra-muy-grande .escala-letra .practica-pregunta-texto {
+    -fx-font-size: 21px;
+}
+
+.letra-muy-grande .escala-letra .pizarra-nota-texto,
+.letra-muy-grande .escala-letra .historial-hoja-verbo {
+    -fx-font-size: 18px;
+}
+
+.letra-muy-grande .escala-letra .pizarra-rotulo {
+    -fx-font-size: 17px;
+}
+
+.letra-muy-grande .escala-letra .pizarra-resultado-rotulo {
+    -fx-font-size: 22px;
+}
+
+.letra-muy-grande .escala-letra .practica-opcion {
+    -fx-font-size: 19.5px;
+}
+
+/* ===================== Configuración (Sprint 9, parte E) ===================== */
+.ajustes-tarjeta {
+    -fx-spacing: 4;
+}
+
+.ajuste-fila {
+    -fx-spacing: 16;
+    -fx-alignment: center-left;
+    -fx-padding: 12 0 12 0;
+    -fx-border-color: color-borde transparent transparent transparent;
+}
+
+.ajuste-texto {
+    -fx-spacing: 4;
+}
+
+/* Botones unidos con texto (Todos los pasos, Normal…): como Q R C, más anchos */
+.opcion-ancha {
+    -fx-pref-width: -1;
+    -fx-padding: 0 14 0 14;
+}
+
+/* El elegido en negro con letra blanca, también en el tema oscuro (ahí, al revés para que se vea) */
+.opcion-campo:selected {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: white;
+}
+
+.root.tema-oscuro .opcion-campo:selected {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #0f172a;
+}
+
+.ajuste-vista-previa {
+    -fx-background-color: color-gris-claro;
+    -fx-background-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-min-height: 64px;
+}
+
+.ajuste-version {
+    -fx-text-fill: color-texto;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.boton-peligro {
+    -fx-text-fill: color-rojo;
 }

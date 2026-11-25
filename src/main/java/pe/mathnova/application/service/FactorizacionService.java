@@ -73,13 +73,12 @@ public class FactorizacionService {
 
     private final OrquestadorFactorizacion motor;
     private final FactorizadorFunciones funciones;
-    private final HistorialFactorizacionService historial;
     private final MotorSugerencias sugeridor;
 
-    public FactorizacionService(OrquestadorFactorizacion motor, HistorialFactorizacionService historial) {
+    /** Desde el Sprint 9 no guarda: lo hace {@link ResolverService#guardar} cuando la resolución termina bien. */
+    public FactorizacionService(OrquestadorFactorizacion motor) {
         this.motor = motor;
         this.funciones = new FactorizadorFunciones(motor);
-        this.historial = historial;
         this.sugeridor = new MotorSugerencias(seResuelve(motor));
     }
 
@@ -134,28 +133,15 @@ public class FactorizacionService {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion entrada = Parser.parse(texto);
         avance.accept(FaseFactorizacion.METODOS);
-        Resolucion r = motor.resolver(entrada, campo, forzado);
-        try {
-            historial.guardar(texto, r, sugerencias(r));
-        } catch (RuntimeException e) {
-            // Si el historial falla, la resolución se muestra igual.
-            LOG.warn("No se pudo guardar la factorización de {} en el historial", texto, e);
-        }
-        return r;
+        return motor.resolver(entrada, campo, forzado);
     }
 
-    /** P01 (HU09). Desde el Sprint 5 se guarda en el historial con sus sugerencias. */
+    /** P01 (HU09). Se guarda en el historial con sus sugerencias desde ResolverService. */
     public Simplificacion simplificar(String texto, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion entrada = Parser.parse(texto);
         avance.accept(FaseFactorizacion.METODOS);
-        Simplificacion s = new SimplificadorFracciones(motor).simplificar(entrada);
-        try {
-            historial.guardarSimplificacion(texto, s, sugerencias(s));
-        } catch (RuntimeException e) {
-            LOG.warn("No se pudo guardar la simplificación de {} en el historial", texto, e);
-        }
-        return s;
+        return new SimplificadorFracciones(motor).simplificar(entrada);
     }
 
     /**
@@ -208,7 +194,7 @@ public class FactorizacionService {
         return Verificacion.de(s);
     }
 
-    /** HU23: una expresión con funciones (T01–T05). No se guarda en el historial. */
+    /** HU23: una expresión con funciones (T01–T05). */
     public ResolucionFunciones factorizarFunciones(String texto, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion entrada = Parser.parse(texto);

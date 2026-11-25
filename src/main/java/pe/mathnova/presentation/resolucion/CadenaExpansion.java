@@ -88,6 +88,11 @@ public final class CadenaExpansion {
         int grado(T a);
 
         String latex(T a);
+
+        /** a·b escrito término a término sin reducir ("x^{2} - 3x - 2x + 6"), o null si no se escribe así. */
+        default String distribuido(T a, T b) {
+            return null;
+        }
     }
 
     private record Bloque<T>(T base, int exp) {
@@ -117,6 +122,10 @@ public final class CadenaExpansion {
 
         // 1. Los pares conjugados juntos.
         List<Object> items = emparejar(ar, resto);
+        // Solo (x + 2)(x − 2): se distribuye término a término, como cualquier producto de dos factores.
+        if (adelante.isEmpty() && items.size() == 1 && items.getFirst() instanceof Par<?> p && p.exp() == 1) {
+            items = new ArrayList<>(resto);
+        }
         if (items.stream().anyMatch(o -> o instanceof Par)) {
             agregar(l, adelante + items(ar, items));
             // 2. Cada par es una diferencia de cuadrados.
@@ -134,14 +143,24 @@ public final class CadenaExpansion {
         // 3. Las potencias se desarrollan.
         if (bloques.stream().anyMatch(b -> b.exp() > 1)) {
             bloques.replaceAll(b -> b.exp() > 1 ? new Bloque<>(ar.potencia(b.base(), b.exp()), 1) : b);
-            agregar(l, adelante + bloques(ar, bloques));
+            agregar(l, adelante.isEmpty() && bloques.size() == 1 ? ar.latex(bloques.getFirst().base())
+                    : adelante + bloques(ar, bloques));
         }
-        // 4. Los factores se multiplican de a dos, de izquierda a derecha.
+        // 4. Los factores se multiplican de a dos, de izquierda a derecha: primero cada término por cada término
+        //    (x² − 3x − 2x + 6) y después reducido (x² − 5x + 6). Los factores que faltan siguen escritos.
         while (bloques.size() > 1) {
-            T producto = ar.multiplicar(bloques.get(0).base(), bloques.get(1).base());
+            T a = bloques.get(0).base();
+            T b = bloques.get(1).base();
+            T producto = ar.multiplicar(a, b);
+            String distribuido = ar.distribuido(a, b);
+            List<Bloque<T>> resto2 = bloques.subList(2, bloques.size());
+            boolean solo = adelante.isEmpty() && resto2.isEmpty();
+            if (distribuido != null) {
+                agregar(l, adelante + (solo ? distribuido : "\\left(" + distribuido + "\\right)") + bloques(ar, resto2));
+            }
             bloques.remove(0);
             bloques.set(0, new Bloque<>(producto, 1));
-            agregar(l, adelante + bloques(ar, bloques));
+            agregar(l, adelante + (solo ? ar.latex(producto) : bloques(ar, bloques)));
         }
         // 5. Se distribuye lo de adelante: el polinomio expandido y ordenado.
         T total = bloques.isEmpty() ? frente : ar.multiplicar(frente, bloques.getFirst().base());
@@ -287,6 +306,29 @@ public final class CadenaExpansion {
         @Override
         public String latex(Polinomio a) {
             return ImpresoraLatex.imprimir(a.aExpresion());
+        }
+
+        @Override
+        public String distribuido(Polinomio a, Polinomio b) {
+            if (a.terminos().size() * b.terminos().size() > 9) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (var ta : a.terminos().entrySet()) {
+                for (var tb : b.terminos().entrySet()) {
+                    Polinomio t = Polinomio.termino(ta.getValue(), ta.getKey())
+                            .multiplicar(Polinomio.termino(tb.getValue(), tb.getKey()));
+                    String x = ImpresoraLatex.imprimir(t.aExpresion());
+                    if (sb.isEmpty()) {
+                        sb.append(x);
+                    } else if (x.startsWith("-")) {
+                        sb.append(" - ").append(x.substring(1));
+                    } else {
+                        sb.append(" + ").append(x);
+                    }
+                }
+            }
+            return sb.toString();
         }
     };
 

@@ -8,6 +8,7 @@ import java.util.Optional;
 import pe.mathnova.domain.algebra.NoEsPolinomioException;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
+import pe.mathnova.domain.calculo.FactorComun;
 import pe.mathnova.domain.calculo.derivadas.Derivador;
 import pe.mathnova.domain.calculo.derivadas.PasoDerivada;
 import pe.mathnova.domain.calculo.derivadas.Simplificador;
@@ -26,7 +27,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
-import pe.mathnova.domain.factorizacion.Paso;
 import pe.mathnova.domain.factorizacion.Simplificacion;
 import pe.mathnova.domain.factorizacion.SimplificadorFracciones;
 import pe.mathnova.domain.factorizacion.Tecnicas;
@@ -81,6 +81,18 @@ public final class MotorLimites {
             c.metodo = null;
         }
         return new ResolucionLimite(limite, r, c.pasos, c.indeterminacion, c.metodo);
+    }
+
+    /**
+     * Práctica (Sprint 9, parte D): por qué la técnica {@code codigo} no es el paso que toca con {@code f} en este
+     * límite. Usa las mismas condiciones que la cascada y que forzar un método ("Probar"): vacío si sí aplica, así
+     * una técnica que también funciona (L'Hôpital con 0/0) nunca se presenta como un error.
+     *
+     * @param f          la expresión a la que se le aplica el paso
+     * @param primerPaso true si todavía no se evaluó nada: entonces solo vale evaluar
+     */
+    public Optional<String> noAplica(Limite limite, Expresion f, String codigo, boolean primerPaso) {
+        return new Calculo(limite).noAplica(f, codigo, primerPaso);
     }
 
     private static String texto(Expresion e) {
@@ -162,6 +174,74 @@ public final class MotorLimites {
 
         private Valor evaluar(Expresion f) {
             return Evaluador.evaluar(f, x, punto);
+        }
+
+        /** Ver {@link MotorLimites#noAplica}. */
+        Optional<String> noAplica(Expresion f, String codigo, boolean primerPaso) {
+            if (limite.punto() instanceof Limite.Infinito inf) {
+                punto = new Valor.Infinito(inf.positivo() ? 1 : -1);
+            } else {
+                Optional<NumeroAlgebraico> v = Evaluador.constante(((Limite.Finito) limite.punto()).valor());
+                if (v.isEmpty()) {
+                    return Optional.empty();
+                }
+                punto = new Valor.Numero(v.get());
+            }
+            String a = x + " → " + textoPunto();
+            if (primerPaso) {
+                return codigo.equals("L01") ? Optional.empty()
+                        : Optional.of("Todavía no sabes qué sale: primero se reemplaza " + x + " por " + textoPunto()
+                                + ". Solo si queda una indeterminación hace falta transformar la expresión.");
+            }
+            Valor v = evaluar(f);
+            Indeterminacion t = v instanceof Valor.Indeterminado i ? i.tipo() : null;
+            String sale = switch (v) {
+                case Valor.Indeterminado i -> i.tipo().texto();
+                default -> texto(v);
+            };
+            if (codigo.equals("L01")) {
+                return t == null ? Optional.empty()
+                        : Optional.of("Reemplazar " + x + " directamente da " + sale + ", una indeterminación: "
+                                + "primero hay que transformar la expresión.");
+            }
+            if (t == null && !(v instanceof Valor.SobreCero)) {
+                return Optional.of("Si reemplazas " + x + " por " + textoPunto() + " sale " + sale
+                        + ": no queda ninguna indeterminación, así que no hace falta transformar nada.");
+            }
+            boolean ceroSobreCero = t == Indeterminacion.CERO_SOBRE_CERO;
+            return switch (codigo) {
+                case "L02" -> {
+                    if (!ceroSobreCero) {
+                        yield Optional.of("Factorizar y cancelar resuelve 0/0, y aquí sale " + sale + ".");
+                    }
+                    if (!SimplificadorFracciones.esFraccion(f) || FactorComun.buscar(f, factorizador).isEmpty()) {
+                        yield Optional.of("No es una fracción de polinomios con un factor común arriba y abajo que se "
+                                + "pueda cancelar.");
+                    }
+                    yield Optional.empty();
+                }
+                case "L03" -> {
+                    boolean raiz = f instanceof Cociente c && (tieneRaiz(c.numerador()) || tieneRaiz(c.denominador()))
+                            || f instanceof Suma su && su.terminos().stream().anyMatch(MotorLimites::tieneRaiz);
+                    yield raiz && (ceroSobreCero || t == Indeterminacion.INFINITO_MENOS_INFINITO) ? Optional.empty()
+                            : Optional.of("No hay ninguna raíz cuadrada: no hay un conjugado por el cual multiplicar.");
+                }
+                case "L04" -> t == Indeterminacion.INFINITO_SOBRE_INFINITO || t == Indeterminacion.INFINITO_MENOS_INFINITO
+                        ? Optional.empty()
+                        : Optional.of("Comparar los grados sirve cuando " + x + " tiende a infinito y sale ∞/∞; con "
+                                + a + " sale " + sale + ".");
+                case "L05" -> v instanceof Valor.SobreCero ? Optional.empty()
+                        : Optional.of("Los límites laterales se estudian cuando sale k/0 con k distinto de 0; aquí sale "
+                                + sale + ".");
+                case "L06" -> (ceroSobreCero || t == Indeterminacion.UNO_A_LA_INFINITO)
+                        && LimitesNotables.buscar(f, x, enCero(), punto instanceof Valor.Infinito i && i.signo() > 0)
+                        .isPresent() ? Optional.empty()
+                        : Optional.of("No tiene la forma de ningún límite notable, como sen(u)/u o (1 + 1/u)^u.");
+                case "L07" -> (ceroSobreCero || t == Indeterminacion.INFINITO_SOBRE_INFINITO) && f instanceof Cociente
+                        ? Optional.empty()
+                        : Optional.of("L'Hôpital solo se aplica a un cociente con 0/0 o ∞/∞, y aquí sale " + sale + ".");
+                default -> Optional.empty();
+            };
         }
 
         // -------------------------------------------------------------- cascada
@@ -359,16 +439,15 @@ public final class MotorLimites {
         // -------------------------------------------------------------- L02
 
         private Optional<ResultadoLimite> factorizarYCancelar(Expresion f) {
-            Simplificacion s = new SimplificadorFracciones(factorizador).simplificar(f);
-            if (s.cancelados().isEmpty()) {
+            // La misma factorización y cancelación que usan las derivadas y las integrales (FactorComun)
+            Optional<Simplificacion> hay = FactorComun.buscar(f, factorizador);
+            if (hay.isEmpty()) {
                 return Optional.empty();
             }
-            List<PasoLimite> hijos = new ArrayList<>();
-            s.numerador().pasos().forEach(p -> hijos.add(deFactorizacion(p, "numerador")));
-            s.denominador().pasos().forEach(p -> hijos.add(deFactorizacion(p, "denominador")));
+            Simplificacion s = hay.get();
+            List<PasoLimite> hijos = FactorComun.hijos(s);
             Expresion g = s.aExpresion();
-            String factorizada = envolver(s.numerador().resultado().aTexto()) + "/"
-                    + envolver(s.denominador().resultado().aTexto());
+            String factorizada = FactorComun.factorizada(s);
             List<String> lineas = List.of(texto(f) + " = " + factorizada, "= " + s.fraccion());
             pasos.add(new PasoLimite("L02", Tecnicas.nombre("L02"), "Hay 0/0 en una fracción de polinomios: "
                     + "se factorizan el numerador y el denominador. " + s.justificacion()
@@ -376,15 +455,6 @@ public final class MotorLimites {
                     new TrabajoIntermedio.Agrupacion(lineas), "Factorizar numerador y denominador", hijos));
             usar("L02");
             return Optional.of(calcular(g));
-        }
-
-        private static String envolver(String t) {
-            return t.startsWith("(") && t.endsWith(")") && t.indexOf(')') == t.length() - 1 ? t : "(" + t + ")";
-        }
-
-        private static PasoLimite deFactorizacion(Paso p, String parte) {
-            return new PasoLimite(p.codigoTecnica(), Tecnicas.nombreCorto(p.codigoTecnica()) + " · " + parte,
-                    p.justificacion(), p.antes().aExpresion(), p.despuesComoForma().aExpresion(), p.trabajo());
         }
 
         // -------------------------------------------------------------- L03

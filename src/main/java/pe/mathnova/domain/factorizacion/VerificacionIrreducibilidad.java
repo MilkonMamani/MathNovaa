@@ -42,4 +42,10 @@ public final class VerificacionIrreducibilidad extends MetodoBase {
                 Formato.polinomio(p) + " = " + Formato.parentesis(g.aPolinomio()) + Formato.parentesis(q.aPolinomio())));
         return resultado(justificacion, p, List.of(Factor.de(g.aPolinomio()), Factor.de(q.aPolinomio())), trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "¿Queda algún factor que se pueda partir, o ya ningún método funciona con ninguno?";
+    }
 }

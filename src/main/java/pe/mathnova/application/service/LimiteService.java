@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import pe.mathnova.domain.calculo.limites.Asintotas;
@@ -27,17 +25,13 @@ import pe.mathnova.domain.parser.Parser;
 @Service
 public class LimiteService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LimiteService.class);
-
     private final OrquestadorFactorizacion orquestador;
     private final MotorLimites motor;
-    private final HistorialFactorizacionService historial;
 
-    /** @param historial null para no guardar (pruebas, resultado en vivo) */
-    public LimiteService(OrquestadorFactorizacion orquestador, HistorialFactorizacionService historial) {
+    /** Desde el Sprint 9 no guarda: lo hace {@link ResolverService#guardar}. */
+    public LimiteService(OrquestadorFactorizacion orquestador) {
         this.orquestador = orquestador;
         this.motor = new MotorLimites(orquestador);
-        this.historial = historial;
     }
 
     /** @throws IllegalArgumentException si el texto no es un límite */
@@ -54,15 +48,7 @@ public class LimiteService {
         avance.accept(FaseFactorizacion.LECTURA);
         Limite l = limite(texto);
         avance.accept(FaseFactorizacion.METODOS);
-        ResolucionLimite r = motor.resolver(l, forzado);
-        if (historial != null) {
-            try {
-                historial.guardarLimite(texto, r);
-            } catch (RuntimeException e) {
-                LOG.warn("No se pudo guardar el límite {} en el historial", texto, e);
-            }
-        }
-        return r;
+        return motor.resolver(l, forzado);
     }
 
     /** Sin guardar: para el resultado en vivo. */

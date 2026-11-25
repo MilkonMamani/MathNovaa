@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- "Práctica" (Sprint 9, parte D). Sin ejercicio: "Elige un ejercicio" con tarjetas. Con ejercicio: a la
+     izquierda el avance (paso, barra azul, aciertos a la primera, intentos fallidos, pista, elegir otro); a la
+     derecha la pizarra con el enunciado, los pasos ya resueltos y el recuadro punteado con la pregunta y sus
+     opciones. Las tarjetas, los pasos y las opciones los arma PracticaController. -->
+<VBox fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pe.mathnova.presentation.controller.PracticaController"
+      styleClass="pantalla-practica" spacing="18">
+    <padding>
+        <Insets top="28" right="32" bottom="24" left="32"/>
+    </padding>
+
+    <VBox spacing="4">
+        <Label text="Práctica" styleClass="titulo-pantalla"/>
+        <Label text="El motor ya lo resolvió por dentro: en cada paso eliges tú el método."
+               styleClass="subtitulo-pantalla" wrapText="true"/>
+    </VBox>
+
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Sin ejercicio -->
+        <VBox fx:id="vistaElegir" spacing="14">
+            <Label text="Elige un ejercicio" styleClass="titulo-tarjeta"/>
+            <ScrollPane fx:id="desplazamientoElegir" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                        styleClass="historial-scroll" VBox.vgrow="ALWAYS">
+                <FlowPane fx:id="propuestas" hgap="16" vgap="16" styleClass="practica-propuestas"/>
+            </ScrollPane>
+            <Label fx:id="cargandoPropuestas" text="Preparando los ejercicios…" styleClass="historial-texto-2"/>
+            <Label text="También puedes practicar cualquier ejercicio desde Ejemplos o desde el Historial."
+                   styleClass="practica-nota-pie" wrapText="true"/>
+        </VBox>
+
+        <!-- Con ejercicio -->
+        <HBox fx:id="vistaPractica" spacing="20" visible="false" managed="false">
+            <VBox minWidth="280" prefWidth="280" maxWidth="280">
+                <VBox fx:id="tarjetaAvance" styleClass="tarjeta, practica-avance">
+                    <Label fx:id="tituloEjercicio" styleClass="titulo-tarjeta" wrapText="true"/>
+                    <VBox spacing="6">
+                        <Label fx:id="pasoActual" styleClass="practica-paso-actual"/>
+                        <ProgressBar fx:id="progreso" maxWidth="Infinity" styleClass="practica-progreso"/>
+                    </VBox>
+                    <HBox styleClass="practica-dato" alignment="CENTER_LEFT">
+                        <Label text="Aciertos a la primera" styleClass="practica-dato-nombre"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="aciertos" styleClass="practica-dato-valor"/>
+                    </HBox>
+                    <HBox styleClass="practica-dato" alignment="CENTER_LEFT">
+                        <Label text="Intentos fallidos" styleClass="practica-dato-nombre"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="fallidos" styleClass="practica-dato-valor"/>
+                    </HBox>
+                    <Button fx:id="verPista" text="Ver una pista" styleClass="boton-secundario" maxWidth="Infinity"
+                            onAction="#verPista"/>
+                    <Button fx:id="elegirOtro" text="Elegir otro ejercicio" styleClass="boton-secundario"
+                            maxWidth="Infinity" onAction="#elegirOtro"/>
+                </VBox>
+            </VBox>
+
+            <ScrollPane fx:id="desplazamientoPizarra" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                        styleClass="historial-scroll" HBox.hgrow="ALWAYS">
+                <VBox styleClass="tarjeta, practica-pizarra, escala-letra">
+                    <Label text="Pizarra" styleClass="titulo-tarjeta"/>
+                    <VBox fx:id="cuerpo" styleClass="practica-cuerpo">
+                        <Label fx:id="rotulo" styleClass="pizarra-rotulo"/>
+                        <StackPane fx:id="enunciado" alignment="CENTER_LEFT"/>
+                        <VBox fx:id="pasos" styleClass="practica-pasos"/>
+
+                        <!-- La pregunta del paso, con borde punteado -->
+                        <VBox fx:id="cajaPregunta" styleClass="practica-pregunta">
+                            <Label fx:id="textoPregunta" styleClass="practica-pregunta-texto" wrapText="true"/>
+                            <StackPane fx:id="formulaPregunta" alignment="CENTER_LEFT"/>
+                            <FlowPane fx:id="opciones" hgap="10" vgap="10"/>
+                            <VBox fx:id="avisoNoAplica" styleClass="practica-no-aplica" visible="false"
+                                  managed="false">
+                                <Label text="⚠ No aplica." styleClass="practica-no-aplica-titulo"/>
+                                <Label fx:id="motivo" styleClass="practica-no-aplica-motivo" wrapText="true"/>
+                            </VBox>
+                            <HBox fx:id="cajaPista" styleClass="practica-pista" spacing="6" visible="false"
+                                  managed="false">
+                                <Label text="Pista." styleClass="practica-pista-titulo" minWidth="-Infinity"/>
+                                <Label fx:id="pista" styleClass="practica-pista-texto" wrapText="true"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Al terminar -->
+                        <VBox fx:id="cajaFinal" spacing="14" visible="false" managed="false">
+                            <VBox spacing="6" styleClass="pizarra-resultado-bloque">
+                                <Label text="Resultado" styleClass="pizarra-resultado-rotulo"/>
+                                <StackPane fx:id="resultado" alignment="CENTER_LEFT"
+                                           styleClass="pizarra-resultado-final" maxWidth="-Infinity"/>
+                            </VBox>
+                            <Label fx:id="resumen" styleClass="practica-resumen" wrapText="true"/>
+                            <HBox spacing="10">
+                                <Button fx:id="practicarOtro" text="Practicar otro" styleClass="boton-primario"
+                                        onAction="#elegirOtro"/>
+                                <Button fx:id="repetir" text="Repetir este" styleClass="boton-secundario"
+                                        onAction="#repetir"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </HBox>
+
+        <Label fx:id="error" styleClass="mensaje-error" wrapText="true" visible="false" managed="false"
+               StackPane.alignment="TOP_LEFT"/>
+    </StackPane>
+</VBox>

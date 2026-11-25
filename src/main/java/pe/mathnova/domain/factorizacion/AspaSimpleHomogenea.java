@@ -84,4 +84,10 @@ final class AspaSimpleHomogenea extends MetodoBase {
     static Polinomio lineal(char x, Racional a, char y, Racional c) {
         return Polinomio.termino(a, Monomio.de(x, 1)).sumar(Polinomio.termino(c, Monomio.de(y, 1)));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Todos los términos tienen el mismo grado: míralo como un trinomio en x y en y, y cruza los productos de los extremos.";
+    }
 }

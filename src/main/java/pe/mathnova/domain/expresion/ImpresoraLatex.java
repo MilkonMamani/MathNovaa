@@ -195,14 +195,13 @@ public final class ImpresoraLatex implements Visitante<String> {
         List<Expresion> terminos = s.terminos();
         for (int k = 0; k < terminos.size(); k++) {
             Expresion t = terminos.get(k);
-            if (k > 0 && t instanceof Negacion(Expresion arg)) {
-                sb.append(" - ").append(arg instanceof Suma ? parentesis(p(arg)) : p(arg));
-            } else {
-                if (k > 0) {
-                    sb.append(" + ");
-                }
-                sb.append(t instanceof Suma ? parentesis(p(t)) : p(t));
+            if (k > 0) {
+                // Un solo operador por término: x − 3, x − 2x y x + 3, no x + −3, x + −2x ni x − −3 (ver Signos)
+                Signos.Termino signo = Signos.separar(t);
+                sb.append(signo.negativo() ? " - " : " + ");
+                t = signo.valor();
             }
+            sb.append(t instanceof Suma ? parentesis(p(t)) : p(t));
         }
         return sb.toString();
     }
@@ -210,17 +209,22 @@ public final class ImpresoraLatex implements Visitante<String> {
     @Override
     public String visitar(Negacion n) {
         Expresion a = n.argumento();
-        boolean envolver = a instanceof Suma || a instanceof Negacion
-                || (a instanceof Constante c && c.valor().signo() < 0);
+        // −(x + 1), −(−3), −(−2x): nunca dos signos seguidos
+        boolean envolver = a instanceof Suma || Signos.conMenos(a);
         return "-" + (envolver ? parentesis(p(a)) : p(a));
     }
 
     @Override
     public String visitar(Producto prod) {
+        List<Expresion> fs = prod.factores();
+        if (fs.getFirst() instanceof Constante k && k.valor().signo() < 0) {
+            // −2x, no (−2)x; −x, no (−1)x
+            Expresion resto = Signos.sinMenos(prod).orElseThrow();
+            return "-" + (resto instanceof Suma || Signos.conMenos(resto) ? parentesis(p(resto)) : p(resto));
+        }
         StringBuilder sb = new StringBuilder();
-        for (Expresion f : prod.factores()) {
-            boolean envolver = f instanceof Suma || f instanceof Negacion
-                    || (f instanceof Constante c && c.valor().signo() < 0);
+        for (Expresion f : fs) {
+            boolean envolver = f instanceof Suma || Signos.conMenos(f);
             String texto = envolver ? parentesis(p(f)) : p(f);
             if (!sb.isEmpty() && (Character.isDigit(texto.charAt(0)) || texto.startsWith("\\frac"))) {
                 sb.append(" \\cdot ");

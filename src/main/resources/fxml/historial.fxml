@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- "Historial" (HU14, HU15): cada ejercicio resuelto, del más reciente al más antiguo, en páginas de 50.
+     Encima de la tabla van, cuando se abren, el velo oscuro, la hoja de una resolución (a la derecha) y el
+     diálogo para eliminar. Las filas, la hoja y las fórmulas las arma HistorialController. -->
+<StackPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="pe.mathnova.presentation.controller.HistorialController"
+           styleClass="pantalla-historial">
+
+    <VBox fx:id="pantalla" spacing="18">
+        <padding>
+            <Insets top="28" right="32" bottom="24" left="32"/>
+        </padding>
+
+        <VBox spacing="4">
+            <Label text="Historial" styleClass="titulo-pantalla"/>
+            <Label text="Cada ejercicio que resuelves se guarda solo. Pulsa el ojo para ver su hoja con todos los pasos."
+                   styleClass="subtitulo-pantalla" wrapText="true"/>
+        </VBox>
+
+        <HBox fx:id="barra" spacing="12" alignment="CENTER_LEFT" styleClass="historial-barra">
+            <TextField fx:id="buscador" promptText="Buscar por expresión, operación o tema" HBox.hgrow="ALWAYS"
+                       styleClass="historial-buscador" accessibleText="Buscar en el historial"/>
+            <ComboBox fx:id="selectorCurso" styleClass="historial-selector" accessibleText="Curso"/>
+            <ComboBox fx:id="selectorFecha" styleClass="historial-selector" accessibleText="Fecha"/>
+            <ToggleButton fx:id="soloFavoritos" text="Solo favoritos" styleClass="historial-favoritos"
+                          accessibleText="Mostrar solo los favoritos" minWidth="-Infinity">
+                <tooltip>
+                    <Tooltip text="Mostrar solo los ejercicios marcados con la estrella"/>
+                </tooltip>
+            </ToggleButton>
+        </HBox>
+
+        <VBox fx:id="tarjetaTabla" styleClass="tarjeta, historial-tarjeta" VBox.vgrow="ALWAYS">
+            <HBox fx:id="encabezado" styleClass="historial-encabezado"/>
+            <StackPane VBox.vgrow="ALWAYS">
+                <ScrollPane fx:id="desplazamiento" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                            styleClass="historial-scroll">
+                    <VBox fx:id="filas" styleClass="historial-filas"/>
+                </ScrollPane>
+                <Label fx:id="sinResultados" text="No hay ejercicios que coincidan con la búsqueda."
+                       styleClass="historial-vacio" wrapText="true" visible="false" managed="false"/>
+            </StackPane>
+        </VBox>
+
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="historial-pie">
+            <Label fx:id="conteo" styleClass="historial-conteo"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="mostrarMas" text="Mostrar más" styleClass="boton-secundario" onAction="#mostrarMas"
+                    visible="false" managed="false"/>
+        </HBox>
+    </VBox>
+
+    <!-- Fondo oscurecido: un clic fuera de la hoja o del diálogo los cierra -->
+    <Region fx:id="velo" styleClass="historial-velo" visible="false" onMouseClicked="#cerrarCapas"/>
+
+    <!-- La hoja de una resolución, a la derecha, encima de la tabla -->
+    <VBox fx:id="hoja" styleClass="historial-hoja, escala-letra" StackPane.alignment="CENTER_RIGHT" visible="false"
+          maxWidth="560" prefWidth="560">
+        <VBox styleClass="historial-hoja-cabecera" spacing="6">
+            <Label fx:id="verboHoja" styleClass="historial-hoja-verbo"/>
+            <StackPane fx:id="formulaHoja" alignment="CENTER_LEFT" styleClass="historial-hoja-enunciado"/>
+        </VBox>
+        <ScrollPane fx:id="desplazamientoHoja" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                    styleClass="historial-scroll">
+            <VBox fx:id="cuerpoHoja" styleClass="historial-hoja-cuerpo"/>
+        </ScrollPane>
+        <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="historial-hoja-pie">
+            <Button fx:id="abrirEnResolver" text="Abrir en Resolver" styleClass="boton-primario"
+                    onAction="#abrirEnResolver"/>
+            <Button fx:id="practicar" text="Practicar" styleClass="boton-secundario" onAction="#practicar"
+                    disable="true"/>
+            <StackPane fx:id="envolturaExportar">
+                <Button fx:id="exportarPdf" text="Exportar PDF" styleClass="boton-secundario" disable="true"
+                        onAction="#exportarPdf"/>
+            </StackPane>
+            <Button fx:id="cerrarHoja" text="Cerrar" styleClass="boton-secundario" onAction="#cerrarCapas"/>
+        </HBox>
+    </VBox>
+
+    <!-- ¿Eliminar este ejercicio? -->
+    <VBox fx:id="dialogo" styleClass="tarjeta, historial-dialogo" StackPane.alignment="CENTER" visible="false"
+          maxWidth="460" maxHeight="-Infinity">
+        <Label text="¿Eliminar este ejercicio?" styleClass="titulo-tarjeta"/>
+        <StackPane fx:id="formulaDialogo" alignment="CENTER_LEFT" styleClass="historial-dialogo-formula"/>
+        <Label text="Se borran también sus pasos. Esto no se puede deshacer." styleClass="subtitulo-tarjeta"
+               wrapText="true"/>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="cancelarEliminar" text="Cancelar" styleClass="boton-secundario" onAction="#cerrarCapas"/>
+            <Button fx:id="confirmarEliminar" text="Eliminar" styleClass="boton-primario" onAction="#confirmarEliminar"/>
+        </HBox>
+    </VBox>
+</StackPane>

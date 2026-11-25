@@ -162,7 +162,7 @@ class SugerenciasTest {
     /** El servicio tampoco filtra por campo: "Qué más puedes hacer" sale en Q, R y C. */
     @Test
     void elServicioSugiereEnLosTresCampos() {
-        var servicio = new pe.mathnova.application.service.FactorizacionService(ORQUESTADOR, null);
+        var servicio = new pe.mathnova.application.service.FactorizacionService(ORQUESTADOR);
         for (String texto : List.of("x^2 - 3", "x^2 + 4")) {
             List<Sugerencia> enQ = servicio.sugerencias(ORQUESTADOR.resolver(Parser.parse(texto), Campo.Q));
             assertFalse(enQ.isEmpty(), texto);

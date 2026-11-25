@@ -67,7 +67,7 @@ class PruebaHumoTest {
     /** Mientras vale true, factorizar falla: así se ve dónde aparece un error del motor. */
     private static volatile boolean fallarFactorizacion;
 
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null) {
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR) {
         @Override
         public pe.mathnova.domain.factorizacion.Resolucion factorizar(String texto, String forzado,
                 pe.mathnova.domain.factorizacion.Campo campo,
@@ -579,8 +579,9 @@ class PruebaHumoTest {
             ((Button) raiz.lookup("#botonResolver")).fire();
             return null;
         });
-        esperar(() -> controlador.estado() != EstadoResolucion.CALCULANDO
-                && !raiz.lookup("#carga").isVisible(), contexto + ": no terminó de calcular");
+        // La tarjeta Solución (con #carga) ya no está en la pantalla: la solución va en la pizarra.
+        esperar(() -> controlador.estado() != EstadoResolucion.CALCULANDO && !visible("#carga"),
+                contexto + ": no terminó de calcular");
     }
 
     private static void esperar(Supplier<Boolean> condicion, String mensaje) throws Exception {

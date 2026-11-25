@@ -120,4 +120,10 @@ final class RuffiniVariables extends MetodoBase {
         }
         return String.join(" | ", r);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Míralo como un polinomio de una sola letra y busca un valor de esa letra que lo haga cero.";
+    }
 }

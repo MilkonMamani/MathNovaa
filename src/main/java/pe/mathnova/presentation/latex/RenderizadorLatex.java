@@ -24,9 +24,21 @@ public final class RenderizadorLatex {
     private static final int MARGEN = 4;
 
     private final float tamano;
+    /** Siempre en negro, también en el tema oscuro: para lo que se dibuja sobre blanco (la gráfica). */
+    private final boolean negra;
 
     public RenderizadorLatex(float tamano) {
+        this(tamano, false);
+    }
+
+    private RenderizadorLatex(float tamano, boolean negra) {
         this.tamano = tamano;
+        this.negra = negra;
+    }
+
+    /** El mismo tamaño, con tinta negra en cualquier tema (la leyenda de la gráfica, que es blanca). */
+    public RenderizadorLatex siempreNegra() {
+        return new RenderizadorLatex(tamano, true);
     }
 
     public float tamano() {
@@ -52,7 +64,7 @@ public final class RenderizadorLatex {
         TeXIcon icono = new TeXFormula(latex).createTeXIcon(TeXConstants.STYLE_DISPLAY, (float) (tamano * s));
         int m = (int) Math.round(MARGEN * s);
         icono.setInsets(new Insets(m, m, m, m));
-        icono.setForeground(Color.BLACK);
+        icono.setForeground(negra ? Color.BLACK : Apariencia.tinta()); // negro; gris claro en el tema oscuro
 
         BufferedImage imagen = new BufferedImage(
                 Math.max(1, icono.getIconWidth()), Math.max(1, icono.getIconHeight()),

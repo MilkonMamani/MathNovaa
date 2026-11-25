@@ -27,8 +27,8 @@ import pe.mathnova.domain.parser.Parser;
 class ContenidoPestanasTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final LimiteService LIMITES = new LimiteService(MOTOR, null);
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final LimiteService LIMITES = new LimiteService(MOTOR);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
 
     private static VistaExploracion.Tarjeta tarjeta(VistaExploracion x, String codigo) {
         return x.tarjetas().stream().filter(t -> t.codigo().equals(codigo)).findFirst()

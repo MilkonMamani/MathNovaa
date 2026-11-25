@@ -62,4 +62,10 @@ public final class PotenciasEnesimas extends MetodoBase {
         List<Factor> factores = List.of(Factor.de(a.aPolinomio().sumar(b.aPolinomio())), Factor.de(cociente));
         return resultado(justificacion, p, factores, trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Son dos términos con el mismo exponente alto: piensa en aⁿ − bⁿ o aⁿ + bⁿ.";
+    }
 }

@@ -12,6 +12,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 
+import pe.mathnova.presentation.latex.Apariencia;
 import pe.mathnova.presentation.latex.ImagenLatex;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 
@@ -55,8 +56,18 @@ public final class FormulaAjustable extends Region {
         this.minimo = minimo;
         getStyleClass().add("formula-ajustable");
         setMinWidth(0);
-        sceneProperty().addListener((obs, antes, ahora) -> requestLayout());
+        sceneProperty().addListener((obs, antes, ahora) -> {
+            imagenes.clear(); // pudo cambiar de contenedor (escalable o no)
+            requestLayout();
+        });
+        Apariencia.version().addListener(new javafx.beans.WeakInvalidationListener(redibujar));
     }
+
+    /** Al cambiar el tamaño de letra o el tema se dibuja otra vez (referencia fuerte para el listener débil). */
+    private final javafx.beans.InvalidationListener redibujar = obs -> {
+        imagenes.clear();
+        requestLayout();
+    };
 
     public void setLatex(String nuevo) {
         latex = nuevo;
@@ -242,8 +253,10 @@ public final class FormulaAjustable extends Region {
 
     private Image imagen(String tex, double tamano) {
         double s = ImagenLatex.escala(this);
-        return imagenes.computeIfAbsent(s + "|" + tamano + "|" + tex,
-                k -> ImagenLatex.de(new RenderizadorLatex((float) tamano), tex, s));
+        // Sprint 9, parte E: dentro de la Pizarra, la hoja o Práctica crece con el tamaño de letra
+        double t = tamano * Apariencia.factor(this);
+        return imagenes.computeIfAbsent(s + "|" + t + "|" + tex,
+                k -> ImagenLatex.de(new RenderizadorLatex((float) t), tex, s));
     }
 
     /** Ancho lógico (en px de la pantalla a 100 %) del renglón al tamaño dado. */

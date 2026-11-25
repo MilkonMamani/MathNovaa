@@ -275,7 +275,7 @@ class PizarraResolucionTest {
     }
 
     @Test
-    void laComprobacionVaFueraDeLaSuperficieYDespliegaLaExpansion() throws Exception {
+    void laComprobacionVaEnLaHojaBlancaYDespliegaLaExpansion() throws Exception {
         enFx(() -> {
             pizarra.mostrar(new PizarraResolucion.Contenido("FACTORIZA", "x^{2}-1", PASOS.subList(0, 1),
                     "\\left(x+1\\right)\\left(x-1\\right)",
@@ -285,13 +285,19 @@ class PizarraResolucionTest {
             acomodar();
             Node seccion = pizarra.comprobacion();
             assertTrue(seVe(seccion));
-            assertEquals(pizarra, seccion.getParent(), "fuera de la superficie de escritura");
-            assertEquals("✓ Coincide con la entrada", pizarra.estadoComprobacion().getText());
-            assertEquals("Ver expansión", pizarra.verDetalle().getText());
+            assertTrue(seccion.getParent().getStyleClass().contains("pizarra-cuerpo"),
+                    "en la misma hoja blanca, debajo del resultado");
+            // Cerrada: solo el título y "Ver comprobación"; ni "Por expansión" ni "Coincide con la entrada".
+            assertEquals("Ver comprobación", pizarra.verDetalle().getText());
             assertFalse(seVe(pizarra.detalleComprobacion()));
+            for (Node mensaje : List.of(pizarra.estadoComprobacion(), pizarra.metodoComprobacion())) {
+                assertTrue(mensaje.getScene() == null || !seVe(mensaje), "sin mensajes con la comprobación cerrada");
+            }
             pizarra.verDetalle().fire();
             acomodar();
             assertTrue(seVe(pizarra.detalleComprobacion()));
+            assertEquals("Ocultar comprobación", pizarra.verDetalle().getText());
+            assertEquals(180, pizarra.verDetalle().getGraphic().getRotate(), 0.01, "chevrón hacia arriba");
             assertFalse(pizarra.detalleComprobacion().lookupAll(".formula-ajustable").isEmpty(),
                     "las igualdades con tipografía matemática");
         });

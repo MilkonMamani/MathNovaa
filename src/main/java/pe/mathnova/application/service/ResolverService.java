@@ -50,6 +50,7 @@ import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
+import pe.mathnova.domain.sugerencias.Sugerencia;
 
 /**
  * El botón "Resolver" (antes "Factorizar") y el resumen del resultado en una línea: decide qué hacer con
@@ -193,15 +194,25 @@ public class ResolverService {
     private final pe.mathnova.domain.calculo.extremos.MotorExtremos extremos;
     private final pe.mathnova.domain.calculo.multiples.MotorIntegralesMultiples multiples;
 
-    /** Sin historial de límites (pruebas). */
+    /** HU14: donde se guarda cada resolución que termina bien; null en las pruebas sin base. */
+    private final HistorialService historial;
+
+    /** Sin historial (pruebas). */
     public ResolverService(FactorizacionService factorizacion, OrquestadorFactorizacion motor,
                            ResolvedorEcuaciones ecuaciones) {
-        this(factorizacion, motor, ecuaciones, new LimiteService(motor, null));
+        this(factorizacion, motor, ecuaciones, new LimiteService(motor));
+    }
+
+    /** Sin historial (pruebas). */
+    public ResolverService(FactorizacionService factorizacion, OrquestadorFactorizacion motor,
+                           ResolvedorEcuaciones ecuaciones, LimiteService limites) {
+        this(factorizacion, motor, ecuaciones, limites, null);
     }
 
     @Autowired
     public ResolverService(FactorizacionService factorizacion, OrquestadorFactorizacion motor,
-                           ResolvedorEcuaciones ecuaciones, LimiteService limites) {
+                           ResolvedorEcuaciones ecuaciones, LimiteService limites, HistorialService historial) {
+        this.historial = historial;
         this.factorizacion = factorizacion;
         this.motor = motor;
         this.ecuaciones = ecuaciones;
@@ -210,6 +221,71 @@ public class ResolverService {
         this.integrales = new MotorIntegrales(motor);
         this.extremos = new pe.mathnova.domain.calculo.extremos.MotorExtremos(motor);
         this.multiples = new pe.mathnova.domain.calculo.multiples.MotorIntegralesMultiples(motor);
+    }
+
+    // ------------------------------------------------------------------ historial (Sprint 9, HU14)
+
+    /**
+     * RN24: guarda lo que se acaba de resolver con éxito, en una sola transacción. Solo se llama cuando el
+     * cálculo terminó sin error; una resolución que no llegó a un resultado (un límite sin calcular, una
+     * integral que ningún método resolvió) no se guarda.
+     *
+     * @param resolucion el objeto del dominio (Resolucion, ResolucionLimite…)
+     * @param forzado    el método con que se empezó, o null
+     * @return el id de la resolución guardada; vacío si no se guardó nada o no hay historial
+     */
+    public Optional<Integer> guardar(String texto, Object resolucion, String forzado, List<Sugerencia> sugerencias) {
+        if (historial == null || resolucion == null) {
+            return Optional.empty();
+        }
+        return historial.guardar(new HistorialService.Guardado(texto, resolucion, forzado, sugerencias));
+    }
+
+    /**
+     * Resuelve sin pantalla y guarda: lo usa el Historial para recalcular una resolución de otra versión del
+     * motor (RNF19). Si el cálculo falla, no se guarda nada.
+     *
+     * @throws RuntimeException el error del cálculo (sintaxis, método que no aplica…)
+     */
+    public Optional<Integer> resolverYGuardar(String texto, Campo campo, String forzado) {
+        Object r = resolver(texto, campo, forzado);
+        return guardar(texto, r, forzado, sugerencias(r));
+    }
+
+    /**
+     * Resuelve sin pantalla y sin guardar: el objeto del dominio (Resolucion, ResolucionLimite…). Lo usan el
+     * Historial (RNF19) y el PDF (Sprint 9, parte C), que necesita la resolución para su comprobación.
+     *
+     * @throws RuntimeException el error del cálculo (sintaxis, método que no aplica…)
+     */
+    public Object resolver(String texto, Campo campo, String forzado) {
+        Consumer<FaseFactorizacion> nada = f -> { };
+        Plan plan = decidir(texto);
+        return switch (plan) {
+            case Plan.Factorizar f -> factorizacion.factorizar(texto, forzado, campo == null ? Campo.Q : campo, nada);
+            case Plan.FactorizarFunciones f -> factorizacion.factorizarFunciones(texto, nada);
+            case Plan.Simplificar s -> factorizacion.simplificar(texto, nada);
+            case Plan.ResolverEcuacion e -> resolverEcuacion(texto, forzado, nada);
+            case Plan.CalcularLimite l -> resolverLimite(texto, forzado, nada);
+            case Plan.Derivar d -> resolverDerivada(texto, forzado, nada);
+            case Plan.Integrar i -> resolverIntegral(texto, forzado, nada);
+            case Plan.Parciales p -> resolverParciales(texto, nada);
+            case Plan.LimiteDoble l -> resolverLimiteDoble(texto, nada);
+            case Plan.Extremos x -> resolverExtremos(texto, nada);
+            case Plan.IntegralMultiple m -> resolverIntegralMultiple(texto, forzado, nada);
+            default -> throw new IllegalArgumentException("No se puede resolver: " + texto);
+        };
+    }
+
+    /** Las sugerencias (HU10) que se guardan con una resolución. */
+    public List<Sugerencia> sugerencias(Object r) {
+        return switch (r) {
+            case Resolucion x -> factorizacion.sugerencias(x);
+            case pe.mathnova.domain.factorizacion.Simplificacion x -> factorizacion.sugerencias(x);
+            case ResolucionFunciones x -> factorizacion.sugerencias(x);
+            case ResolucionParcial x -> pe.mathnova.domain.sugerencias.MotorSugerencias.paraVariasVariables(x.funcion());
+            default -> List.of();
+        };
     }
 
     // ------------------------------------------------------------------ Sprint 8

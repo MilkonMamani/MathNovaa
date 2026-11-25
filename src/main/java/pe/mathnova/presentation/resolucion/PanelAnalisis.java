@@ -159,6 +159,115 @@ public final class PanelAnalisis {
         return caja;
     }
 
+    // ------------------------------------------------------------------ rediseño: una sola tabla compacta
+
+    /**
+     * La factorización de un polinomio: las propiedades, la frase de las raíces repetidas y, si se puede
+     * resolver sobre la recta real, el "Conjunto solución" con su selector (f(x) &gt; 0 al empezar), la recta y
+     * "C.S. = …". Cambiar la condición solo cambia la recta y el conjunto.
+     */
+    public static void factorizacion(TablaAnalisis t, AnalisisFactorizacion a) {
+        for (AnalisisFactorizacion.Fila f : a.filas()) {
+            if (f.latex() != null) {
+                t.formula(f.nombre(), f.latex());
+            } else {
+                t.frase(f.nombre(), f.texto());
+            }
+            if (AnalisisFactorizacion.RAICES.equals(f.nombre()) && a.notaRaices() != null) {
+                t.nota(a.notaRaices());
+            }
+        }
+        if (a.notaRaices() != null && a.filas().stream().noneMatch(f -> AnalisisFactorizacion.RAICES.equals(f.nombre()))) {
+            t.nota(a.notaRaices());
+        }
+        a.recta().ifPresent(recta -> {
+            t.seccion("Conjunto solución");
+            RectaSolucion dibujo = new RectaSolucion(recta);
+            FormulaAjustable cs = TablaAnalisis.formula(null);
+            cs.getStyleClass().add("conjunto-solucion");
+            javafx.scene.layout.FlowPane selector = new javafx.scene.layout.FlowPane(4, 4);
+            selector.getStyleClass().add("selector-condicion");
+            javafx.scene.control.ToggleGroup grupo = new javafx.scene.control.ToggleGroup();
+            for (AnalisisFactorizacion.Condicion c : AnalisisFactorizacion.Condicion.values()) {
+                javafx.scene.control.ToggleButton b = new javafx.scene.control.ToggleButton(c.texto());
+                b.getStyleClass().add("condicion");
+                b.setUserData(c);
+                b.setToggleGroup(grupo);
+                selector.getChildren().add(b);
+            }
+            grupo.selectedToggleProperty().addListener((obs, antes, ahora) -> {
+                if (ahora == null) {
+                    // Siempre hay una condición elegida
+                    grupo.selectToggle(antes);
+                    return;
+                }
+                AnalisisFactorizacion.Condicion c = (AnalisisFactorizacion.Condicion) ahora.getUserData();
+                dibujo.mostrar(c);
+                cs.setLatex(a.conjuntoSolucion(c));
+            });
+            grupo.selectToggle(grupo.getToggles().getFirst());
+            t.bloque(selector).bloque(dibujo).bloque(cs);
+        });
+    }
+
+    /** La tabla de valores de un límite, como sección de la tabla. */
+    public static void tabla(TablaAnalisis t, TablaLimite tabla) {
+        VBox caja = (VBox) tabla(tabla);
+        caja.getChildren().removeFirst();
+        t.seccion("Tabla de valores").bloque(caja);
+    }
+
+    /** Una sección de derivadas, integrales y demás: filas con fórmulas y, si hay, la recta de signos. */
+    public static void seccion(TablaAnalisis t, SeccionAnalisis s) {
+        t.seccion(s.titulo());
+        for (VistaPropiedades.Fila f : s.filas()) {
+            t.valor(f.nombre(), f.valor());
+        }
+        if (!s.signos().isEmpty()) {
+            t.fila(s.rotuloSignos() == null ? "Signo" : s.rotuloSignos(), new javafx.scene.layout.Region());
+            t.bloque(new PropiedadesFuncion.RectaSignos(s.marcas(), s.signos()));
+        }
+        if (s.aviso() != null) {
+            t.nota(s.aviso());
+        }
+    }
+
+    /** Las propiedades de una ecuación o una fracción (las de siempre, con el formato nuevo). */
+    public static void propiedades(TablaAnalisis t, VistaPropiedades v) {
+        for (VistaPropiedades.Fila f : v.filas()) {
+            t.valor(f.nombre(), f.valor());
+        }
+        if (!v.signos().isEmpty()) {
+            t.fila("Signo de la función", new javafx.scene.layout.Region());
+            t.bloque(new PropiedadesFuncion.RectaSignos(v.marcas(), v.signos()));
+        } else if (v.avisoSignos() != null) {
+            t.nota(v.avisoSignos());
+        }
+    }
+
+    /** RF26: las asíntotas como filas. */
+    public static void asintotas(TablaAnalisis t, Asintotas a) {
+        t.seccion("Asíntotas");
+        boolean alguna = false;
+        if (!a.verticales().isEmpty()) {
+            t.valor("Verticales", String.join(", ", a.textoVerticales()));
+            alguna = true;
+        }
+        if (a.textoHorizontal().isPresent()) {
+            t.valor("Horizontal", a.textoHorizontal().get());
+            alguna = true;
+        }
+        if (a.textoOblicua().isPresent()) {
+            t.valor("Oblicua", a.textoOblicua().get());
+            alguna = true;
+        }
+        if (!alguna) {
+            t.nota("No tiene asíntotas: al simplificar queda un polinomio o el denominador no se anula.");
+        }
+        a.notas().forEach(t::nota);
+        t.nota("En la gráfica van en rojo punteado.");
+    }
+
     private static Label rotulo(String t) {
         Label l = new Label(t);
         l.getStyleClass().add("rotulo");

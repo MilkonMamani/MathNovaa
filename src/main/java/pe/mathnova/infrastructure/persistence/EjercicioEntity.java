@@ -1,6 +1,8 @@
 package pe.mathnova.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -8,6 +10,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,4 +54,10 @@ public class EjercicioEntity {
     @Convert(converter = InstanteConverter.class)
     @Column(name = "creado_en", nullable = false)
     private Instant creadoEn;
+
+    /** Tabla ejercicio_tema: los temas de todas sus resoluciones (factorizar en Q, límite…). */
+    @ManyToMany
+    @JoinTable(name = "ejercicio_tema", joinColumns = @JoinColumn(name = "ejercicio_id"),
+            inverseJoinColumns = @JoinColumn(name = "tema_id"))
+    private Set<TemaEntity> temas = new LinkedHashSet<>();
 }

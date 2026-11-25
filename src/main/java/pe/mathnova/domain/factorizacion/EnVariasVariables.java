@@ -51,4 +51,10 @@ final class EnVariasVariables implements MetodoFactorizacion {
         return new ResultadoMetodo(r.factores(), new Paso(x.orden(), codigo, justificacion, x.antes(), x.despues(),
                 x.trabajo(), x.descartado(), x.motivoDescarte()));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return base.pista();
+    }
 }

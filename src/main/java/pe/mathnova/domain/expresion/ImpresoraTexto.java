@@ -141,10 +141,11 @@ public final class ImpresoraTexto implements Visitante<String> {
             Expresion t = terminos.get(k);
             if (k == 0) {
                 sb.append(t instanceof Suma ? entreParentesis(t) : p(t));
-            } else if (t instanceof Negacion(Expresion arg)) {
-                sb.append(" - ").append(arg instanceof Suma ? entreParentesis(arg) : p(arg));
             } else {
-                sb.append(" + ").append(t instanceof Suma ? entreParentesis(t) : p(t));
+                // Un solo operador por término: x - 3, x - 2x y x + 3, no x + -3, x + -2x ni x - -3 (ver Signos)
+                Signos.Termino signo = Signos.separar(t);
+                Expresion v = signo.valor();
+                sb.append(signo.negativo() ? " - " : " + ").append(v instanceof Suma ? entreParentesis(v) : p(v));
             }
         }
         return sb.toString();
@@ -161,6 +162,12 @@ public final class ImpresoraTexto implements Visitante<String> {
     @Override
     public String visitar(Producto prod) {
         List<Expresion> factores = prod.factores();
+        if (factores.getFirst() instanceof Constante c && c.valor().signo() < 0) {
+            // -2x, no (-2)x; -x, no (-1)x
+            Expresion resto = Signos.sinMenos(prod).orElseThrow();
+            return "-" + (Precedencia.de(resto) < Precedencia.SIGNO || Signos.conMenos(resto)
+                    ? entreParentesis(resto) : p(resto));
+        }
         boolean trascendente = Expresiones.esTrascendente(prod);
         StringBuilder sb = new StringBuilder();
         Expresion anterior = null;

@@ -33,7 +33,7 @@ import pe.mathnova.presentation.resolucion.ContenidoIntegralMultiple;
 class CurvasNivelTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final ResolverService SERVICIO = new ResolverService(new FactorizacionService(MOTOR, null), MOTOR,
+    private static final ResolverService SERVICIO = new ResolverService(new FactorizacionService(MOTOR), MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 
     @BeforeAll

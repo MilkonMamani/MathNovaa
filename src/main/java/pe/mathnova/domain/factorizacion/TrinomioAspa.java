@@ -75,4 +75,10 @@ public final class TrinomioAspa extends MetodoBase {
     private static String conSigno(Racional r) {
         return r.signo() < 0 ? Formato.numero(r) : "+" + r;
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "El coeficiente de x² no es 1: descompón el primero y el último término y cruza los productos para obtener el del medio.";
+    }
 }

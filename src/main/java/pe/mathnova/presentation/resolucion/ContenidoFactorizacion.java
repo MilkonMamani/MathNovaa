@@ -10,19 +10,26 @@ import pe.mathnova.domain.factorizacion.ResolucionFunciones;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 
 /**
- * Factorización de un polinomio o de una expresión con funciones: la gráfica, las propiedades
- * (RF66), los métodos y la comparación Q/R/C, como antes del Sprint 5.
+ * Factorización de un polinomio o de una expresión con funciones: la gráfica, el análisis (propiedades, raíces y
+ * conjunto solución, ver {@link AnalisisFactorizacion}), los métodos y la comparación Q/R/C.
  *
  * <p>Con varias variables (Sprint 7) la gráfica muestra el aviso de siempre, Análisis tiene el grado
  * total, el grado en cada variable y si es homogéneo, y Exploración los métodos M alternativos.
  */
 public record ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica> grafica,
                                      Optional<VistaPropiedades> propiedades, VistaExploracion exploracion,
-                                     Optional<String> comparacion, List<SeccionAnalisis> secciones)
+                                     Optional<String> comparacion, List<SeccionAnalisis> secciones,
+                                     Optional<AnalisisFactorizacion> analisisFactorizacion)
         implements ContenidoPestanas {
 
     public ContenidoFactorizacion {
         secciones = List.copyOf(secciones);
+    }
+
+    public ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica> grafica,
+                                  Optional<VistaPropiedades> propiedades, VistaExploracion exploracion,
+                                  Optional<String> comparacion, List<SeccionAnalisis> secciones) {
+        this(latexSolucion, grafica, propiedades, exploracion, comparacion, secciones, Optional.empty());
     }
 
     public ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica> grafica,
@@ -33,7 +40,7 @@ public record ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica
 
     public static ContenidoFactorizacion de(Resolucion r, VistaResolucion v, String texto, boolean codigos) {
         return new ContenidoFactorizacion(v.latexFormula(), DatosGrafica.de(r), VistaPropiedades.de(r),
-                VistaExploracion.de(r, codigos), Optional.of(texto), grados(r));
+                VistaExploracion.de(r, codigos), Optional.of(texto), grados(r), AnalisisFactorizacion.de(r));
     }
 
     public static ContenidoFactorizacion de(ResolucionFunciones r, VistaResolucion v, String texto, boolean codigos) {

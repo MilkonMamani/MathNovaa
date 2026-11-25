@@ -45,7 +45,7 @@ class ResolverPizarraYEscrituraTest {
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
     /** Cuántas veces se pidió el resumen en una línea (la antigua línea en vivo). */
     private static final AtomicInteger EN_VIVO = new AtomicInteger();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR)) {
         @Override
@@ -271,6 +271,45 @@ class ResolverPizarraYEscrituraTest {
         enFx(() -> {
             assertEquals(ReconocedorSimulado.LATEX, editor.getLatex());
             assertFalse(controlador.panelEscritura().leyendo(), "volver a la pestaña no relee");
+        });
+    }
+
+    @Test
+    void conElDedoLlenaElCampoYResuelve() throws Exception {
+        enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
+        Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
+        // Como en Windows: eventos táctiles más sus eventos de mouse sintetizados.
+        enFx(() -> Fx.trazoTactil(canvas, 1, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60}));
+        enFx(() -> assertFalse(raiz.lookup("#botonResolver").isDisabled(), "Resolver activo con lo escrito con el dedo"));
+        Fx.esperar(() -> ReconocedorSimulado.LATEX.equals(editor.getLatex()), "lo escrito con el dedo no llegó al campo");
+        enFx(() -> ((Button) raiz.lookup("#botonResolver")).fire());
+        Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió lo escrito con el dedo");
+    }
+
+    /** "Comprobación" solo al factorizar; al factorizar, sin sugerencias de cálculo; un límite termina en el resultado. */
+    @Test
+    void laComprobacionSoloApareceAlFactorizarYEmpiezaCerrada() throws Exception {
+        enFx(() -> controlador.resolver("x^2 - 5x + 6"));
+        Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se factorizó");
+        enFx(() -> {
+            Node seccion = raiz.lookup(".pizarra-comprobacion-seccion");
+            assertTrue(seVe(seccion), "una factorización lleva Comprobación");
+            ToggleButton ver = (ToggleButton) raiz.lookup(".pizarra-ver-detalle");
+            assertEquals("Ver comprobación", ver.getText());
+            assertFalse(ver.isSelected());
+            assertFalse(seVe(raiz.lookup("#zonaSugerencias")), "sin sugerencias de derivar, integrar o límite");
+            ver.fire();
+            assertTrue(seVe(raiz.lookup(".pizarra-comprobacion-detalle")));
+        });
+        Node primero = enFx(() -> ((javafx.scene.layout.VBox) raiz.lookup(".pizarra-filas")).getChildren().getFirst());
+        enFx(() -> controlador.resolver("lim(x->2, (x^3 - 3x - 2)/(x - 2))"));
+        Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO
+                && ((javafx.scene.layout.VBox) raiz.lookup(".pizarra-filas")).getChildren().getFirst() != primero,
+                "no se calculó el límite");
+        enFx(() -> {
+            assertFalse(seVe(raiz.lookup(".pizarra-comprobacion-seccion")), "un límite termina en el resultado");
+            assertTrue(raiz.lookupAll(".pizarra-metodo").stream()
+                    .anyMatch(n -> ((javafx.scene.control.Label) n).getText().equals("Sustituir en el límite")));
         });
     }
 }

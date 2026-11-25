@@ -23,6 +23,12 @@ public interface MetodoFactorizacion {
         return true;
     }
 
+    /**
+     * Práctica (Sprint 9, parte D): una frase que orienta hacia este método sin decir su nombre, por ejemplo
+     * "Mira si al juntar los términos de dos en dos aparece algo que se repite".
+     */
+    String pista();
+
     /** Si aplica; si no, el motivo legible ("x² + 4 es una suma, no una diferencia"). */
     Aplicabilidad puedeAplicarse(Polinomio p, Campo c);
 

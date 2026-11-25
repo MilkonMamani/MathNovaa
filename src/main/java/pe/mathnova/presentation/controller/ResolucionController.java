@@ -71,6 +71,7 @@ import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.PanelAnalisis;
 import pe.mathnova.presentation.resolucion.PizarraResolucion;
 import pe.mathnova.presentation.resolucion.PropiedadesFuncion;
+import pe.mathnova.presentation.resolucion.TablaAnalisis;
 import pe.mathnova.presentation.resolucion.VistaExploracion;
 import pe.mathnova.presentation.resolucion.VistaResolucion;
 
@@ -174,7 +175,7 @@ public class ResolucionController {
     private final HBox filaAcciones = new HBox(8);
     private Tooltip ayudaCampo;
     private final RenderizadorLatex latexPasos = new RenderizadorLatex(18f);
-    private final RenderizadorLatex latexLeyenda = new RenderizadorLatex(14f);
+    private final RenderizadorLatex latexLeyenda = new RenderizadorLatex(14f).siempreNegra(); // la gráfica es blanca
     private final PauseTransition espera = new PauseTransition(ESPERA_ERROR);
     private final ToggleGroup grupoPestanas = new ToggleGroup();
     /** Configuración "mostrar_codigos": si se ven F16, F04… junto al nombre del método. */
@@ -351,6 +352,16 @@ public class ResolucionController {
     /** El texto del sinMetodos inicial, del FXML. */
     private String sinMetodosInicial;
     private Object ultimaResolucion;
+    /** Sprint 9, parte C: el PDF; null sin el servicio (pruebas sin base). */
+    private ExportarPdf exportarPdf;
+    /** Lo que está en la Pizarra, para exportarlo; null si no hay resultado. */
+    private EnPizarra enPizarra;
+    /** Dibuja otra vez la gráfica del resultado (para el PDF); null si no tiene. */
+    private java.util.function.Supplier<javafx.scene.Parent> fabricaGrafica;
+
+    /** El texto, el campo y el método del resultado a la vista. */
+    record EnPizarra(String texto, Campo campo, String forzado) {
+    }
 
     public ResolucionController(FactorizacionService factorizacion, ResolverService resolverService,
                                 ConfiguracionService configuracion) {
@@ -398,7 +409,11 @@ public class ResolucionController {
         panelEscritura.pendienteProperty().addListener((obs, antes, ahora) -> pintar());
 
         pizarra = new PizarraResolucion(latexPasos, animador, configuracion.mostrarExplicaciones());
+        if (exportarPdf != null) {
+            pizarra.setOnExportar(this::exportarPdf);
+        }
         pizarra.setOnExplicaciones(configuracion::guardarMostrarExplicaciones);
+        escucharConfiguracion();
         zonaPizarra.getChildren().setAll(pizarra);
 
         espera.setOnFinished(e -> actualizarEntrada());
@@ -434,7 +449,22 @@ public class ResolucionController {
 
     /** Pone el texto (sección 9) en el editor y lo resuelve en automático. */
     public void resolver(String texto) {
-        metodoForzado = null;
+        resolver(texto, null, null);
+    }
+
+    /**
+     * "Abrir en Resolver" del Historial: el texto en el editor, en el campo y con el método con que se
+     * guardó, resuelto en la pizarra.
+     *
+     * @param enCampo Q, R o C; null deja el que está
+     * @param forzado el método con que empieza (HU08), o null en automático
+     */
+    public void resolver(String texto, Campo enCampo, String forzado) {
+        if (enCampo != null && enCampo != campo) {
+            campo = enCampo; // antes de marcar el botón: así su aviso no vuelve a resolver
+            (enCampo == Campo.R ? campoR : enCampo == Campo.C ? campoC : campoQ).setSelected(true);
+        }
+        metodoForzado = forzado;
         try {
             editor.setLatex(ImpresoraLatex.imprimir(Parser.parse(texto)));
         } catch (RuntimeException e) {
@@ -487,7 +517,10 @@ public class ResolucionController {
     private void prepararCampos() {
         Map<ToggleButton, Campo> botones = Map.of(campoQ, Campo.Q, campoR, Campo.R, campoC, Campo.C);
         botones.keySet().forEach(b -> b.setToggleGroup(grupoCampos));
-        campoQ.setSelected(true);
+        // RN27: el campo por defecto de Configuración (Q si no se cambió)
+        Campo inicial = configuracion.campoProperty().get();
+        campo = inicial;
+        (inicial == Campo.R ? campoR : inicial == Campo.C ? campoC : campoQ).setSelected(true);
         ayudaCampo = new Tooltip(CAMPO_NO_IMPORTA);
         grupoCampos.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
@@ -583,6 +616,61 @@ public class ResolucionController {
             return PanelEscritura.revisa(a.mensaje());
         }
         return null;
+    }
+
+    /**
+     * Sprint 9, parte E: lo que cambia en Configuración se aplica aquí sin reiniciar. El campo por defecto
+     * cambia el campo elegido (si hay un resultado, se resuelve otra vez); el modo vale para el próximo resultado;
+     * las explicaciones se prenden o apagan ya; con los códigos, el resultado a la vista se vuelve a dibujar.
+     */
+    private void escucharConfiguracion() {
+        pizarra.setModoInicial(modo(configuracion.modoProperty().get()));
+        configuracion.modoProperty().addListener((obs, antes, ahora) -> pizarra.setModoInicial(modo(ahora)));
+        configuracion.explicacionesProperty().addListener((obs, antes, si) -> pizarra.setExplicaciones(si));
+        configuracion.campoProperty().addListener((obs, antes, c) ->
+                (c == Campo.R ? campoR : c == Campo.C ? campoC : campoQ).setSelected(true));
+        configuracion.codigosProperty().addListener((obs, antes, si) -> {
+            if (pantalla.estado() == EstadoResolucion.RESUELTO) {
+                resolverActual();
+            }
+        });
+    }
+
+    private static pe.mathnova.presentation.resolucion.EstadoPizarra.Modo modo(ConfiguracionService.ModoPizarra m) {
+        return m == ConfiguracionService.ModoPizarra.PASO_A_PASO
+                ? pe.mathnova.presentation.resolucion.EstadoPizarra.Modo.PASO_A_PASO
+                : pe.mathnova.presentation.resolucion.EstadoPizarra.Modo.TODOS;
+    }
+
+    /** Sprint 9, parte C: con el servicio, el botón de descarga de la Pizarra exporta a PDF. */
+    @Autowired(required = false)
+    public void setExportacion(pe.mathnova.application.service.ExportacionPdfService servicio) {
+        exportarPdf = servicio == null ? null : new ExportarPdf(servicio);
+        if (pizarra != null) {
+            pizarra.setOnExportar(exportarPdf == null ? null : this::exportarPdf);
+        }
+    }
+
+    /**
+     * El botón de descarga: el PDF de lo que está en la Pizarra (se arma con lo guardado en el historial) y, si se
+     * pide, la gráfica del resultado.
+     */
+    void exportarPdf() {
+        EnPizarra e = enPizarra;
+        if (exportarPdf == null || e == null) {
+            return;
+        }
+        java.util.function.Supplier<javafx.scene.Parent> fabrica = fabricaGrafica;
+        java.util.List<String> estilos = raiz.getScene() == null ? java.util.List.of()
+                : java.util.List.copyOf(raiz.getScene().getStylesheets());
+        exportarPdf.exportar(pizarra.botonExportar(),
+                hoy -> exportarPdf.servicio().desdeResolver(e.texto(), e.campo(), e.forzado(), hoy),
+                fabrica == null ? null : () -> ExportarPdf.png(fabrica.get(), 900, 540, estilos));
+    }
+
+    /** Para las pruebas. */
+    ExportarPdf exportador() {
+        return exportarPdf;
     }
 
     /** La pausa de "Escribir" antes de reconocer (la pone Spring desde mathnova.escritura.pausa-ms). */
@@ -770,6 +858,8 @@ public class ResolucionController {
         boolean conCodigos = codigos;
         Campo enCampo = campo;
         textoResuelto = null;
+        enPizarra = null;
+        fabricaGrafica = null;
         comparacionPedida = false;
         comparacionActual++;
         llenarComparacion(null);
@@ -785,6 +875,7 @@ public class ResolucionController {
             @Override
             protected Resultado call() {
                 Resultado r = calcular(texto, esteplan, forzado, enCampo, conCodigos, fase -> updateMessage(mensaje(fase)));
+                guardarEnHistorial(texto, r, forzado);
                 return r.conEntrada(latexEntrada(texto), rotulo(esteplan));
             }
 
@@ -797,6 +888,7 @@ public class ResolucionController {
                     pantalla.resultado(version, resultado.vista().etiqueta() == VistaResolucion.Etiqueta.VERIFICADO);
                     mostrarResultado(resultado);
                     textoResuelto = texto;
+                    enPizarra = new EnPizarra(texto, enCampo, forzado);
                     if (vistaExploracion.isVisible()) {
                         pedirComparacion();
                     }
@@ -919,6 +1011,18 @@ public class ResolucionController {
         };
     }
 
+    /**
+     * HU14: lo resuelto se guarda solo, fuera del hilo de la interfaz. Si el cálculo falló no se llega aquí
+     * (RN24); si falla el guardado, la resolución se muestra igual.
+     */
+    private void guardarEnHistorial(String texto, Resultado r, String forzado) {
+        try {
+            resolverService.guardar(texto, r.resolucion(), forzado, r.sugerencias());
+        } catch (RuntimeException e) {
+            LOG.warn("No se pudo guardar {} en el historial", texto, e);
+        }
+    }
+
     /** Si llegó otro ejercicio durante el cálculo, se descarta este resultado y se resuelve el nuevo. */
     private boolean reintentarPendiente() {
         boolean hay = pendiente;
@@ -998,7 +1102,8 @@ public class ResolucionController {
                 resultado.resolucion() instanceof pe.mathnova.domain.factorizacion.Resolucion res
                         ? pe.mathnova.presentation.resolucion.FormaLegible.de(res) : java.util.Optional.empty();
         pizarra.mostrar(new PizarraResolucion.Contenido(resultado.rotulo(), resultado.latexEntrada(),
-                v.pasos(), contenido.latexSolucion(), comprobacion(v, resultado.rotulo(), resultado.resolucion()),
+                pasosPizarra(v, resultado.resolucion()), resultadoPizarra(v, contenido, resultado.resolucion()),
+                esFactorizacion(resultado.rotulo()) ? comprobacion(v, resultado.rotulo(), resultado.resolucion()) : null,
                 legible.map(pe.mathnova.presentation.resolucion.FormaLegible::pie).orElse(List.of())));
         if (v.sinPasos() != null) {
             sinPasos.setText(v.sinPasos());
@@ -1008,24 +1113,41 @@ public class ResolucionController {
         // HU18: la verificación va en la sección "Comprobación", debajo de la Pizarra.
         mostrar(secciones, true);
 
-        // Análisis: la tabla de valores (límites), las propiedades (RF66, también en el panel derecho) y
-        // las asíntotas (RF26).
-        contenido.tabla().ifPresent(t -> analisis.getChildren().add(PanelAnalisis.tabla(t)));
-        contenido.propiedades().ifPresent(pr -> {
-            propiedades.getChildren().setAll(new PropiedadesFuncion(pr));
-            analisis.getChildren().add(new PropiedadesFuncion(pr));
-        });
-        contenido.secciones().forEach(sec -> analisis.getChildren().add(PanelAnalisis.seccion(sec)));
-        contenido.asintotas().ifPresent(a -> analisis.getChildren().add(PanelAnalisis.asintotas(a)));
-        mostrar(panelPropiedades, contenido.propiedades().isPresent());
+        // Análisis: una sola tabla compacta (etiqueta → valor) con la tabla de valores (límites), las
+        // propiedades, el conjunto solución de una factorización, las secciones de derivadas e integrales y las
+        // asíntotas (RF26). Sin conjunto solución calculado no se dibuja nada de esa sección.
+        analisis.getChildren().clear();
+        propiedades.getChildren().clear();
+        TablaAnalisis tablaAnalisis = new TablaAnalisis();
+        contenido.tabla().ifPresent(t -> PanelAnalisis.tabla(tablaAnalisis, t));
+        java.util.Optional<pe.mathnova.presentation.resolucion.AnalisisFactorizacion> deFactorizacion =
+                contenido.analisisFactorizacion();
+        if (deFactorizacion.isPresent()) {
+            PanelAnalisis.factorizacion(tablaAnalisis, deFactorizacion.get());
+        } else {
+            contenido.propiedades().ifPresent(pr -> {
+                propiedades.getChildren().setAll(new PropiedadesFuncion(pr));
+                PanelAnalisis.propiedades(tablaAnalisis, pr);
+            });
+        }
+        contenido.secciones().forEach(sec -> PanelAnalisis.seccion(tablaAnalisis, sec));
+        contenido.asintotas().ifPresent(a -> PanelAnalisis.asintotas(tablaAnalisis, a));
+        if (!tablaAnalisis.vacia()) {
+            analisis.getChildren().add(tablaAnalisis);
+        }
+        // En una factorización las propiedades van solo en Análisis: la Pizarra termina en Resultado y
+        // Comprobación, sin el desplegable ni su espacio. Las demás operaciones lo conservan.
+        boolean desplegable = deFactorizacion.isEmpty() && contenido.propiedades().isPresent();
+        mostrar(panelPropiedades, desplegable);
+        mostrar(secciones, desplegable);
         mostrar(sinAnalisis, analisis.getChildren().isEmpty());
 
         // HU10: sugerencias debajo de los pasos.
         sugerencias.getChildren().clear();
-        for (Sugerencia s : resultado.sugerencias()) {
+        for (Sugerencia s : sugerenciasFinales(resultado)) {
             sugerencias.getChildren().add(tarjetaSugerencia(s));
         }
-        mostrar(zonaSugerencias, !resultado.sugerencias().isEmpty());
+        mostrar(zonaSugerencias, !sugerenciasFinales(resultado).isEmpty());
         if (abrirAnalisis) {
             abrirAnalisis = false;
             pestanaAnalisis.fire();
@@ -1043,8 +1165,14 @@ public class ResolucionController {
         if (nivel != null) {
             grafica = null;
             zonaGrafica.getChildren().setAll(nivel);
+            var datos = contenido.curvasNivel().get();
+            fabricaGrafica = () -> new pe.mathnova.presentation.grafica.CurvasNivel(datos);
         } else if (grafica != null) {
             zonaGrafica.getChildren().setAll(grafica);
+            var datos = contenido.grafica().get();
+            fabricaGrafica = () -> new GraficaFuncion(datos, latexLeyenda);
+        } else {
+            fabricaGrafica = null;
         }
         boolean hayGrafica = grafica != null || nivel != null;
         mostrar(zonaGrafica, hayGrafica);
@@ -1060,11 +1188,66 @@ public class ResolucionController {
         if (v.sinPasos() != null) {
             solucion.add(sinPasos);
         }
-        if (!resultado.sugerencias().isEmpty()) {
+        if (!sugerenciasFinales(resultado).isEmpty()) {
             solucion.add(zonaSugerencias);
         }
         solucion.addAll(pizarra.cierre());
         animador.presentar(pizarra.filasPasos(), pizarra.numeros(), solucion, etiquetaVerificado, () -> {});
+    }
+
+    /**
+     * La operación principal resuelta es factorizar (la eligió el alumno o la reconoció MathNova): solo entonces
+     * la Pizarra lleva "Comprobación". En límites, derivadas e integrales termina en el resultado, aunque uno de
+     * los pasos internos haya sido una factorización.
+     */
+    static boolean esFactorizacion(String rotulo) {
+        return "FACTORIZA".equals(rotulo);
+    }
+
+    /**
+     * Las sugerencias del final. Al factorizar no se sugiere derivar, integrar ni calcular un límite de esa
+     * expresión: la exploración de los métodos de factorización y el selector Q/R/C siguen en su lugar.
+     */
+    private static List<Sugerencia> sugerenciasFinales(Resultado resultado) {
+        return esFactorizacion(resultado.rotulo()) ? List.of() : resultado.sugerencias();
+    }
+
+    /**
+     * Los pasos de la Pizarra. En una derivada termina en la derivada simplificada: los puntos críticos (que
+     * resuelven f'(x) = 0) están en Análisis y en la Gráfica.
+     */
+    static List<pe.mathnova.presentation.resolucion.VistaPaso> pasosPizarra(VistaResolucion v, Object resolucion) {
+        if (resolucion instanceof pe.mathnova.domain.calculo.derivadas.ResolucionDerivada) {
+            return v.pasos().stream()
+                    .filter(p -> !pe.mathnova.domain.calculo.derivadas.MotorDerivadas.PUNTOS_CRITICOS.equals(p.codigo()))
+                    .toList();
+        }
+        return v.pasos();
+    }
+
+    /**
+     * La fórmula del recuadro "Resultado". En un límite, el límite completo con su valor
+     * (lím (x² − 9)/(x − 3) = 6), no "lím f(x) = 6": en la Pizarra no hay una f con nombre.
+     */
+    static String resultadoPizarra(VistaResolucion v, ContenidoPestanas contenido, Object resolucion) {
+        if (resolucion instanceof pe.mathnova.domain.calculo.limites.ResolucionLimite && v.latexFormula() != null) {
+            return v.latexFormula();
+        }
+        // Si se canceló un factor común antes de derivar o integrar, el resultado vale donde la expresión
+        // original está definida: d/dx((x² − 9)/(x − 3)) = 1 (x ≠ 3)
+        List<String> restricciones = switch (resolucion) {
+            case pe.mathnova.domain.calculo.derivadas.ResolucionDerivada d ->
+                    pe.mathnova.domain.calculo.FactorComun.restricciones(d.pasos());
+            case pe.mathnova.domain.calculo.integrales.ResolucionIntegral i when !i.definida() ->
+                    pe.mathnova.domain.calculo.FactorComun.restricciones(i.pasos());
+            case null, default -> List.of();
+        };
+        String latex = contenido.latexSolucion();
+        if (latex == null || restricciones.isEmpty()) {
+            return latex;
+        }
+        return latex + " \\qquad (" + String.join(",\\ ", restricciones).replace("≠", "\\neq").replace("−", "-")
+                + ")";
     }
 
     /** El rótulo de la Pizarra según lo que hace Resolver ("FACTORIZA"); null si no hay uno. */
@@ -1112,6 +1295,12 @@ public class ResolucionController {
     static PizarraResolucion.Comprobacion comprobacion(VistaResolucion v, String rotulo, Object resolucion) {
         if ("FACTORIZA".equals(rotulo) && resolucion instanceof pe.mathnova.domain.factorizacion.Resolucion r) {
             PizarraResolucion.Comprobacion c = comprobacionFactorizacion(v, r);
+            if (c != null) {
+                return c;
+            }
+        }
+        if (resolucion instanceof pe.mathnova.domain.calculo.integrales.ResolucionIntegral ri) {
+            PizarraResolucion.Comprobacion c = comprobacionIntegral(ri);
             if (c != null) {
                 return c;
             }
@@ -1167,6 +1356,83 @@ public class ResolucionController {
                 v.coincide() ? PizarraResolucion.Comprobacion.Estado.COINCIDE
                         : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
                 v.coincide() ? bien : mal);
+    }
+
+    /**
+     * Una integral: la derivación del resultado hasta recuperar el integrando, con los "=" alineados:
+     * d/dx(x² ln(x)/2 − x²/4) = (2x ln(x) + x)/2 − x/2 = x ln(x). Todo sale de la verificación del motor; la
+     * forma simplificada es la misma que usa el motor de derivadas para su resultado.
+     */
+    static PizarraResolucion.Comprobacion comprobacionIntegral(
+            pe.mathnova.domain.calculo.integrales.ResolucionIntegral r) {
+        var ver = r.verificacion();
+        if (ver == null || !r.resuelta()) {
+            return null;
+        }
+        char x = r.variable();
+        List<pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon> cadena = new ArrayList<>();
+        cadena.add(new pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon(
+                "\\frac{d}{d" + x + "}\\left(" + ImpresoraLatex.imprimir(r.antiderivada()) + "\\right)"));
+        String derivada = ImpresoraLatex.imprimir(ver.derivada());
+        cadena.add(new pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon(derivada));
+        String ultimo = derivada;
+        try {
+            // (2x ln(x) + x)/2 − x/2 = 2x ln(x)/2 + x/2 − x/2: cada fracción se reparte sobre su denominador
+            pe.mathnova.domain.expresion.Expresion repartida = repartir(ver.derivada());
+            String r2 = ImpresoraLatex.imprimir(repartida);
+            if (!r2.equals(ultimo)) {
+                cadena.add(new pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon(r2));
+                ultimo = r2;
+            }
+            String simple = ImpresoraLatex.imprimir(
+                    pe.mathnova.domain.calculo.derivadas.FormaFinal.de(repartida, x));
+            if (!simple.equals(ultimo)) {
+                cadena.add(new pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon(simple));
+                ultimo = simple;
+            }
+        } catch (RuntimeException e) {
+            // sin forma simplificada: queda la derivada tal cual
+        }
+        boolean uno = r.coeficiente().equals(pe.mathnova.domain.algebra.Racional.UNO);
+        String integrando = ImpresoraLatex.imprimir(r.integral().cuerpo());
+        if (ver.coincide() && ver.exacta() && uno && !integrando.equals(ultimo)) {
+            cadena.add(new pe.mathnova.presentation.resolucion.CadenaIgualdades.Eslabon(integrando));
+        }
+        boolean ok = ver.coincide();
+        String mensaje = !ok ? "La derivada no coincide con el integrando"
+                : ver.exacta() ? "La derivada coincide con el integrando"
+                : "La derivada coincide con el integrando en cinco puntos";
+        String extra = uno ? null : "Integrando: " + pe.mathnova.domain.expresion.ImpresoraPizarra.imprimir(
+                r.integral().cuerpo()) + " (por " + pe.mathnova.presentation.FormateadorTexto.numero(r.coeficiente()) + ")";
+        return new PizarraResolucion.Comprobacion("Derivando el resultado", "Ver derivación", List.of(),
+                ok ? PizarraResolucion.Comprobacion.Estado.COINCIDE : PizarraResolucion.Comprobacion.Estado.NO_COINCIDE,
+                mensaje, cadena, extra == null ? null : "Comparación", extra == null ? List.of() : List.of(extra));
+    }
+
+    /** Una suma con cada (a + b)/k (k constante) escrita como a/k + b/k, sin simplificar nada más. */
+    static pe.mathnova.domain.expresion.Expresion repartir(pe.mathnova.domain.expresion.Expresion e) {
+        if (!(e instanceof pe.mathnova.domain.expresion.Suma s)) {
+            List<pe.mathnova.domain.expresion.Expresion> t = repartidos(e);
+            return t.size() == 1 ? e : new pe.mathnova.domain.expresion.Suma(t);
+        }
+        List<pe.mathnova.domain.expresion.Expresion> t = new ArrayList<>();
+        s.terminos().forEach(x -> t.addAll(repartidos(x)));
+        return new pe.mathnova.domain.expresion.Suma(t);
+    }
+
+    private static List<pe.mathnova.domain.expresion.Expresion> repartidos(pe.mathnova.domain.expresion.Expresion t) {
+        if (t instanceof pe.mathnova.domain.expresion.Cociente c
+                && c.numerador() instanceof pe.mathnova.domain.expresion.Suma s
+                && pe.mathnova.domain.expresion.Expresiones.variables(c.denominador()).isEmpty()) {
+            return s.terminos().stream().map(u -> (pe.mathnova.domain.expresion.Expresion)
+                    new pe.mathnova.domain.expresion.Cociente(u, c.denominador())).toList();
+        }
+        if (t instanceof pe.mathnova.domain.expresion.Negacion n) {
+            List<pe.mathnova.domain.expresion.Expresion> a = repartidos(n.argumento());
+            return a.size() == 1 ? List.of(t) : a.stream().map(u -> (pe.mathnova.domain.expresion.Expresion)
+                    new pe.mathnova.domain.expresion.Negacion(u)).toList();
+        }
+        return List.of(t);
     }
 
     /** "Coincidencia numérica en 5 puntos": los puntos que de verdad se evaluaron y coincidieron. */

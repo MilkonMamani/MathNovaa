@@ -94,4 +94,10 @@ public final class Ruffini extends MetodoBase {
     static Racional abs(Racional r) {
         return r.signo() < 0 ? r.negar() : r;
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Prueba si algún divisor del término independiente (entre los divisores del coeficiente principal) hace cero el polinomio.";
+    }
 }

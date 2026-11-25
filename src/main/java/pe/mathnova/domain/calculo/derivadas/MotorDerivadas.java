@@ -13,6 +13,7 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.calculo.Anidados;
 import pe.mathnova.domain.calculo.CaminoCalculo;
+import pe.mathnova.domain.calculo.FactorComun;
 import pe.mathnova.domain.calculo.limites.PasoLimite;
 import pe.mathnova.domain.ecuacion.ResolvedorEcuaciones;
 import pe.mathnova.domain.expresion.Cociente;
@@ -53,9 +54,11 @@ public final class MotorDerivadas {
     public static final String COMO_EXPONENCIAL = "EXPO";
 
     private final ResolvedorEcuaciones resolvedor;
+    private final OrquestadorFactorizacion orquestador;
 
     public MotorDerivadas(OrquestadorFactorizacion orquestador) {
         this.resolvedor = new ResolvedorEcuaciones(orquestador);
+        this.orquestador = orquestador;
     }
 
     public ResolucionDerivada resolver(Derivada d) {
@@ -77,6 +80,16 @@ public final class MotorDerivadas {
         Expresion actual = f;
         for (int k = 1; k <= d.orden(); k++) {
             Expresion aDerivar = actual;
+            if (k == 1 && forzado == null) {
+                // Un cociente de polinomios con un factor común se simplifica antes de derivar: d/dx((x² − 9)/(x − 3))
+                // es d/dx(x + 3) para x ≠ 3, sin pasar por la regla del cociente (FactorComun)
+                Optional<FactorComun.Cancelacion> c = orquestador == null ? Optional.empty()
+                        : FactorComun.cancelar(f, orquestador);
+                if (c.isPresent()) {
+                    pasos.add(c.get().paso());
+                    aDerivar = c.get().simplificada();
+                }
+            }
             if (k == 1 && forzado != null) {
                 Optional<Expresion> otra = reescribir(f, forzado, x);
                 if (otra.isPresent()) {

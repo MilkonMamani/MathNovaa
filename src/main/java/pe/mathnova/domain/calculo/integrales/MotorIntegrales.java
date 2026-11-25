@@ -12,6 +12,7 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.calculo.Anidados;
 import pe.mathnova.domain.calculo.CaminoCalculo;
+import pe.mathnova.domain.calculo.FactorComun;
 import pe.mathnova.domain.calculo.FuncionRacional;
 import pe.mathnova.domain.calculo.derivadas.Derivador;
 import pe.mathnova.domain.calculo.derivadas.FormaFinal;
@@ -107,11 +108,23 @@ public final class MotorIntegrales {
         }
         char x = in.variable();
         Expresion f = in.cuerpo();
-        Optional<Integracion> r = integrar(f, x, forzado);
+        // Un cociente de polinomios con un factor común se simplifica antes de integrar: ∫(x² − 9)/(x − 3) dx es
+        // ∫(x + 3) dx en cada intervalo del dominio, sin dividir polinomios (FactorComun). Si el alumno eligió un
+        // método para practicarlo, se respeta.
+        Optional<FactorComun.Cancelacion> cancelacion = forzado != null || orquestador == null ? Optional.empty()
+                : FactorComun.cancelar(f, orquestador);
+        Expresion aIntegrar = cancelacion.map(FactorComun.Cancelacion::simplificada).orElse(f);
+        Optional<Integracion> r = integrar(aIntegrar, x, forzado);
+        if (r.isEmpty() && cancelacion.isPresent()) {
+            cancelacion = Optional.empty();
+            r = integrar(f, x, forzado);
+        }
         if (r.isEmpty()) {
             return new ResolucionIntegral(entrada, in, k, null, null, null, List.of(), null, null, SIN_METODO);
         }
-        List<PasoLimite> pasos = new ArrayList<>(r.get().pasos());
+        List<PasoLimite> pasos = new ArrayList<>();
+        cancelacion.ifPresent(c -> pasos.add(c.paso()));
+        pasos.addAll(r.get().pasos());
         Expresion antiderivada = FormaFinal.ordenar(Simplificador.simplificar(r.get().antiderivada()), x);
         ResolucionIntegral.Verificacion verificacion = verificar(antiderivada, f, x);
         if (!in.esDefinida()) {

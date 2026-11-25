@@ -82,4 +82,10 @@ final class Homogeneo extends MetodoBase {
         return resultado("Todos los términos son de grado " + n + ": es homogéneo, y con t = " + x + "/" + y
                 + " queda un polinomio en una letra", p, factores, trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Todos los términos tienen el mismo grado total: divide entre una potencia de y y trabaja con x/y.";
+    }
 }

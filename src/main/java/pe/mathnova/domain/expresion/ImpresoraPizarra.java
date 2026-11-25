@@ -112,13 +112,10 @@ public final class ImpresoraPizarra implements Visitante<String> {
                 sb.append(x instanceof Suma ? parentesis(p(x)) : p(x));
                 continue;
             }
-            if (x instanceof Negacion(Expresion arg)) {
-                sb.append(" ").append(MENOS).append(" ").append(arg instanceof Suma ? parentesis(p(arg)) : p(arg));
-            } else if (x instanceof Constante c && c.valor().signo() < 0) {
-                sb.append(" ").append(MENOS).append(" ").append(c.valor().negar());
-            } else {
-                sb.append(" + ").append(x instanceof Suma ? parentesis(p(x)) : p(x));
-            }
+            // Un solo operador por término: x − 3, x − 2x y x + 3, no x + −3, x + −2x ni x − −3 (ver Signos)
+            Signos.Termino signo = Signos.separar(x);
+            Expresion v = signo.valor();
+            sb.append(signo.negativo() ? " " + MENOS + " " : " + ").append(v instanceof Suma ? parentesis(p(v)) : p(v));
         }
         return sb.toString();
     }
@@ -126,18 +123,23 @@ public final class ImpresoraPizarra implements Visitante<String> {
     @Override
     public String visitar(Negacion n) {
         Expresion a = n.argumento();
-        boolean envolver = a instanceof Suma || a instanceof Negacion
-                || a instanceof Constante c && c.valor().signo() < 0;
+        // −(x + 1), −(−3), −(−2x): nunca dos signos seguidos
+        boolean envolver = a instanceof Suma || Signos.conMenos(a);
         return MENOS + (envolver ? parentesis(p(a)) : p(a));
     }
 
     @Override
     public String visitar(Producto prod) {
+        if (prod.factores().getFirst() instanceof Constante k && k.valor().signo() < 0) {
+            // −2x, no (−2)x; −x, no (−1)x
+            Expresion resto = Signos.sinMenos(prod).orElseThrow();
+            return MENOS + (resto instanceof Suma || Signos.conMenos(resto) ? parentesis(p(resto)) : p(resto));
+        }
         StringBuilder sb = new StringBuilder();
         Expresion anterior = null;
         for (Expresion f : prod.factores()) {
-            boolean envolver = f instanceof Suma || f instanceof Negacion || f instanceof Cociente
-                    || f instanceof Constante c && (c.valor().signo() < 0 || anterior != null);
+            boolean envolver = f instanceof Suma || f instanceof Cociente || Signos.conMenos(f)
+                    || f instanceof Constante && anterior != null;
             String texto = envolver ? parentesis(p(f)) : p(f);
             if (anterior != null) {
                 boolean pegado = texto.startsWith("(")

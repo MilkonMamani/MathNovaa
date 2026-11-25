@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- "Ejemplos" (Sprint 9, parte B): pestañas de curso arriba; a la izquierda los temas del curso con su
+     cantidad de ejemplos; a la derecha las tarjetas del tema. Las pestañas, los temas y las tarjetas los arma
+     EjemplosController. -->
+<VBox fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pe.mathnova.presentation.controller.EjemplosController"
+      styleClass="pantalla-ejemplos" spacing="18">
+    <padding>
+        <Insets top="28" right="32" bottom="24" left="32"/>
+    </padding>
+
+    <VBox spacing="4">
+        <Label text="Ejemplos" styleClass="titulo-pantalla"/>
+        <Label text="Ejercicios preparados por curso y tema. Ábrelos para ver la solución o para practicarlos tú."
+               styleClass="subtitulo-pantalla" wrapText="true"/>
+    </VBox>
+
+    <HBox fx:id="pestanas" styleClass="pestanas-panel, ejemplos-pestanas" spacing="6" alignment="CENTER_LEFT"/>
+
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <!-- La tarjeta de temas mide lo que su lista; la columna sí llega abajo -->
+        <VBox minWidth="260" prefWidth="260" maxWidth="260">
+            <VBox fx:id="temas" styleClass="tarjeta, ejemplos-temas" VBox.vgrow="NEVER"/>
+        </VBox>
+        <StackPane HBox.hgrow="ALWAYS">
+            <ScrollPane fx:id="desplazamiento" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
+                        styleClass="historial-scroll">
+                <FlowPane fx:id="tarjetas" hgap="16" vgap="16" styleClass="ejemplos-tarjetas"/>
+            </ScrollPane>
+            <Label fx:id="sinEjemplos" text="Este tema todavía no tiene ejemplos." styleClass="historial-vacio"
+                   wrapText="true" visible="false" managed="false"/>
+        </StackPane>
+    </HBox>
+</VBox>

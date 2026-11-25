@@ -56,6 +56,17 @@ public final class TablaRuffini extends VBox {
         return modelo;
     }
 
+    /**
+     * Solo la tabla, sin las fichas de los candidatos: así va dentro del desarrollo de una factorización auxiliar
+     * (el numerador de un límite), donde basta la división que funcionó.
+     */
+    public TablaRuffini sinCandidatos() {
+        Node fichas = getChildren().getFirst();
+        fichas.setVisible(false);
+        fichas.setManaged(false);
+        return this;
+    }
+
     private Node fichas() {
         VBox caja = new VBox(6);
         FlowPane raices = new FlowPane(6, 6);

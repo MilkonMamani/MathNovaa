@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SugerenciasCalculoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService SERVICIO = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 

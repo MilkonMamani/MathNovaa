@@ -57,4 +57,12 @@ public final class SumaODiferenciaDeCubos extends MetodoBase {
                 + " y b = " + Formato.termino(b));
         return resultado(justificacion, p, factores, trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return codigo().equals("F08")
+                ? "Son dos términos sumados y cada uno es el cubo de algo."
+                : "Son dos términos restados y cada uno es el cubo de algo.";
+    }
 }

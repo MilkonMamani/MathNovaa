@@ -113,4 +113,10 @@ public final class CambioDeVariable extends MetodoBase {
         }
         return sb.toString();
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "¿Solo aparecen potencias de x que son múltiplos de una misma potencia? Llámala con otra letra y el polinomio se vuelve más simple.";
+    }
 }

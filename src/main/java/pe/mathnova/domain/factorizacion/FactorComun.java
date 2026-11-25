@@ -97,4 +97,12 @@ public final class FactorComun extends MetodoBase {
                 ? "la menor potencia de " + letras.first() + " es " + Formato.monomio(comun)
                 : "el monomio común es " + Formato.monomio(comun);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return codigo().equals("F02")
+                ? "Mira los denominadores: ¿puedes sacar una fracción que deje todos los coeficientes enteros?"
+                : "Fíjate si todos los términos comparten un número o una letra.";
+    }
 }

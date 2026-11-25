@@ -25,7 +25,7 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 class GuionTraduccionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final ResolverService RESOLVER = new ResolverService(new FactorizacionService(MOTOR, null), MOTOR,
+    private static final ResolverService RESOLVER = new ResolverService(new FactorizacionService(MOTOR), MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 
     static Stream<Arguments> guion() {

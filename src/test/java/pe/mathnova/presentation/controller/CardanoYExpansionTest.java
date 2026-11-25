@@ -39,12 +39,12 @@ import pe.mathnova.presentation.resolucion.VistaDesarrollo;
 
 /**
  * Pruebas de aceptación de la pantalla "Resolver ejercicio": A) el cúbico 3x³ + 8x² − x + 10 en R, con
- * Exploración y el separador; B) "Ver expansión" del grado ocho; C) los encabezados de paso en peso regular.
+ * Exploración y el separador; B) "Ver comprobación" del grado ocho; C) los encabezados de paso en peso regular.
  */
 class CardanoYExpansionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 
@@ -178,7 +178,7 @@ class CardanoYExpansionTest {
         resolver("2x^8 - 12x^6 + 18x^4 - 8x^2");
         enFx(() -> {
             ToggleButton ver = (ToggleButton) raiz.lookup(".pizarra-ver-detalle");
-            assertEquals("Ver expansión", ver.getText());
+            assertEquals("Ver comprobación", ver.getText());
             ver.fire();
         });
         acomodar();
@@ -188,7 +188,7 @@ class CardanoYExpansionTest {
             FormulaAjustable celeste = (FormulaAjustable) raiz.lookup(".pizarra-resultado-formula");
             assertEquals(celeste.getLatex(), c.expresiones().getFirst());
             assertEquals("2x^{8} - 12x^{6} + 18x^{4} - 8x^{2}", c.expresiones().getLast());
-            assertEquals(6, c.expresiones().size());
+            assertEquals(7, c.expresiones().size(), "con el renglón distribuido antes de reducir");
             assertTrue(c.expresiones().stream().noneMatch(l -> l.equals("x^{2} = x^{2}")));
             // Los "=" en la misma columna: cada renglón es "= expresión" (el primero con un "=" invisible).
             List<Double> xs = new ArrayList<>();
@@ -196,7 +196,7 @@ class CardanoYExpansionTest {
                 Node f = ((Parent) fila).getChildrenUnmodifiable().getFirst();
                 xs.add(f.localToScene(0, 0).getX());
             }
-            assertEquals(6, xs.size());
+            assertEquals(7, xs.size());
             xs.forEach(x -> assertEquals(xs.getFirst(), x, 0.5, "las expresiones no empiezan en la misma columna"));
         });
     }

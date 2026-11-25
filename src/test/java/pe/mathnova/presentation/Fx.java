@@ -91,6 +91,44 @@ public final class Fx {
         raton(n, MouseEvent.MOUSE_RELEASED, ultimo[0], ultimo[1]);
     }
 
+    /**
+     * Un trazo con el DEDO sobre {@code n} (coordenadas locales), como lo entrega Windows: cada evento táctil
+     * (TOUCH_PRESSED, TOUCH_MOVED…, TOUCH_RELEASED) va seguido de su evento de mouse "sintetizado"
+     * ({@code isSynthesized() == true}). En el hilo de FX.
+     */
+    public static void trazoTactil(Node n, int dedo, double[]... puntos) {
+        for (int i = 0; i < puntos.length; i++) {
+            boolean primero = i == 0;
+            toque(n, primero ? javafx.scene.input.TouchEvent.TOUCH_PRESSED : javafx.scene.input.TouchEvent.TOUCH_MOVED,
+                    primero ? javafx.scene.input.TouchPoint.State.PRESSED : javafx.scene.input.TouchPoint.State.MOVED,
+                    dedo, puntos[i][0], puntos[i][1]);
+            raton(n, primero ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_DRAGGED, puntos[i][0], puntos[i][1], true);
+        }
+        double[] ultimo = puntos[puntos.length - 1];
+        toque(n, javafx.scene.input.TouchEvent.TOUCH_RELEASED, javafx.scene.input.TouchPoint.State.RELEASED, dedo,
+                ultimo[0], ultimo[1]);
+        raton(n, MouseEvent.MOUSE_RELEASED, ultimo[0], ultimo[1], true);
+    }
+
+    /** Un solo evento táctil del dedo {@code dedo} en (x, y) locales de n. */
+    public static void toque(Node n, javafx.event.EventType<javafx.scene.input.TouchEvent> tipo,
+                             javafx.scene.input.TouchPoint.State estado, int dedo, double x, double y) {
+        Point2D escena = n.localToScene(x, y);
+        var punto = new javafx.scene.input.TouchPoint(dedo, estado, escena.getX(), escena.getY(), escena.getX(),
+                escena.getY(), n, null);
+        Event.fireEvent(n, new javafx.scene.input.TouchEvent(tipo, punto, java.util.List.of(punto), dedo,
+                false, false, false, false));
+    }
+
+    /** Un evento de mouse; {@code sintetizado} = lo generó Windows a partir de un toque. */
+    public static void raton(Node n, javafx.event.EventType<MouseEvent> tipo, double x, double y, boolean sintetizado) {
+        Point2D escena = n.localToScene(x, y);
+        boolean apretado = tipo != MouseEvent.MOUSE_RELEASED;
+        Event.fireEvent(n, new MouseEvent(tipo, escena.getX(), escena.getY(), escena.getX(), escena.getY(),
+                MouseButton.PRIMARY, 1, false, false, false, false, apretado, false, false, sintetizado, false, false,
+                null));
+    }
+
     private static void raton(Node n, javafx.event.EventType<MouseEvent> tipo, double x, double y) {
         Point2D escena = n.localToScene(x, y);
         boolean apretado = tipo != MouseEvent.MOUSE_RELEASED;

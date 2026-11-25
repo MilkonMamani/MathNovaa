@@ -84,4 +84,10 @@ public final class QuitaYPon extends MetodoBase {
                 "= " + Formato.parentesis(base.sumar(kx)) + Formato.parentesis(base.restar(kx))));
         return resultado(justificacion, p, factores, trabajo);
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Le falta poco para ser un cuadrado perfecto: suma y resta el mismo término para completarlo.";
+    }
 }

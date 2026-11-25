@@ -12,7 +12,9 @@ import javafx.stage.Stage;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.controller.ConfiguracionController;
+import pe.mathnova.presentation.controller.HistorialController;
 import pe.mathnova.presentation.controller.PrincipalController;
 import pe.mathnova.presentation.controller.ResolucionController;
 
@@ -32,6 +34,11 @@ public class Navegador {
     private ResolucionController resolucionControlador;
     private Parent configuracion;
     private ConfiguracionController configuracionControlador;
+    private Parent historial;
+    private HistorialController historialControlador;
+    private Parent ejemplos;
+    private Parent practica;
+    private pe.mathnova.presentation.controller.PracticaController practicaControlador;
 
     public Navegador(ApplicationContext contexto) {
         this.contexto = contexto;
@@ -49,7 +56,41 @@ public class Navegador {
         stage.setMinWidth(860);
         stage.setMinHeight(600);
         stage.setScene(escena);
+        aplicarApariencia(escena.getRoot());
         autoprueba();
+    }
+
+    /**
+     * Sprint 9, parte E: el tema y el tamaño de letra de Configuración, en toda la app y sin reiniciar. El tema es
+     * una clase en la raíz (los colores del CSS); el tamaño, una clase para los textos y la escala de las fórmulas.
+     */
+    public static void aplicarApariencia(javafx.scene.Parent raiz, pe.mathnova.application.service.ConfiguracionService c) {
+        Runnable tema = () -> {
+            boolean oscuro = c.temaProperty().get() == pe.mathnova.application.service.ConfiguracionService.Tema.OSCURO;
+            raiz.getStyleClass().remove("tema-oscuro");
+            if (oscuro) {
+                raiz.getStyleClass().add("tema-oscuro");
+            }
+            pe.mathnova.presentation.latex.Apariencia.oscuro().set(oscuro);
+        };
+        Runnable letra = () -> {
+            var t = c.letraProperty().get();
+            raiz.getStyleClass().removeAll("letra-grande", "letra-muy-grande");
+            switch (t) {
+                case GRANDE -> raiz.getStyleClass().add("letra-grande");
+                case MUY_GRANDE -> raiz.getStyleClass().add("letra-muy-grande");
+                default -> { }
+            }
+            pe.mathnova.presentation.latex.Apariencia.escala().set(t.factor());
+        };
+        tema.run();
+        letra.run();
+        c.temaProperty().addListener((obs, antes, ahora) -> tema.run());
+        c.letraProperty().addListener((obs, antes, ahora) -> letra.run());
+    }
+
+    private void aplicarApariencia(javafx.scene.Parent raiz) {
+        aplicarApariencia(raiz, contexto.getBean(pe.mathnova.application.service.ConfiguracionService.class));
     }
 
     /** {@code --mathnova.autoprueba=<muestra.json | carpeta>}: comprueba la instalación (ver AutoPrueba). */
@@ -87,6 +128,81 @@ public class Navegador {
         }
         principal.mostrar(configuracion);
         principal.seleccionar("Configuración");
+    }
+
+    /** "Historial" en la barra lateral (HU15): se recarga cada vez, con lo último que se resolvió. */
+    public void mostrarHistorial() {
+        if (historial == null) {
+            FXMLLoader loader = cargar("/fxml/historial.fxml");
+            historial = loader.getRoot();
+            historialControlador = loader.getController();
+        } else {
+            historialControlador.recargar();
+        }
+        principal.mostrar(historial);
+        principal.seleccionar("Historial");
+    }
+
+    /**
+     * "Ejemplos" en la barra lateral (Sprint 9, parte B). Los ejemplos son un catálogo fijo: la pantalla se arma
+     * una vez y conserva el curso y el tema elegidos.
+     */
+    public void mostrarEjemplos() {
+        if (ejemplos == null) {
+            ejemplos = cargar("/fxml/ejemplos.fxml").getRoot();
+        }
+        principal.mostrar(ejemplos);
+        principal.seleccionar("Ejemplos");
+    }
+
+    /**
+     * "Práctica" en la barra lateral (Sprint 9, parte D). Se arma una vez: si había un ejercicio a medias, sigue
+     * ahí.
+     */
+    public void mostrarPractica() {
+        pantallaPractica();
+        principal.mostrar(practica);
+        principal.seleccionar("Práctica");
+    }
+
+    /** Si "Practicar" puede abrir este ejercicio: una factorización en Q o un límite. */
+    public boolean sePuedePracticar(String texto, Campo campo) {
+        if (contexto == null) {
+            return false; // pruebas sin Spring
+        }
+        return contexto.getBean(pe.mathnova.application.service.PracticaService.class).sePuedePracticar(texto, campo);
+    }
+
+    /**
+     * "Practicar" de una tarjeta de Ejemplos o de la hoja del Historial: la pantalla Práctica con ese ejercicio ya
+     * iniciado.
+     *
+     * @param campo Q, R o C para una factorización; null si no aplica
+     */
+    public void abrirEnPractica(String texto, Campo campo) {
+        pantallaPractica();
+        principal.mostrar(practica);
+        principal.seleccionar("Práctica");
+        practicaControlador.empezar(texto, campo);
+    }
+
+    private void pantallaPractica() {
+        if (practica == null) {
+            FXMLLoader loader = cargar("/fxml/practica.fxml");
+            practica = loader.getRoot();
+            practicaControlador = loader.getController();
+        }
+    }
+
+    /**
+     * "Abrir en Resolver" de la hoja del Historial y "Resolver" de una tarjeta de Ejemplos: el ejercicio en el
+     * editor, en su campo y con su método, y la pizarra resuelta.
+     */
+    public void abrirEnResolver(String texto, Campo campo, String forzado) {
+        principal.mostrar(pantallaResolucion());
+        principal.seleccionar("Resolver");
+        resolucionControlador.actualizarPreferencias();
+        resolucionControlador.resolver(texto, campo, forzado);
     }
 
     /** Abre la pantalla y resuelve el texto (sección 9) con la animación en cascada. */

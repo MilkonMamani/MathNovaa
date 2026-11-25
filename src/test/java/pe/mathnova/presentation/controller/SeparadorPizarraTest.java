@@ -47,7 +47,7 @@ import pe.mathnova.presentation.editor.EditorMatematico;
 class SeparadorPizarraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR, null);
+    private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
     private static final List<String> PESTANAS = List.of("#pestanaTeclado", "#pestanaEscribir", "#pestanaGrafica",

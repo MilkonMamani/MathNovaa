@@ -230,7 +230,8 @@ public final class PanelEscritura extends VBox {
                     if (fin == null) {
                         mostrarNodo(filaEstado, false);
                     } else {
-                        estado("No se pudo preparar el reconocedor. " + fin, true);
+                        estado(fin.startsWith(pe.mathnova.infrastructure.escritura.ReconocedorUniMERNet.FALTA)
+                                ? fin : "No se pudo preparar el reconocedor. " + fin, true);
                         mostrarNodo(reintentar, true);
                     }
                 }
@@ -371,7 +372,7 @@ public final class PanelEscritura extends VBox {
             resuelta = esta;
             fallo = true;
             marcarPendiente();
-            estado(NO_SE_PUDO, true);
+            estado(NO_SE_PUDO + detalle(tarea.getException()), true);
             mostrarNodo(reintentar, true);
             fallaron();
         });
@@ -405,6 +406,17 @@ public final class PanelEscritura extends VBox {
         alLeer.clear();
         alFallar.clear();
         listos.forEach(Runnable::run);
+    }
+
+    /** El motivo, si dice algo útil para el estudiante (por ejemplo, que falta el reconocedor). */
+    static String detalle(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String m = t.getMessage();
+            if (m != null && m.startsWith(pe.mathnova.infrastructure.escritura.ReconocedorUniMERNet.FALTA)) {
+                return " " + m;
+            }
+        }
+        return "";
     }
 
     private void fallaron() {

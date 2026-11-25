@@ -283,4 +283,10 @@ public final class AgrupacionDeTerminos extends MetodoBase {
                 Formato.polinomio(p) + " = " + diferencia));
         return Optional.of(resultado(justificacion, p, factores, trabajo));
     }
+
+    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
+    @Override
+    public String pista() {
+        return "Mira si al juntar los términos de dos en dos aparece algo que se repite.";
+    }
 }

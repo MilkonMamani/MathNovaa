@@ -20,6 +20,9 @@
         <java.version>21</java.version>
         <javafx.version>21.0.5</javafx.version>
         <archunit.version>1.3.0</archunit.version>
+        <!-- Sprint 9, parte C: PDF con fórmulas en vectores (versiones de Maven Central al 24/11/2026) -->
+        <pdfbox.version>3.0.8</pdfbox.version>
+        <pdfbox-graphics2d.version>3.0.5</pdfbox-graphics2d.version>
     </properties>
 
     <dependencies>
@@ -73,6 +76,19 @@
             <groupId>org.scilab.forge</groupId>
             <artifactId>jlatexmath</artifactId>
             <version>1.0.7</version>
+        </dependency>
+
+        <!-- Exportar a PDF (Sprint 9, parte C): PDFBox escribe el documento y pdfbox-graphics2d convierte en
+             trazos vectoriales lo que jlatexmath dibuja con Graphics2D; graphics2d 3.0.x va con PDFBox 3.0.x -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.rototor.pdfbox</groupId>
+            <artifactId>graphics2d</artifactId>
+            <version>${pdfbox-graphics2d.version}</version>
         </dependency>
 
         <!-- Lombok: solo entidades y DTO -->
