@@ -6,23 +6,14 @@ import java.util.Optional;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Raíces de xⁿ = c con la fórmula de De Moivre: x_k = ⁿ√|c|·(cos θ_k + i·sen θ_k), con
- * θ_k = (θ + 2kπ)/n y θ = 0 si c > 0, π si c < 0. Los cosenos y senos se dan exactos cuando el
- * ángulo es múltiplo de 15° (π/12); si no, no hay forma exacta en esta representación.
- */
 public final class DeMoivre {
 
-    /**
-     * @param angulo θ_k en unidades de π (θ_k = angulo·π)
-     */
     public record Raiz(int k, Racional angulo, NumeroAlgebraico valor) {
     }
 
     private DeMoivre() {
     }
 
-    /** Las n raíces en orden de k; vacío si algún ángulo no es múltiplo de π/12. */
     public static Optional<List<Raiz>> raices(int n, Racional c) {
         if (c.esCero() || n < 1) {
             return Optional.empty();
@@ -43,7 +34,6 @@ public final class DeMoivre {
         return Optional.of(r);
     }
 
-    /** cos(a·π) exacto si a es múltiplo de 1/12. */
     public static Optional<NumeroAlgebraico> coseno(Racional a) {
         Racional doce = a.multiplicar(Racional.de(12));
         if (!doce.esEntero()) {
@@ -51,11 +41,11 @@ public final class DeMoivre {
         }
         int m = Math.floorMod(doce.num().intValue(), 24);
         if (m > 12) {
-            m = 24 - m; // cos(−x) = cos x
+            m = 24 - m;
         }
         boolean negativo = m > 6;
         if (negativo) {
-            m = 12 - m; // cos(π − x) = −cos x
+            m = 12 - m;
         }
         NumeroAlgebraico v = switch (m) {
             case 0 -> NumeroAlgebraico.UNO;
@@ -69,7 +59,6 @@ public final class DeMoivre {
         return Optional.of(negativo ? v.negar() : v);
     }
 
-    /** "π/3", "π", "5π/4", "0". */
     public static String angulo(Racional a) {
         if (a.esCero()) {
             return "0";

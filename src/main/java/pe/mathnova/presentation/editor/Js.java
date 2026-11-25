@@ -1,6 +1,5 @@
 package pe.mathnova.presentation.editor;
 
-/** Cadenas de Java como literales de JavaScript (también sirven como JSON). */
 final class Js {
 
     private Js() {

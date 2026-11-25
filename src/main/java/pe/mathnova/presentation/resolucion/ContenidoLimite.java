@@ -10,17 +10,6 @@ import pe.mathnova.domain.expresion.ImpresoraLatex;
 import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 
-/**
- * Un límite (Sprint 5).
- * <ul>
- *   <li>Gráfica: "lím x→2 f(x) = 4" grande en la tarjeta Solución (las notas dicen la indeterminación y el
- *       método final) y la gráfica de f con la recta x = a punteada, el círculo vacío y las flechas.</li>
- *   <li>Análisis: la tabla de valores por la izquierda y por la derecha, con "→ 4" al final, y debajo
- *       las asíntotas si f es racional.</li>
- *   <li>Exploración: el método usado, los otros caminos que llegan al mismo valor (con su vista previa)
- *       y los que no aplican. Sin comparación Q/R/C.</li>
- * </ul>
- */
 public record ContenidoLimite(String latexSolucion, Optional<DatosGrafica> grafica, Optional<TablaLimite> tabla,
                               Optional<Asintotas> asintotas, VistaExploracion exploracion)
         implements ContenidoPestanas {
@@ -43,7 +32,6 @@ public record ContenidoLimite(String latexSolucion, Optional<DatosGrafica> grafi
                 VistaExploracion.deLimite(servicio.caminos(r), codigos));
     }
 
-    /** "\lim_{x \to 2} f(x) = 4": el cuerpo va en la gráfica y en los pasos. */
     static String latex(ResolucionLimite r) {
         String completo = ImpresoraLatex.imprimir(r.entrada());
         String lim = prefijo(completo);
@@ -51,7 +39,6 @@ public record ContenidoLimite(String latexSolucion, Optional<DatosGrafica> grafi
         return r.resultado() instanceof ResultadoLimite.NoCalculado ? f : f + " = " + r.resultado().latex();
     }
 
-    /** "\lim_{x \to 2}" de "\lim_{x \to 2} \frac{…}{…}", o null si no tiene esa forma. */
     private static String prefijo(String latex) {
         String inicio = "\\lim_{";
         if (!latex.startsWith(inicio)) {

@@ -8,17 +8,12 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F14: cambio de variable u = xⁿ para trinomios con exponentes 2n, n y 0 (x⁴ − 5x² + 4,
- * x⁶ − 7x³ − 8). Se factoriza au² + bu + c en Q y se regresa a x.
- */
 public final class CambioDeVariable extends MetodoBase {
 
     public CambioDeVariable() {
         super("F14");
     }
 
-    /** Solo trinomios de grado par desde 4, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.terminos().size() == 3 && p.grado() >= 4 && p.grado() % 2 == 0;
@@ -67,7 +62,7 @@ public final class CambioDeVariable extends MetodoBase {
             enX.add(new Factor(binomio(x, n, r1), 2));
             enNueva.add(new Factor(binomio(nueva, 1, r1), 2));
         } else {
-            for (Racional r : List.of(r2, r1)) { // de menor a mayor
+            for (Racional r : List.of(r2, r1)) {
                 enX.add(Factor.de(binomio(x, n, r)));
                 enNueva.add(Factor.de(binomio(nueva, 1, r)));
             }
@@ -85,19 +80,16 @@ public final class CambioDeVariable extends MetodoBase {
         return resultado(justificacion, p, enX, trabajo);
     }
 
-    /** a·vᵉ²ᵏ + b·vᵏ + c. */
     private static Polinomio trinomio(char v, int k, Racional a, Racional b, Racional c) {
         return Polinomio.termino(a, Monomio.de(v, 2 * k)).sumar(Polinomio.termino(b, Monomio.de(v, k)))
                 .sumar(Polinomio.constante(c));
     }
 
-    /** (q·vᵏ − p) para la raíz p/q. */
     private static Polinomio binomio(char v, int k, Racional r) {
         return Polinomio.termino(Racional.de(r.den()), Monomio.de(v, k))
                 .sumar(Polinomio.constante(Racional.de(r.num()).negar()));
     }
 
-    /** "(u − 1)(u − 4)", "2(x² − 3)²". */
     static String texto(List<Factor> factores) {
         StringBuilder sb = new StringBuilder();
         for (Factor f : factores) {
@@ -114,7 +106,6 @@ public final class CambioDeVariable extends MetodoBase {
         return sb.toString();
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "¿Solo aparecen potencias de x que son múltiplos de una misma potencia? Llámala con otra letra y el polinomio se vuelve más simple.";

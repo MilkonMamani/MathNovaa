@@ -10,10 +10,6 @@ import javafx.scene.text.TextFlow;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * F14 y F18: tres renglones (sustituir, factorizar en la variable nueva, regresar), con la variable
- * nueva resaltada.
- */
 public final class Sustitucion extends GridPane {
 
     public Sustitucion(TrabajoIntermedio.Sustitucion s) {
@@ -35,7 +31,6 @@ public final class Sustitucion extends GridPane {
         }
     }
 
-    /** Parte el texto en trozos y pone en otra clase cada aparición de la variable nueva. */
     static TextFlow resaltar(String texto, String variable) {
         TextFlow flujo = new TextFlow();
         flujo.getStyleClass().add("pizarra-texto");

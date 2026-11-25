@@ -9,25 +9,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-/**
- * Una cadena de expresiones equivalentes con los "=" uno debajo del otro:
- *
- * <pre>
- *   2x²(x + 2)(x + 1)²(x − 1)²(x − 2)
- * = 2x²(x + 2)(x − 2)[(x + 1)(x − 1)]²
- * = …
- * </pre>
- *
- * La columna del "=" tiene ancho fijo y la de la expresión se reparte en renglones si se angosta, sin mover
- * los "=". Un eslabón puede llevar debajo una nota ("porque r es raíz de P") con su fórmula.
- */
 public final class CadenaIgualdades extends VBox {
 
-    /**
-     * @param latex      la expresión completa
-     * @param nota       por qué vale la igualdad, en español; null si no hace falta
-     * @param notaLatex  la fórmula de la nota ("3r^{3} + 8r^{2} - r = -10"); null si no hay
-     */
     public record Eslabon(String latex, String nota, String notaLatex) {
         public Eslabon(String latex) {
             this(latex, null, null);
@@ -48,8 +31,6 @@ public final class CadenaIgualdades extends VBox {
             if (e.nota() != null) {
                 getChildren().add(nota(e, ancho, maximo, minimo));
             }
-            // El "=" va en la misma fórmula que la expresión (misma línea base); en el primer renglón, un "="
-            // invisible del mismo ancho: así todas las expresiones empiezan en la misma columna.
             FormulaAjustable f = VistaDesarrollo.formula((i == 0 ? "\\phantom{=}\\;" : "=\\;") + e.latex(),
                     maximo, minimo);
             f.setMinWidth(0);
@@ -62,7 +43,6 @@ public final class CadenaIgualdades extends VBox {
         }
     }
 
-    /** La nota va arriba del renglón que justifica, corrida a la derecha del "=". */
     private static VBox nota(Eslabon e, double ancho, double maximo, double minimo) {
         Label texto = new Label(e.nota());
         texto.setWrapText(true);
@@ -78,7 +58,6 @@ public final class CadenaIgualdades extends VBox {
         return caja;
     }
 
-    /** Las expresiones, en orden (pruebas). */
     public List<String> expresiones() {
         return eslabones.stream().map(Eslabon::latex).toList();
     }

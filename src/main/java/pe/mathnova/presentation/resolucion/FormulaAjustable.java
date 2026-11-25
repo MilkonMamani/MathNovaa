@@ -16,23 +16,6 @@ import pe.mathnova.presentation.latex.Apariencia;
 import pe.mathnova.presentation.latex.ImagenLatex;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 
-/**
- * Una fórmula en LaTeX que nunca se corta ni pide barra de desplazamiento:
- *
- * <ol>
- *   <li>se dibuja al tamaño máximo y se reduce (de 2 en 2 px) hasta que quepa a lo ancho;</li>
- *   <li>si al tamaño mínimo tampoco cabe, pasa a dos líneas: arriba la pregunta y abajo "= resultado",
- *       alineadas a la izquierda (ver {@link #partir(String)});</li>
- *   <li>si aun así no cabe, sigue partiendo el renglón más largo (en un "=", un + o − de afuera o entre dos
- *       factores) hasta seis renglones;</li>
- *   <li>como último recurso se dibuja más chica, nunca se amplía ni se reduce un mapa de bits.</li>
- * </ol>
- *
- * Cada renglón se dibuja con los píxeles reales de la pantalla ({@link ImagenLatex#escala}), por eso se ve
- * tan nítida como el editor a 125 % o 150 %.
- *
- * Un nodo "lateral" (la etiqueta Verificado) va a la derecha de la fórmula si hay lugar, y si no, debajo.
- */
 public final class FormulaAjustable extends Region {
 
     private static final double SEPARACION = 16;
@@ -50,20 +33,18 @@ public final class FormulaAjustable extends Region {
     private boolean renglonesPrimero;
     private int maxRenglones = MAX_RENGLONES;
 
-    /** @param maximo y minimo el tamaño de la letra en px (28 y 18 en la tarjeta, 18 y 14 en los pasos) */
     public FormulaAjustable(double maximo, double minimo) {
         this.maximo = maximo;
         this.minimo = minimo;
         getStyleClass().add("formula-ajustable");
         setMinWidth(0);
         sceneProperty().addListener((obs, antes, ahora) -> {
-            imagenes.clear(); // pudo cambiar de contenedor (escalable o no)
+            imagenes.clear();
             requestLayout();
         });
         Apariencia.version().addListener(new javafx.beans.WeakInvalidationListener(redibujar));
     }
 
-    /** Al cambiar el tamaño de letra o el tema se dibuja otra vez (referencia fuerte para el listener débil). */
     private final javafx.beans.InvalidationListener redibujar = obs -> {
         imagenes.clear();
         requestLayout();
@@ -80,23 +61,17 @@ public final class FormulaAjustable extends Region {
         return latex;
     }
 
-    /** false: no se parte en renglones (un bloque ya alineado); si no cabe, se dibuja más chico. */
     public void setPartible(boolean si) {
         partible = si;
         setLatex(latex);
     }
 
-    /**
-     * true (la Pizarra): si no cabe, primero se reparte en renglones al tamaño máximo y solo después se
-     * reduce la letra; así una fórmula larga sigue legible cuando se angosta el panel.
-     */
     public void setRenglonesPrimero(boolean si) {
         renglonesPrimero = si;
         maxRenglones = si ? 10 : MAX_RENGLONES;
         requestLayout();
     }
 
-    /** La etiqueta que va al costado (o debajo, si no cabe al costado). */
     public void setLateral(Node n) {
         if (lateral != null) {
             getChildren().remove(lateral);
@@ -108,34 +83,17 @@ public final class FormulaAjustable extends Region {
         requestLayout();
     }
 
-    /** El ancho de la fórmula en una línea al tamaño máximo (sin márgenes ni etiqueta). */
     public double anchoNatural() {
         return latex == null ? 0 : ancho(latex, maximo);
     }
 
-    /** El ancho de la fórmula en una línea al tamaño mínimo. */
     public double anchoMinimo() {
         return latex == null ? 0 : ancho(latex, minimo);
     }
 
-    // ------------------------------------------------------------------ elección
-
-    /**
-     * Cómo se dibuja en {@code disponible} px.
-     *
-     * @param dosLineas       la fórmula va partida en dos
-     * @param tamano          el tamaño de la letra elegido
-     * @param escala          lo que se encoge la imagen además (1 si cabe al tamaño elegido)
-     * @param lateralAlCostado la etiqueta va a la derecha; si no, debajo
-     */
     public record Disposicion(boolean dosLineas, double tamano, double escala, boolean lateralAlCostado) {
     }
 
-    /**
-     * @param ancho     ancho de la fórmula en una línea al tamaño {@code maximo}
-     * @param anchoDos  ancho de la línea más larga partida en dos, al tamaño {@code maximo}; ≤ 0 si no se puede partir
-     * @param lateral   ancho de la etiqueta (0 si no hay)
-     */
     public static Disposicion elegir(double ancho, double anchoDos, double lateral, double disponible,
                                      double maximo, double minimo) {
         if (disponible <= 0) {
@@ -163,12 +121,6 @@ public final class FormulaAjustable extends Region {
         return new Disposicion(false, minimo, disponible / (ancho * minimo / maximo), false);
     }
 
-    /**
-     * Dónde se parte una fórmula larga: en el primer "=" del nivel de afuera (arriba la pregunta, abajo
-     * "= resultado"). Si a la izquierda del "=" hay muy poco ("x = 2, x = 3"), en la coma del medio; si no
-     * hay "=", en el + o − del nivel de afuera más cerca del medio, o entre dos factores. null si no se
-     * puede partir.
-     */
     public static String[] partir(String latex) {
         if (latex == null) {
             return null;
@@ -202,7 +154,6 @@ public final class FormulaAjustable extends Region {
             }
             return izq.isEmpty() || der.isEmpty() ? null : new String[] {izq, der};
         }
-        // Entre dos factores: …\right)\left(…
         int factor = -1;
         for (int i = latex.indexOf("\\left"); i >= 0; i = latex.indexOf("\\left", i + 1)) {
             if (i > 0 && nivel[i] == 0 && (factor < 0 || Math.abs(i - medio) < Math.abs(factor - medio))) {
@@ -215,11 +166,10 @@ public final class FormulaAjustable extends Region {
         return null;
     }
 
-    /** El nivel de anidamiento en cada posición: llaves y \left…\right. */
     private static int[] niveles(String s) {
         int[] r = new int[s.length()];
         int n = 0;
-        int delimitador = -1; // el "(" de "\left(" ya se contó con el \left
+        int delimitador = -1;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (s.startsWith("\\left", i)) {
@@ -232,7 +182,6 @@ public final class FormulaAjustable extends Region {
                 n--;
                 delimitador = i + 6;
             }
-            // Paréntesis y corchetes sueltos también agrupan: no se parte dentro de "(8 + 3r)".
             boolean suelto = i != delimitador && (i == 0 || s.charAt(i - 1) != '\\');
             if (c == '}' || suelto && (c == ')' || c == ']')) {
                 n--;
@@ -245,21 +194,16 @@ public final class FormulaAjustable extends Region {
         return r;
     }
 
-    // ------------------------------------------------------------------ dibujo
-
-    /** Lo que se dibuja: los renglones, su tamaño de letra y si la etiqueta va al costado. */
     private record Plan(List<String> renglones, double tamano, boolean lateralAlCostado) {
     }
 
     private Image imagen(String tex, double tamano) {
         double s = ImagenLatex.escala(this);
-        // Sprint 9, parte E: dentro de la Pizarra, la hoja o Práctica crece con el tamaño de letra
         double t = tamano * Apariencia.factor(this);
         return imagenes.computeIfAbsent(s + "|" + t + "|" + tex,
                 k -> ImagenLatex.de(new RenderizadorLatex((float) t), tex, s));
     }
 
-    /** Ancho lógico (en px de la pantalla a 100 %) del renglón al tamaño dado. */
     private double ancho(String tex, double tamano) {
         return ImagenLatex.anchoLogico(imagen(tex, tamano), ImagenLatex.escala(this));
     }
@@ -283,7 +227,6 @@ public final class FormulaAjustable extends Region {
         if (d.escala() >= 1) {
             return new Plan(renglones, d.tamano(), d.lateralAlCostado());
         }
-        // Más renglones: se parte el más largo mientras no quepa al tamaño mínimo.
         while (partible && renglones.size() < maxRenglones && masAncho(renglones, minimo) > disponible) {
             int k = indiceMasAncho(renglones, minimo);
             String[] p = partir(renglones.get(k));
@@ -299,16 +242,14 @@ public final class FormulaAjustable extends Region {
                 return new Plan(renglones, s, false);
             }
         }
-        // Último recurso: más chica, dibujada a ese tamaño (no se encoge la imagen).
         double factor = disponible / Math.max(1, masAncho(renglones, minimo));
         return new Plan(renglones, Math.max(6, Math.floor(minimo * factor * 0.98)), false);
     }
 
-    /** Renglones primero: se parte al tamaño máximo; luego se reduce hasta el mínimo; nunca menos de 80 %. */
     private Plan planPorRenglones(double disponible) {
         List<String> renglones = new ArrayList<>(List.of(latex));
         if (disponible <= 1) {
-            return new Plan(renglones, maximo, true); // todavía sin ancho: se mide en una línea
+            return new Plan(renglones, maximo, true);
         }
         while (partible && renglones.size() < maxRenglones && masAncho(renglones, maximo) > disponible) {
             int k = indiceMasAncho(renglones, maximo);
@@ -347,13 +288,11 @@ public final class FormulaAjustable extends Region {
         return k;
     }
 
-    /** La disposición para el ancho actual (pruebas): el tamaño, si va partida y si la etiqueta va al costado. */
     public Disposicion disposicionActual() {
         Plan p = plan(getWidth() - snappedLeftInset() - snappedRightInset());
         return new Disposicion(p.renglones().size() > 1, p.tamano(), 1, p.lateralAlCostado());
     }
 
-    /** Cuántos renglones se ven ahora (pruebas). */
     public int renglones() {
         return (int) vistas.stream().filter(v -> v.getImage() != null).count();
     }
@@ -438,7 +377,6 @@ public final class FormulaAjustable extends Region {
         poner(p);
         double hf = altoFormula(p);
         boolean costado = lateral != null && lateral.isManaged() && p.lateralAlCostado();
-        // Cada renglón empieza en un píxel entero de la pantalla: así la imagen no se remuestrea.
         double yy = snapPositionY(costado ? y + Math.max(0, (h - hf) / 2) : y);
         for (ImageView v : vistas) {
             if (v.getImage() == null) {

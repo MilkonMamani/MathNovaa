@@ -17,12 +17,6 @@ import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Definición de terminado 1 del Sprint 3: todas las filas del grupo Q con método principal F01 a
- * F20, A4 o P01. Las factorizaciones se comparan por estructura (ComparadorFactorizacion); las
- * irreducibles deben quedar certificadas; las fracciones, con el mismo resultado y las mismas
- * restricciones (RN14).
- */
 class BancoSprint3Test {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -62,7 +56,6 @@ class BancoSprint3Test {
         assertEquals(Polinomio.desde(Parser.parse(f.entrada())), leido, () -> f.id() + ": HU18");
     }
 
-    /** "Irreducible en Q: …": sin pasos, el resultado es la entrada y queda certificado. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("irreducibles")
     void certificaLasIrreducibles(BancoCsv.Fila f) {
@@ -75,7 +68,6 @@ class BancoSprint3Test {
                         () -> r.irreducibles().toString()));
     }
 
-    /** "(x + 2)/(x + 3); x ≠ -3, x ≠ 2". */
     @ParameterizedTest(name = "{0}")
     @MethodSource("fracciones")
     void simplificaLasFracciones(BancoCsv.Fila f) {
@@ -96,7 +88,6 @@ class BancoSprint3Test {
                 .collect(Collectors.toSet());
     }
 
-    /** El enunciado del sprint dice 214, pero el CSV tiene 204 filas en el grupo Q (F01–F20, A4, P01). */
     @Test
     void sonDoscientasCuatro() {
         assertEquals(204, filas().size());

@@ -29,10 +29,6 @@ import pe.mathnova.presentation.resolucion.ContenidoIntegral;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Sprint 6, Parte C: la gráfica de una derivada (f′ en naranja, la tangente bajo el cursor) y la de una
- * definida (el área sombreada) se dibujan de verdad. Se dibuja fuera de pantalla, sin abrir la aplicación.
- */
 class GraficaCalculoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -91,7 +87,6 @@ class GraficaCalculoTest {
         int[] naranja = enFx(() -> {
             GraficaFuncion g = dibujar(d);
             int antes = pixeles(g.snapshot(null, null), NARANJA, 0.08);
-            // el cursor sobre f en x = 0 (f(0) = 5): aparece la tangente punteada
             VentanaGrafica v = g.ventana();
             double sx = (0 - v.xMin()) / v.ancho() * g.getWidth();
             double sy = (v.yMax() - 5) / v.alto() * g.getHeight();
@@ -110,7 +105,6 @@ class GraficaCalculoTest {
         DatosGrafica d = ContenidoIntegral.de(r, SERVICIO.caminos(r), false).grafica().orElseThrow();
         int[] colores = enFx(() -> {
             WritableImage img = dibujar(d).snapshot(null, null);
-            // azul claro (f > 0, entre 1 y 2) y rojo claro (f < 0, entre −1 y 1) sobre blanco
             Color azul = Color.color(1 - 0.22 * (1 - 0.15), 1 - 0.22 * (1 - 0.39), 1 - 0.22 * (1 - 0.92));
             Color rojo = Color.color(1 - 0.22 * (1 - 0.86), 1 - 0.22 * (1 - 0.15), 1 - 0.22 * (1 - 0.15));
             return new int[] {pixeles(img, azul, 0.04), pixeles(img, rojo, 0.04)};

@@ -13,7 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Tabla sesion_practica de V1 (Sprint 9, parte D): una práctica de una resolución guardada. */
 @Entity
 @Table(name = "sesion_practica")
 @Getter
@@ -25,7 +24,6 @@ public class SesionPracticaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    /** La resolución del historial que se practica (ON DELETE CASCADE). */
     @Column(name = "resolucion_id", nullable = false)
     private Integer resolucionId;
 
@@ -40,7 +38,6 @@ public class SesionPracticaEntity {
     @Column(name = "total_pasos", nullable = false)
     private Integer totalPasos;
 
-    /** Pasos acertados al primer intento. */
     @Column(name = "aciertos", nullable = false)
     private Integer aciertos = 0;
 }

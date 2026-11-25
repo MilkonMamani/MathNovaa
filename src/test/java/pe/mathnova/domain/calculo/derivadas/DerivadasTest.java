@@ -25,14 +25,12 @@ import pe.mathnova.domain.parser.Parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Sprint 6, Parte A: los ejemplos exactos de derivadas (HU12, HU25, RF27, RF28, RF48). */
 class DerivadasTest {
 
     private static final MotorDerivadas MOTOR = new MotorDerivadas(new OrquestadorFactorizacion());
     private static final MathContext MC = new MathContext(90);
     private static final BigDecimal H = BigDecimal.ONE.movePointLeft(20);
     private static final List<Racional> PUNTOS = List.of(Racional.de(1, 3), Racional.de(13, 11), Racional.de(17, 9));
-    /** Valor de las otras letras (constantes, RN43) en la comprobación numérica. */
     private static final Racional OTRA_LETRA = Racional.de(5, 7);
 
     private static ResolucionDerivada resolver(String texto) {
@@ -57,12 +55,11 @@ class DerivadasTest {
         comprobarConCocienteIncremental(r);
     }
 
-    /** (f(x + h) − f(x − h))/(2h) con h = 10⁻²⁰ en tres puntos, con 90 cifras. */
     private static void comprobarConCocienteIncremental(ResolucionDerivada r) {
         char x = r.variable();
         Expresion f = r.funcion();
         for (int k = 1; k < r.orden(); k++) {
-            f = Derivador.derivar(f, x).derivada(); // en orden n se compara la última derivada
+            f = Derivador.derivar(f, x).derivada();
         }
         for (Racional p : PUNTOS) {
             BigDecimal x0 = new BigDecimal(p.num()).divide(new BigDecimal(p.den()), MC);
@@ -107,7 +104,7 @@ class DerivadasTest {
         PasoLimite cadena = producto.hijos().stream().filter(h -> h.codigo().equals("D06")).findFirst().orElseThrow();
         assertEquals("Regla de la cadena", cadena.titulo());
         assertTrue(((TrabajoIntermedio.Agrupacion) cadena.trabajo()).grupos().contains("u = x²"));
-        assertEquals("D02", cadena.hijos().getFirst().codigo()); // (x²)' dentro de la cadena
+        assertEquals("D02", cadena.hijos().getFirst().codigo());
     }
 
     @Test
@@ -127,7 +124,6 @@ class DerivadasTest {
         assertEquals(List.of("D08", "D08"), r.pasos().stream().map(PasoLimite::codigo).toList());
         List<String> derivar = ((TrabajoIntermedio.Agrupacion) r.pasos().getFirst().trabajo()).grupos();
         assertEquals("2x + 2y·y' = 0", derivar.get(1));
-        // −F_x/F_y con el cociente incremental en (3, 4): −(2·3)/(2·4) = −3/4
         Ecuacion ec = (Ecuacion) r.funcion();
         Expresion f = new pe.mathnova.domain.expresion.Suma(List.of(ec.izquierda(),
                 new pe.mathnova.domain.expresion.Negacion(ec.derecha())));
@@ -170,11 +166,9 @@ class DerivadasTest {
         assertEquals(Racional.de(3), a.criticos().get(1).x());
         assertEquals(AnalisisDerivada.Tipo.MINIMO, a.criticos().get(1).tipo());
         assertEquals(Racional.de(10), a.criticos().get(0).y());
-        // crece, decrece, crece; cóncava hacia abajo y luego hacia arriba, inflexión en x = 1
         assertEquals(List.of(1, -1, 1), a.crecimiento().signos());
         assertEquals(List.of(-1, 1), a.concavidad().signos());
         assertEquals(Racional.UNO, a.inflexiones().getFirst().x());
-        // el paso con la ecuación anidada
         PasoLimite pc = r.pasos().getLast();
         assertEquals(MotorDerivadas.PUNTOS_CRITICOS, pc.codigo());
         assertTrue(pc.hijos().stream().anyMatch(h -> h.titulo().equals("Factorizar")));

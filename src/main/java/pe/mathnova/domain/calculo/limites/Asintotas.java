@@ -15,25 +15,9 @@ import pe.mathnova.domain.factorizacion.Factor;
 import pe.mathnova.domain.factorizacion.Simplificacion;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * RF26: las asíntotas de una función racional, después de cancelar los factores comunes.
- * <ul>
- *   <li>verticales: las raíces reales del denominador simplificado (un factor cancelado deja un
- *       hueco, no una asíntota)</li>
- *   <li>horizontal: si el grado de arriba es menor, y = 0; si son iguales, y = cociente de los
- *       coeficientes principales</li>
- *   <li>oblicua: si el grado de arriba es uno más, el cociente de la división de polinomios</li>
- * </ul>
- *
- * @param verticales de menor a mayor; exactas (√3 si hace falta)
- * @param horizontal la altura de la horizontal, o vacío
- * @param oblicua    la recta oblicua, o vacío
- * @param notas      factores del denominador cuyas raíces no se calcularon exactas
- */
 public record Asintotas(char variable, List<NumeroAlgebraico> verticales, Optional<Racional> horizontal,
                         Optional<Recta> oblicua, List<String> notas) {
 
-    /** y = m·x + b. */
     public record Recta(Racional pendiente, Racional ordenada) {
 
         public String texto(char x) {
@@ -47,7 +31,6 @@ public record Asintotas(char variable, List<NumeroAlgebraico> verticales, Option
         notas = List.copyOf(notas);
     }
 
-    /** "x = 1", "x = -√3"… */
     public List<String> textoVerticales() {
         return verticales.stream().map(v -> variable + " = " + ImpresoraTexto.imprimir(v.aExpresion())).toList();
     }
@@ -64,7 +47,6 @@ public record Asintotas(char variable, List<NumeroAlgebraico> verticales, Option
         return verticales.isEmpty() && horizontal.isEmpty() && oblicua.isEmpty();
     }
 
-    /** Vacío si la fracción no es de una sola letra. */
     public static Optional<Asintotas> de(Simplificacion s) {
         Polinomio arriba = s.arriba().expandir();
         Polinomio abajo = s.abajo().expandir();
@@ -118,7 +100,6 @@ public record Asintotas(char variable, List<NumeroAlgebraico> verticales, Option
         return Optional.of(new Asintotas(x, verticales, horizontal, oblicua, notas));
     }
 
-    /** Los coeficientes del cociente de la división larga de n entre d (c₀, c₁, …). */
     private static Racional[] cociente(Polinomio n, Polinomio d, char x) {
         int gn = n.gradoEn(x);
         int gd = d.gradoEn(x);

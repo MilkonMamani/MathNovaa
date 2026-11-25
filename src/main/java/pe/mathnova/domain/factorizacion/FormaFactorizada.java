@@ -13,11 +13,6 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * constante × factores. {@link #normalizada} la deja en la forma final de RN12: factores
- * primitivos con coeficiente principal positivo, repetidos agrupados como potencia y ordenados
- * (primero las letras solas, luego por grado y, a igual grado, por raíz de menor a mayor).
- */
 public record FormaFactorizada(Racional constante, List<Factor> factores) {
 
     public FormaFactorizada {
@@ -25,7 +20,6 @@ public record FormaFactorizada(Racional constante, List<Factor> factores) {
         factores = List.copyOf(factores);
     }
 
-    /** RN12. Las constantes y los contenidos de los factores pasan a la constante. */
     public static FormaFactorizada normalizada(Racional constante, List<Factor> factores) {
         Racional c = constante;
         Map<Polinomio, Integer> agrupados = new LinkedHashMap<>();
@@ -60,7 +54,6 @@ public record FormaFactorizada(Racional constante, List<Factor> factores) {
             .thenComparing(f -> raiz(f.polinomio()), Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(f -> f.polinomio().toString());
 
-    /** Raíz de un factor ax + b en una sola letra: -b/a. null en otro caso. */
     private static Racional raiz(Polinomio p) {
         if (p.grado() != 1 || p.variables().size() != 1) {
             return null;
@@ -69,7 +62,6 @@ public record FormaFactorizada(Racional constante, List<Factor> factores) {
         return p.constante().negar().dividir(p.coeficiente(Monomio.de(v, 1)));
     }
 
-    /** constante × Π factor^multiplicidad (HU18). */
     public Polinomio expandir() {
         Polinomio r = Polinomio.constante(constante);
         for (Factor f : factores) {
@@ -78,10 +70,6 @@ public record FormaFactorizada(Racional constante, List<Factor> factores) {
         return r;
     }
 
-    /**
-     * Texto en el formato del banco: "2x^2(x^2 - 2)", "(-1/5)(3x - 5)", "-(x + 6)(x - 6)",
-     * "(4x + 9)^2". Se vuelve a leer con el parser.
-     */
     public String aTexto() {
         if (factores.isEmpty()) {
             return constante.toString();
@@ -111,7 +99,6 @@ public record FormaFactorizada(Racional constante, List<Factor> factores) {
         return sb.toString();
     }
 
-    /** Árbol de aTexto(), para dibujarlo con ImpresoraLatex. */
     public Expresion aExpresion() {
         return Parser.parse(aTexto());
     }

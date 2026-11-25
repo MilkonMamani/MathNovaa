@@ -33,11 +33,6 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.TablaAnalisis;
 
-/**
- * La pestaña Análisis rediseñada, desde "Resolver" y en una sola sesión: la factorización con sus propiedades, la
- * frase de raíces repetidas y el conjunto solución con su selector; después un límite, una derivada y una integral,
- * que muestran sus propios datos y nada del conjunto solución anterior.
- */
 class AnalisisEnResolverTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -119,7 +114,6 @@ class AnalisisEnResolverTest {
         return raiz.lookup("#analisis");
     }
 
-    /** Las etiquetas de la tabla y lo que dice cada valor (LaTeX o texto). */
     private List<String> filas() throws Exception {
         return enFx(() -> {
             List<String> r = new ArrayList<>();
@@ -162,7 +156,6 @@ class AnalisisEnResolverTest {
         });
     }
 
-    /** Nada del conjunto solución: ni título, ni selector, ni recta, ni C.S. */
     private void sinConjuntoSolucion(String ejercicio) throws Exception {
         enFx(() -> {
             assertTrue(panel().lookupAll(".selector-condicion").isEmpty(), ejercicio + ": quedó el selector");
@@ -188,13 +181,11 @@ class AnalisisEnResolverTest {
         assertFalse(textos.stream().anyMatch(t -> t.contains("doble") || t.contains("Signo de la función")),
                 textos::toString);
 
-        // f(x) > 0 al empezar, y las cinco condiciones cambian la recta y el C.S. sin tocar la Pizarra
         enFx(() -> {
             List<ToggleButton> bs = panel().lookupAll(".condicion").stream().map(n -> (ToggleButton) n).toList();
             assertEquals(List.of("f(x) > 0", "f(x) ≥ 0", "f(x) < 0", "f(x) ≤ 0", "f(x) = 0"),
                     bs.stream().map(ToggleButton::getText).toList());
             assertTrue(bs.getFirst().isSelected());
-            // Paso a paso, en el paso 2: cambiar la condición no mueve la Pizarra
             Button modo = (Button) raiz.lookup(".pizarra-cabecera").lookupAll(".pizarra-control").stream()
                     .filter(n -> n instanceof Button b && "Paso a paso".equals(b.getText())).findFirst()
                     .orElseThrow();
@@ -216,7 +207,6 @@ class AnalisisEnResolverTest {
         assertTrue(pizarraAntes == enFx(() -> raiz.lookup(".pizarra-paso")), "la Pizarra no se rehízo");
         assertEquals(EstadoResolucion.RESUELTO, enFx(() -> controlador.estado()));
 
-        // La Pizarra de una factorización termina en Resultado y Comprobación: sin "Propiedades de la función"
         enFx(() -> {
             Node desplegable = raiz.lookup("#panelPropiedades");
             assertFalse(seVe(desplegable) && desplegable.isManaged(), "sigue el desplegable de propiedades");
@@ -225,32 +215,27 @@ class AnalisisEnResolverTest {
             assertNotNull(raiz.lookup(".pizarra-comprobacion-titulo"));
         });
 
-        // x² + 1 con f(x) < 0: no hay solución, C.S. = ∅
         resolver("x^2 + 1");
         elegir("f(x) < 0");
         assertEquals("\\text{C.S.} = \\varnothing", conjunto());
 
-        // Límite: la tabla de valores; nada del conjunto solución
         resolver("lim(x->3, (x^2-9)/(x-3))");
         sinConjuntoSolucion("límite");
         List<String> limite = filas();
         assertTrue(limite.contains("Tabla de valores"), limite::toString);
         assertTrue(limite.stream().anyMatch(t -> t.contains("se acercan a 6")), limite::toString);
 
-        // Derivada: crecimiento, puntos críticos
         resolver("d/dx(x^3)");
         sinConjuntoSolucion("derivada");
         List<String> derivada = filas();
         assertTrue(derivada.contains("Crecimiento") && derivada.contains("Crece en"), derivada::toString);
         assertTrue(derivada.stream().anyMatch(t -> t.contains("\\cup")), "el intervalo va como fórmula: " + derivada);
 
-        // Integral: la verificación del motor
         resolver("int(2*x, x)");
         sinConjuntoSolucion("integral");
         List<String> integral = filas();
         assertTrue(integral.contains("Derivada del resultado"), integral::toString);
         assertTrue(integral.contains("x^{2} + C"), integral::toString);
-        // Fuera de la factorización, el panel de la Pizarra no cambia: un límite no tiene propiedades
         enFx(() -> assertFalse(raiz.lookup("#secciones").isManaged()));
     }
 

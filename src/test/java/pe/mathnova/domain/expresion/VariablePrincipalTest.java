@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import pe.mathnova.domain.parser.Parser;
 
-/** RN43 y RN44. */
 class VariablePrincipalTest {
 
     private static List<Character> letras(String texto) {
@@ -20,7 +19,6 @@ class VariablePrincipalTest {
 
     @ParameterizedTest(name = "{0} -> variables [{1}], constantes [{2}]")
     @CsvSource(delimiter = '|', value = {
-            // RN43: la variable es la que indica la operación
             "d/dt(a t^2)                    | t    | a",
             "∫(m x + b, x)                  | x    | b, m",
             "lim(x→2, a x^2)                | x    | a",
@@ -28,7 +26,6 @@ class VariablePrincipalTest {
             "∂2/∂x∂y(a x y)                 | x, y | a",
             "∬(k x y, x, 0, 1, y, 0, a)     | x, y | a, k",
             "d/dθ(r sen θ)                  | θ    | r",
-            // RN44: sin operación se factoriza y todas las letras son variables
             "a^2 - b^2                      | a, b | ''",
             "3ab + 2a                       | a, b | ''",
             "2α + β                         | α, β | ''",

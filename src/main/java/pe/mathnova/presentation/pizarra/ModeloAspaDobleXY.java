@@ -6,15 +6,6 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * Lo que dibuja {@link AspaDoble} (M05). Para x² + 3xy + 2y² + 4x + 5y + 3:
- * <ul>
- *   <li>columnas x | y | independiente: [x, y, 1] y [x, 2y, 3]</li>
- *   <li>extremos: "x² = x·x", "2y² = y·2y" y "3 = 1·3"</li>
- *   <li>aspas: "x·2y + x·y = 3xy ✓", "y·3 + 2y·1 = 5y ✓" y "x·3 + x·1 = 4x ✓"</li>
- *   <li>resultado "(x + y + 1)(x + 2y + 3)"</li>
- * </ul>
- */
 public record ModeloAspaDobleXY(List<String> titulos, List<String> fila1, List<String> fila2, List<String> extremos,
                                 List<String> aspas, String resultado) {
 
@@ -53,7 +44,6 @@ public record ModeloAspaDobleXY(List<String> titulos, List<String> fila1, List<S
         return FormateadorTexto.terminoEnParentesis(c, v, 1);
     }
 
-    /** "x + 2y + 3", "2x − y − 1". */
     static String trinomio(Racional a, char x, Racional c, char y, Racional f) {
         StringBuilder sb = new StringBuilder();
         agregar(sb, a, String.valueOf(x));

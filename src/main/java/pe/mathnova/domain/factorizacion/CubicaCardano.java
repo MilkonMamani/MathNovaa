@@ -11,21 +11,10 @@ import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * Los datos de Cardano (F27) de una cúbica a₃x³ + a₂x² + a₁x + a₀ con coeficientes racionales y Δ &gt; 0
- * (una raíz real y dos complejas conjugadas). Son las mismas cuentas de {@link ExtensionCampo}: la
- * sustitución x = t − h, la reducida t³ + pt + q, el discriminante Δ = (q/2)² + (p/3)³, u, v y la raíz
- * real r = u + v − h.
- *
- * <p>También da, como polinomios en una letra r, lo que queda al dividir entre (x − r): el cociente
- * a₃x² + (a₂ + a₃r)x + (a₃r² + a₂r + a₁), su discriminante y el residuo P(r). Con ellos la presentación
- * puede escribir la factorización con el símbolo r sin perder exactitud.
- */
 public record CubicaCardano(char variable, Racional a3, Racional a2, Racional a1, Racional a0, Racional h,
                             Racional p, Racional q, Racional delta, NumeroAlgebraico u, NumeroAlgebraico v,
                             NumeroAlgebraico raiz) {
 
-    /** La cúbica de una letra con Δ &gt; 0; vacío si no es cúbica, tiene otra letra o Δ ≤ 0. */
     public static Optional<CubicaCardano> de(Polinomio cubica) {
         if (cubica == null || cubica.variables().size() != 1 || cubica.grado() != 3) {
             return Optional.empty();
@@ -58,58 +47,45 @@ public record CubicaCardano(char variable, Racional a3, Racional a2, Racional a1
         }
     }
 
-    /** La cúbica original. */
     public Polinomio polinomio() {
         return enLetra(variable, a3, a2, a1, a0);
     }
 
-    /** a₂ + a₃r: el coeficiente de x en el cociente. */
     public Polinomio coeficienteLineal(char r) {
         return Polinomio.constante(a2).sumar(Polinomio.variable(r).multiplicar(a3));
     }
 
-    /** a₃r² + a₂r + a₁: el término independiente del cociente. */
     public Polinomio coeficienteConstante(char r) {
         return enLetra(r, Racional.CERO, a3, a2, a1);
     }
 
-    /** El cociente a₃x² + (a₂ + a₃r)x + (a₃r² + a₂r + a₁), en x y r. */
     public Polinomio cociente(char r) {
         Polinomio x = Polinomio.variable(variable);
         return x.multiplicar(x).multiplicar(a3).sumar(coeficienteLineal(r).multiplicar(x)).sumar(coeficienteConstante(r));
     }
 
-    /** P(r) = a₃r³ + a₂r² + a₁r + a₀. */
     public Polinomio residuo(char r) {
         return enLetra(r, a3, a2, a1, a0);
     }
 
-    /** a₃r³ + a₂r² + a₁r, la parte de P(r) que vale −a₀ cuando r es raíz. */
     public Polinomio residuoSinConstante(char r) {
         return enLetra(r, a3, a2, a1, Racional.CERO);
     }
 
-    /** El discriminante del cociente: (a₂ + a₃r)² − 4a₃(a₃r² + a₂r + a₁). */
     public Polinomio discriminanteCociente(char r) {
         Polinomio b = coeficienteLineal(r);
         return b.multiplicar(b).restar(coeficienteConstante(r).multiplicar(a3.multiplicar(Racional.de(4))));
     }
 
-    /**
-     * La identidad exacta (x − r)·cociente = P(x) − P(r), hecha con polinomios en x y r. Siempre es
-     * verdadera; se calcula para que la comprobación diga lo que realmente se hizo.
-     */
     public boolean divisionExacta(char r) {
         Polinomio xr = Polinomio.variable(variable).restar(Polinomio.variable(r));
         return xr.multiplicar(cociente(r)).equals(polinomio().restar(residuo(r)));
     }
 
-    /** El valor de la raíz real con {@code mc} cifras. */
     public BigDecimal valor(MathContext mc) {
         return EvaluacionNumerica.evaluar(raiz, mc).re();
     }
 
-    /** |P(r)| con el valor de Cardano evaluado a 40 cifras es menor que 10^−30·max|aₖ|. */
     public boolean raizComprobada() {
         MathContext mc = EvaluacionNumerica.MC;
         ComplejoDecimal r = EvaluacionNumerica.evaluar(raiz, mc);

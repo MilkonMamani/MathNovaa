@@ -23,14 +23,8 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * I01: la tabla de integrales básicas, término a término. Cada término es una constante por una entrada
- * de la tabla (xⁿ, 1/x, eˣ, aˣ, sen x, cos x, sec² x, csc² x, 1/(1 + x²), 1/√(1 − x²)); si alguno no lo es,
- * la integral no es inmediata.
- */
 final class TablaIntegrales {
 
-    /** Una fila de la tabla, con la variable que se use (x o u). */
     enum Fila {
         CONSTANTE("∫k dx = k·x + C"),
         POTENCIA("∫xⁿ dx = xⁿ⁺¹/(n + 1) + C, con n ≠ −1"),
@@ -50,7 +44,6 @@ final class TablaIntegrales {
             this.formula = formula;
         }
 
-        /** La fórmula con la variable v: "∫uⁿ du = uⁿ⁺¹/(n + 1) + C, con n ≠ −1". */
         String formula(char v) {
             if (v == 'x') {
                 return formula;
@@ -65,15 +58,9 @@ final class TablaIntegrales {
         }
     }
 
-    /**
-     * La integral de un término y la fila usada.
-     *
-     * @param integral sin la constante C
-     */
     record Termino(Expresion termino, Expresion integral, Fila fila) {
     }
 
-    /** La integral término a término de f, o vacío si algún término no está en la tabla. */
     static Optional<List<Termino>> integrar(Expresion f, char x) {
         Expresion s = Simplificador.simplificar(f);
         List<Expresion> terminos = s instanceof Suma suma ? suma.terminos() : List.of(s);
@@ -92,7 +79,6 @@ final class TablaIntegrales {
         return Simplificador.suma(terminos.stream().map(Termino::integral).toList());
     }
 
-    /** Las filas usadas, sin repetir y en el orden de la tabla. */
     static List<String> formulas(List<Termino> terminos, char x) {
         Set<Fila> filas = new LinkedHashSet<>();
         for (Fila f : Fila.values()) {
@@ -103,9 +89,6 @@ final class TablaIntegrales {
         return filas.stream().map(f -> f.formula(x)).toList();
     }
 
-    // ------------------------------------------------------------------ un término
-
-    /** coeficiente (sin x) × resto. */
     private record Separado(Expresion coeficiente, Expresion resto) {
     }
 
@@ -217,7 +200,6 @@ final class TablaIntegrales {
         return Optional.empty();
     }
 
-    /** n si g es xⁿ (también 1/xⁿ, √x, 1/√x); null si no. */
     private static Racional exponente(Expresion g, char x) {
         if (esX(g, x)) {
             return Racional.UNO;
@@ -246,7 +228,6 @@ final class TablaIntegrales {
         }
     }
 
-    /** Quita |u| donde u es siempre positivo: ln|x² + 1| queda ln(x² + 1) (RN23). */
     static Expresion sinAbsolutoInnecesario(Expresion e) {
         return switch (e) {
             case Funcion f when f.tipo() == TipoFuncion.ABS && siemprePositivo(f.argumento()) ->
@@ -261,15 +242,10 @@ final class TablaIntegrales {
         };
     }
 
-    /** ln|u|, o ln u si u es siempre positivo (RN23). */
     static Expresion ln(Expresion u) {
         return new Funcion(TipoFuncion.LN, siemprePositivo(u) ? u : new Funcion(TipoFuncion.ABS, u));
     }
 
-    /**
-     * Constantes positivas, eᵘ, y polinomios que no se anulan y son positivos: los de grado 2 con
-     * discriminante negativo y a > 0, o los que solo tienen exponentes pares y coeficientes positivos.
-     */
     static boolean siemprePositivo(Expresion u) {
         if (u instanceof Constante c) {
             return c.valor().signo() > 0;

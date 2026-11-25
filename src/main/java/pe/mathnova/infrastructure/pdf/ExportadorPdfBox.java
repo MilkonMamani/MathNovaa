@@ -25,21 +25,9 @@ import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import pe.mathnova.application.pdf.DocumentoPdf;
 import pe.mathnova.application.pdf.ExportadorPdf;
 
-/**
- * El PDF con PDFBox (Sprint 9, parte C): A4 vertical, en negro con azul.
- *
- * <p>Fórmulas en vectores: jlatexmath dibuja cada LaTeX sobre un {@link PdfBoxGraphics2D}, que convierte los
- * trazos y los glifos de sus fuentes en curvas de un Form XObject; no hay ningún mapa de bits, así que se
- * imprimen nítidas a cualquier tamaño. Cada fórmula es un Form XObject propio, marcado con su papel
- * ({@link #ROL}: enunciado, paso, resultado o comprobación).
- *
- * <p>Páginas: el documento es una lista de bloques que saben su alto. Un bloque que no cabe en lo que queda de
- * la página empieza la siguiente; así un paso (número, título, fórmula y explicación) nunca queda partido.
- */
 @Component
 public class ExportadorPdfBox implements ExportadorPdf {
 
-    /** Clave propia en el diccionario de cada fórmula: qué es. Los lectores de PDF la ignoran. */
     public static final COSName ROL = COSName.getPDFName("MathNovaRol");
 
     static final PDRectangle HOJA = PDRectangle.A4;
@@ -58,7 +46,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
     static final float TAMANO_PASO = 13;
     static final float TAMANO_RESULTADO = 16;
     static final float TAMANO_COMPROBACION = 12;
-    /** Sangría por nivel de un paso anidado. */
     static final float SANGRIA = 18;
 
     @Override
@@ -86,19 +73,14 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    // ================================================================== contenido
-
     private static List<Bloque> bloques(PDDocument pdf, Fuentes f, DocumentoPdf d) throws IOException {
         List<Bloque> r = new ArrayList<>();
-        // Sprint 9, parte E: el tamaño de letra de Configuración (textos y fórmulas; los títulos no cambian)
         float k = (float) d.escalaLetra();
-        // El verbo y el enunciado
         Bloque verbo = new Texto(f, f.negrita(), 10, AZUL, d.verbo().toUpperCase(java.util.Locale.ROOT), 0, 4);
         verbo.conSiguiente = true;
         r.add(verbo);
         r.add(new Formula(pdf, d.enunciadoLatex(), d.enunciadoTexto(), TAMANO_ENUNCIADO * k, "enunciado", 0, 18, f));
 
-        // Los pasos
         if (!d.pasos().isEmpty()) {
             Bloque titulo = new Titulo(f, "Pasos");
             titulo.conSiguiente = true;
@@ -108,7 +90,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             }
         }
 
-        // El resultado en su recuadro
         Bloque rotulo = new Titulo(f, "Resultado");
         rotulo.conSiguiente = true;
         r.add(rotulo);
@@ -118,7 +99,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             r.add(new Texto(f, f.normal(), 10 * k, GRIS, "Restricciones: " + String.join(", ", d.restricciones()), 0, 0));
         }
 
-        // La comprobación
         DocumentoPdf.Comprobacion c = d.comprobacion();
         if (c != null) {
             Bloque titulo = new Titulo(f, "Comprobación");
@@ -136,7 +116,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
                     c.mensaje(), 0, 0));
         }
 
-        // La gráfica, solo si se pidió
         if (d.graficaPng() != null && d.graficaPng().length > 0) {
             Bloque titulo = new Titulo(f, "Gráfica");
             titulo.conSiguiente = true;
@@ -146,9 +125,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         return r;
     }
 
-    // ================================================================== páginas
-
-    /** Pone los bloques de arriba abajo y abre página cuando el siguiente no cabe. */
     private static final class Maquetador {
         private final PDDocument pdf;
         private final Fuentes fuentes;
@@ -172,10 +148,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             return MARGEN_ABAJO;
         }
 
-        /**
-         * Un bloque marcado "con el siguiente" (un título) espera al siguiente: los dos van juntos a la página
-         * que les toque, para que un título no quede solo al pie.
-         */
         void colocar(Bloque b) throws IOException {
             pendientes.add(b);
             if (b.conSiguiente) {
@@ -190,7 +162,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
                 nuevaPagina();
             }
             for (Bloque p : pendientes) {
-                // Un bloque más alto que una página entera (no debería pasar) se dibuja igual, desde arriba.
                 p.dibujar(cs, MARGEN, y);
                 y -= p.alto() + p.despues;
             }
@@ -210,7 +181,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
 
         static final float ALTO_ENCABEZADO = 44;
 
-        /** "MathNova" en azul a la izquierda, la fecha a la derecha y una raya azul. */
         private void encabezado() throws IOException {
             float base = HOJA.getHeight() - MARGEN_ARRIBA - 14;
             fuentes.escribir(cs, fuentes.negrita(), 15, AZUL, "MathNova", MARGEN, base);
@@ -238,7 +208,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             }
         }
 
-        /** "Página 1 de 3" al pie de cada página. */
         void numerarPaginas() throws IOException {
             int total = pdf.getNumberOfPages();
             int i = 0;
@@ -254,22 +223,15 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    // ================================================================== bloques
-
-    /** Algo que se dibuja de una pieza: sabe su alto y no se parte entre páginas. */
     abstract static class Bloque {
-        /** Espacio debajo. */
         float despues;
-        /** Va en la misma página que el bloque que sigue (títulos). */
         boolean conSiguiente;
 
         abstract float alto();
 
-        /** Dibuja con la esquina superior izquierda en (x, arriba). */
         abstract void dibujar(PDPageContentStream cs, float x, float arriba) throws IOException;
     }
 
-    /** "Pasos", "Resultado"… en negrita. */
     private static final class Titulo extends Bloque {
         private final Fuentes f;
         private final String texto;
@@ -291,7 +253,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    /** Un párrafo que se parte en renglones al ancho disponible. */
     private static final class Texto extends Bloque {
         private final org.apache.pdfbox.pdmodel.font.PDFont fuente;
         private final float tamano;
@@ -330,10 +291,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    /**
-     * Una fórmula en vectores: jlatexmath la pinta en un PdfBoxGraphics2D y queda como Form XObject. Si es más
-     * ancha que la hoja, se reduce (es vectorial: no pierde nitidez).
-     */
     static final class Formula extends Bloque {
         private final PDFormXObject forma;
         private final float ancho;
@@ -363,7 +320,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             this.escala = Math.min(1f, Math.min(disponible / w, maxAlto / h));
         }
 
-        /** El LaTeX; si jlatexmath no lo entiende, el texto tal cual. */
         private static TeXIcon icono(String latex, String alterno, float tamano) {
             String l = latex == null || latex.isBlank() ? textoLatex(alterno) : latex;
             TeXIcon icono;
@@ -401,7 +357,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    /** "2.1 → Diferencia de cuadrados", la fórmula y la explicación: siempre en la misma página. */
     private static final class PasoBloque extends Bloque {
         private final Fuentes f;
         private final DocumentoPdf.Paso paso;
@@ -410,7 +365,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         private final Texto explicacion;
         private final List<String> titulo;
 
-        /** El tamaño del título del paso. */
         private final float t;
 
         PasoBloque(PDDocument pdf, Fuentes f, DocumentoPdf.Paso p, float k) throws IOException {
@@ -461,7 +415,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
             }
             if (explicacion != null) {
                 y -= 4;
-                // La línea azul a la izquierda de la explicación, como en la Pizarra.
                 cs.setStrokingColor(AZUL);
                 cs.setLineWidth(1.5f);
                 cs.moveTo(x + sangria, y);
@@ -472,7 +425,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    /** El resultado: borde azul y fondo azul muy claro. */
     private static final class Recuadro extends Bloque {
         private static final float RELLENO = 10;
         private final Formula formula;
@@ -499,7 +451,6 @@ public class ExportadorPdfBox implements ExportadorPdf {
         }
     }
 
-    /** La gráfica, al ancho de la hoja con su proporción. */
     private static final class Imagen extends Bloque {
         private final PDImageXObject imagen;
         private final float ancho;

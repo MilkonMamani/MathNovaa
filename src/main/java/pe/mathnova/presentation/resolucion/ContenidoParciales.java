@@ -11,19 +11,6 @@ import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.expresion.ImpresoraPizarra;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 
-/**
- * Parciales, gradiente, derivada direccional y regla de la cadena (Sprint 7, HU28).
- * <ul>
- *   <li>Gráfica (Sprint 8): con dos variables, las curvas de nivel de f; para el gradiente (o la derivada
- *       direccional) en un punto, una flecha ∇f(P) en ese punto, perpendicular a la curva de nivel que pasa por él.</li>
- *   <li>Análisis: el dominio, la tabla de todas las parciales de primer y segundo orden y la matriz
- *       hessiana ya calculada (la usará el Sprint 8).</li>
- *   <li>Exploración: vacía, con su estado vacío.</li>
- * </ul>
- *
- * @param parciales las parciales y la hessiana de f, o null si no se pudieron calcular
- * @param curvas    las curvas de nivel (Sprint 8), o null si f no tiene exactamente dos variables
- */
 public record ContenidoParciales(String latexSolucion, List<SeccionAnalisis> secciones,
                                  MotorParciales.TablaParciales parciales,
                                  pe.mathnova.presentation.grafica.DatosCurvasNivel curvas) implements ContenidoPestanas {
@@ -47,7 +34,6 @@ public record ContenidoParciales(String latexSolucion, List<SeccionAnalisis> sec
         return Optional.ofNullable(curvas);
     }
 
-    /** Las curvas de nivel de f(x, y) y, si hay un punto, la flecha del gradiente en él. */
     static pe.mathnova.presentation.grafica.DatosCurvasNivel curvas(ResolucionParcial r,
                                                                     MotorParciales.TablaParciales t) {
         if (r.variables().size() != 2 || r.tipo() == ResolucionParcial.Tipo.CADENA) {
@@ -143,7 +129,6 @@ public record ContenidoParciales(String latexSolucion, List<SeccionAnalisis> sec
         return s;
     }
 
-    /** "fx" → "∂f/∂x", "fxy" → "∂²f/∂y∂x" (primero x, luego y). */
     static String nombre(String clave) {
         if (clave.length() == 2) {
             return "∂f/∂" + clave.charAt(1);

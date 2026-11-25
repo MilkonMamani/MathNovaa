@@ -19,14 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import pe.mathnova.application.service.EjemplosService.Ejemplo;
 import pe.mathnova.domain.factorizacion.Campo;
 
-/**
- * Sprint 9, parte B: los ejemplos de la migración V4. RN20: un ejemplo que el motor no resuelve no puede estar
- * en la app, así que aquí se resuelven todos y cada resultado se compara con el esperado de su fila.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class EjemplosTest {
 
-    /** Lo que "Resolver" decide hacer con cada operación de la tabla. */
     private static final Map<String, Set<Class<?>>> PLANES = Map.ofEntries(
             Map.entry("FACTORIZAR", Set.of(ResolverService.Plan.Factorizar.class,
                     ResolverService.Plan.FactorizarFunciones.class)),
@@ -94,7 +89,6 @@ class EjemplosTest {
         Ejemplo criticos = ejemplos.todos().stream().filter(e -> e.operacion().equals("PUNTOS_CRITICOS"))
                 .findFirst().orElseThrow();
         assertTrue(criticos.latex().startsWith("f(x) = "), criticos.latex());
-        // Ninguna fórmula cae al texto plano: todas se leen
         assertAll(ejemplos.todos().stream().map(e -> (Executable) () -> assertFalse(
                 e.latex().startsWith("\text{"), e.texto())));
     }

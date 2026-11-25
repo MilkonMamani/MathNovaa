@@ -29,18 +29,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import pe.mathnova.application.pdf.DocumentoPdf;
 
-/**
- * Sprint 9, parte C: el PDF que escribe PDFBox. Se lee el archivo generado con PDFBox: las fórmulas son Form
- * XObjects marcados con su papel, sin ninguna imagen, y un paso nunca queda partido entre dos páginas.
- */
 class ExportadorPdfBoxTest {
 
     private static final ExportadorPdfBox EXPORTADOR = new ExportadorPdfBox();
 
     @TempDir
     Path carpeta;
-
-    // ---------------------------------------------------------------- documentos de prueba
 
     private static DocumentoPdf factorizacion() {
         List<DocumentoPdf.Paso> pasos = List.of(
@@ -58,7 +52,6 @@ class ExportadorPdfBoxTest {
                 null);
     }
 
-    /** Diez pasos con fórmulas altas (fracciones) y explicaciones de varios renglones. */
     static DocumentoPdf diezPasos() {
         List<DocumentoPdf.Paso> pasos = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
@@ -75,9 +68,6 @@ class ExportadorPdfBoxTest {
                 null);
     }
 
-    // ---------------------------------------------------------------- lectura del PDF
-
-    /** Las fórmulas de cada página por papel: [{"paso": 3, "resultado": 1…}, …]. */
     static List<Map<String, Integer>> formulasPorPagina(Path pdf) throws IOException {
         List<Map<String, Integer>> r = new ArrayList<>();
         try (PDDocument d = Loader.loadPDF(pdf.toFile())) {
@@ -97,7 +87,6 @@ class ExportadorPdfBoxTest {
         return r;
     }
 
-    /** Imágenes en todo el documento, también dentro de las fórmulas. */
     static int imagenes(Path pdf) throws IOException {
         try (PDDocument d = Loader.loadPDF(pdf.toFile())) {
             int n = 0;
@@ -141,8 +130,6 @@ class ExportadorPdfBoxTest {
         return porPagina.stream().mapToInt(m -> m.getOrDefault(rol, 0)).sum();
     }
 
-    // ---------------------------------------------------------------- pruebas
-
     @Test
     void seGeneraElArchivo() throws IOException {
         Path pdf = carpeta.resolve("sub/mathnova-factorizar-2026-11-24.pdf");
@@ -151,7 +138,6 @@ class ExportadorPdfBoxTest {
         assertEquals("%PDF", new String(Files.readAllBytes(pdf), 0, 4));
         try (PDDocument d = Loader.loadPDF(pdf.toFile())) {
             assertEquals(1, d.getNumberOfPages());
-            // A4 vertical
             assertEquals(595.3, d.getPage(0).getMediaBox().getWidth(), 0.5);
             assertEquals(841.9, d.getPage(0).getMediaBox().getHeight(), 0.5);
         }
@@ -174,7 +160,6 @@ class ExportadorPdfBoxTest {
         assertEquals(1, total(f, "resultado"));
         assertEquals(1, total(f, "comprobacion"));
         assertEquals(0, total(f, "?"), "ninguna forma sin papel");
-        // Ni una imagen: las fórmulas son trazos
         assertEquals(0, imagenes(pdf));
     }
 
@@ -190,7 +175,6 @@ class ExportadorPdfBoxTest {
 
         for (int i = 0; i < paginas.size(); i++) {
             String texto = paginas.get(i);
-            // En cada página, tantas fórmulas de paso como títulos de paso: la fórmula va con su título
             long titulos = java.util.stream.IntStream.rangeClosed(1, 10)
                     .filter(k -> texto.contains("Paso de prueba " + String.format("%02d", k))).count();
             assertEquals(titulos, (long) formulas.get(i).getOrDefault("paso", 0), "página " + (i + 1));
@@ -205,7 +189,6 @@ class ExportadorPdfBoxTest {
             assertEquals(titulo, inicio, "la explicación del paso " + n + " empieza en otra página");
             assertEquals(titulo, fin, "el paso " + n + " quedó cortado");
         }
-        // El título "Resultado" no queda solo al pie: va con su recuadro
         int resultado = pagina(paginas, "Resultado");
         assertEquals(paginas.size() - 1, resultado);
         assertEquals(1, formulas.get(resultado).getOrDefault("resultado", 0));

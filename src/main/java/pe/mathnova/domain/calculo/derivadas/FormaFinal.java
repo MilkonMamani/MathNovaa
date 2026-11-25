@@ -18,17 +18,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * El paso "Simplificar" de una derivada o una integral (Sprint 6): la forma en que se escribe el resultado.
- * <ul>
- *   <li>Un polinomio, o el numerador polinómico de una fracción, se expande y se ordena:
- *       (2x(x − 1) − (x² + 1))/(x − 1)² queda (x² − 2x − 1)/(x − 1)².</li>
- *   <li>Un factor exponencial común a todos los términos sale afuera: eˣ·cos x − eˣ·sen x queda
- *       eˣ(cos x − sen x).</li>
- *   <li>En cada producto van primero los números, después las otras letras (constantes, RN43), después
- *       las potencias de la variable, las funciones y al final los paréntesis: 6x·cos(3x²), 2a·t.</li>
- * </ul>
- */
 public final class FormaFinal {
 
     private FormaFinal() {
@@ -40,8 +29,6 @@ public final class FormaFinal {
         r = sacarExponencial(r);
         return ordenar(r, variable);
     }
-
-    // ------------------------------------------------------------------ polinomios
 
     private static Expresion expandir(Expresion e) {
         Polinomio p = polinomio(e);
@@ -63,7 +50,6 @@ public final class FormaFinal {
         return e;
     }
 
-    /** El polinomio, si e lo es y vale la pena expandirlo (no un solo término ya escrito). */
     private static Polinomio polinomio(Expresion e) {
         if (!(e instanceof Suma)) {
             return null;
@@ -75,8 +61,6 @@ public final class FormaFinal {
             return null;
         }
     }
-
-    // ------------------------------------------------------------------ factor exponencial común
 
     private static boolean esExponencial(Expresion f) {
         return f instanceof Potencia p && !(p.exponente() instanceof Constante)
@@ -112,8 +96,6 @@ public final class FormaFinal {
         return e;
     }
 
-    // ------------------------------------------------------------------ orden de los factores
-
     private static int rango(Expresion f, char x) {
         return switch (f) {
             case Constante c -> 0;
@@ -125,7 +107,6 @@ public final class FormaFinal {
         };
     }
 
-    /** Solo el orden de los factores (una integral no se expande: (x² + 1)⁶/6 queda así). */
     public static Expresion ordenar(Expresion e, char x) {
         return switch (e) {
             case Producto p -> {

@@ -22,7 +22,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/** Sprint 8, Parte B (HU30, RF55): puntos críticos con el Hessiano (V07) y multiplicadores de Lagrange (V08). */
 class ExtremosTest {
 
     private static final MotorExtremos MOTOR = new MotorExtremos(new OrquestadorFactorizacion());
@@ -39,8 +38,6 @@ class ExtremosTest {
         return r.puntos().stream().filter(p -> p.coordenadas().equals(List.of(q(x), q(y)))).findFirst()
                 .orElseThrow(() -> new AssertionError("falta (" + x + ", " + y + ") en " + r.texto()));
     }
-
-    // ------------------------------------------------------------------ gramática
 
     @Test
     void seLeenLosExtremos() {
@@ -60,8 +57,6 @@ class ExtremosTest {
     void elEditorLoReconoce() {
         assertEquals("extremos(x^2 + y^2)", TraductorLatex.traducir("\\operatorname{extremos}\\left(x^2+y^2\\right)"));
     }
-
-    // ------------------------------------------------------------------ Hessiano
 
     @Test
     void unMinimo() {
@@ -89,7 +84,6 @@ class ExtremosTest {
                 () -> assertEquals(q(27), minimo.d()),
                 () -> assertEquals(q(6), minimo.fxx()),
                 () -> assertEquals("(0, 0) punto de silla; (1, 1) mínimo local", r.texto()));
-        // el sistema muestra la sustitución y = x²
         PasoLimite criticos = r.pasos().get(1);
         assertTrue(criticos.hijos().stream().anyMatch(h -> h.titulo().startsWith("Despejar")), criticos.hijos()
                 .toString());
@@ -112,8 +106,6 @@ class ExtremosTest {
                 () -> assertEquals(q(0), p.d()),
                 () -> assertEquals("(0, 0) el criterio no decide", r.texto()));
     }
-
-    // ------------------------------------------------------------------ Lagrange
 
     @Test
     void lagrangeConUnMaximo() {
@@ -142,15 +134,12 @@ class ExtremosTest {
 
     @Test
     void lagrangeConRestriccionCuadratica() {
-        // f = x + y en x² + y² = 2: (−1, −1) mínimo y (1, 1) máximo, por factorización del sistema
         ResolucionExtremos r = resolver("extremos(x + y; x^2 + y^2 = 2)");
         assertAll(r.texto(),
                 () -> assertEquals(2, r.puntos().size()),
                 () -> assertTrue(punto(r, -1, -1).clase().esMinimo()),
                 () -> assertTrue(punto(r, 1, 1).clase().esMaximo()));
     }
-
-    // ------------------------------------------------------------------ errores
 
     @Test
     void soloDosVariablesYPolinomios() {
@@ -160,7 +149,6 @@ class ExtremosTest {
 
     @Test
     void conRaicesIrracionalesSeAvisa() {
-        // fx = 3x² − 6, fy = 2y: x = ±√2 no tiene coordenadas exactas
         ResolucionExtremos r = resolver("extremos(x^3 - 6x + y^2)");
         assertTrue(r.puntos().isEmpty());
         assertTrue(r.avisos().stream().anyMatch(a -> a.contains("irracionales")), r.avisos().toString());

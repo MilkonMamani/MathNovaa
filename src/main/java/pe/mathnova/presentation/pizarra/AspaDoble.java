@@ -7,10 +7,6 @@ import javafx.scene.layout.VBox;
 
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * M05: el aspa doble en dos variables, como el aspa doble especial pero con las columnas
- * x | y | término independiente. Se ven los tres extremos y las tres aspas verificadas (xy, y, x).
- */
 public final class AspaDoble extends VBox {
 
     private final ModeloAspaDobleXY modelo;

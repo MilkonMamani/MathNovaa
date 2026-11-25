@@ -28,18 +28,12 @@ import pe.mathnova.domain.escritura.ResultadoReconocimiento;
 import pe.mathnova.domain.escritura.Trazo;
 import pe.mathnova.presentation.Fx;
 
-/**
- * "Escribir" con el DEDO, con eventos táctiles simulados como los entrega Windows (cada toque va seguido de
- * su evento de mouse sintetizado). No reemplaza la prueba con una pantalla táctil física: comprueba que el
- * lienzo trata bien esos eventos y que el trazo hecho con el dedo llega al reconocedor y al campo de arriba.
- */
 class EscrituraTactilTest {
 
     private Stage ventana;
     private PanelEscritura panel;
     private final List<String> puestos = new CopyOnWriteArrayList<>();
     private final List<List<Trazo>> leidos = new CopyOnWriteArrayList<>();
-    /** Eventos de desplazamiento que llegaron al contenedor de afuera (no deberían, si vienen del dedo). */
     private final AtomicInteger desplazamientosAfuera = new AtomicInteger();
 
     @BeforeAll
@@ -87,7 +81,6 @@ class EscrituraTactilTest {
 
     @Test
     void levantarElDedoEntreSimbolosYEsperarLlevaLaLecturaAlCampo() throws Exception {
-        // ∫ 2x dx con el dedo: cuatro trazos separados, levantando el dedo entre ellos.
         enFx(() -> Fx.trazoTactil(canvas(), 1, new double[] {40, 20}, new double[] {35, 100}, new double[] {30, 180}));
         Thread.sleep(60);
         enFx(() -> Fx.trazoTactil(canvas(), 2, new double[] {70, 80}, new double[] {90, 80}, new double[] {70, 120},
@@ -106,7 +99,7 @@ class EscrituraTactilTest {
         enFx(() -> {
             var c = canvas();
             Fx.toque(c, TouchEvent.TOUCH_PRESSED, TouchPoint.State.PRESSED, 1, 40, 60);
-            Fx.toque(c, TouchEvent.TOUCH_PRESSED, TouchPoint.State.PRESSED, 2, 200, 60); // otro dedo
+            Fx.toque(c, TouchEvent.TOUCH_PRESSED, TouchPoint.State.PRESSED, 2, 200, 60);
             Fx.toque(c, TouchEvent.TOUCH_MOVED, TouchPoint.State.MOVED, 2, 220, 80);
             Fx.toque(c, TouchEvent.TOUCH_MOVED, TouchPoint.State.MOVED, 1, 60, 80);
             Fx.toque(c, TouchEvent.TOUCH_RELEASED, TouchPoint.State.RELEASED, 2, 220, 80);
@@ -123,8 +116,8 @@ class EscrituraTactilTest {
     void laManoApoyadaMientrasSeEscribeConLapizNoDibuja() throws Exception {
         enFx(() -> {
             var c = canvas();
-            Fx.raton(c, MouseEvent.MOUSE_PRESSED, 40, 60, false); // lápiz (Windows lo manda como mouse)
-            Fx.toque(c, TouchEvent.TOUCH_PRESSED, TouchPoint.State.PRESSED, 7, 300, 150); // la palma
+            Fx.raton(c, MouseEvent.MOUSE_PRESSED, 40, 60, false);
+            Fx.toque(c, TouchEvent.TOUCH_PRESSED, TouchPoint.State.PRESSED, 7, 300, 150);
             Fx.toque(c, TouchEvent.TOUCH_MOVED, TouchPoint.State.MOVED, 7, 310, 160);
             Fx.raton(c, MouseEvent.MOUSE_DRAGGED, 80, 100, false);
             Fx.toque(c, TouchEvent.TOUCH_RELEASED, TouchPoint.State.RELEASED, 7, 310, 160);
@@ -141,7 +134,6 @@ class EscrituraTactilTest {
         enFx(() -> {
             var c = canvas();
             javafx.geometry.Point2D s = c.localToScene(50, 50);
-            // Del dedo (directo): se queda en el lienzo.
             javafx.event.Event.fireEvent(c, new ScrollEvent(ScrollEvent.SCROLL, s.getX(), s.getY(), s.getX(), s.getY(),
                     false, false, false, false, true, false, 0, -40, 0, -40, ScrollEvent.HorizontalTextScrollUnits.NONE, 0,
                     ScrollEvent.VerticalTextScrollUnits.NONE, 0, 1, null));
@@ -150,7 +142,6 @@ class EscrituraTactilTest {
         enFx(() -> {
             var c = canvas();
             javafx.geometry.Point2D s = c.localToScene(50, 50);
-            // De la rueda del mouse (no directo): sigue moviendo la pantalla.
             javafx.event.Event.fireEvent(c, new ScrollEvent(ScrollEvent.SCROLL, s.getX(), s.getY(), s.getX(), s.getY(),
                     false, false, false, false, false, false, 0, -40, 0, -40, ScrollEvent.HorizontalTextScrollUnits.NONE, 0,
                     ScrollEvent.VerticalTextScrollUnits.LINES, -1, 0, null));

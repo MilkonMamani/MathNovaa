@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-/** El proceso persistente, con un servidor falso que habla el mismo protocolo (no es el modelo). */
 class ProcesoInferenciaTest {
 
     private static ProcesoInferencia proceso(String modo) throws Exception {
@@ -42,17 +41,16 @@ class ProcesoInferenciaTest {
             AtomicReference<Throwable> fin = new AtomicReference<>();
             Thread vieja = new Thread(() -> {
                 try {
-                    p.reconocer(new byte[] {1, 2, 3}); // "img4"
+                    p.reconocer(new byte[] {1, 2, 3});
                 } catch (Throwable e) {
                     fin.set(e);
                 }
             });
             vieja.start();
             Thread.sleep(150);
-            vieja.interrupt(); // llegó un trazo nuevo
+            vieja.interrupt();
             vieja.join();
             assertTrue(fin.get() instanceof InterruptedException, String.valueOf(fin.get()));
-            // La siguiente espera a que el proceso quede libre y recibe SU respuesta, no la vieja.
             assertEquals("img8", p.reconocer(new byte[] {1, 2, 3, 4, 5}));
         }
     }
@@ -63,7 +61,7 @@ class ProcesoInferenciaTest {
             p.iniciar();
             long pid = p.pid();
             assertThrows(IOException.class, () -> p.reconocer(new byte[] {1}));
-            p.iniciar(); // se vuelve a arrancar
+            p.iniciar();
             assertTrue(p.listo());
             assertTrue(p.pid() != pid);
         }

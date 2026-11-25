@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import pe.mathnova.domain.parser.Parser;
 
-/** F04 y F03. */
 class AgrupacionTest {
 
     @Test
@@ -28,7 +27,6 @@ class AgrupacionTest {
     @Test
     void f04ConVariasLetras() {
         aplica(new AgrupacionDeTerminos(), "x^3 + x^2 + 2x + 2", "x + 1", "x^2 + 2");
-        // se ordena como a x + a y + b x + b y antes de agrupar
         aplica(new AgrupacionDeTerminos(), "a x + b y + a y + b x", "x + y", "a + b");
     }
 

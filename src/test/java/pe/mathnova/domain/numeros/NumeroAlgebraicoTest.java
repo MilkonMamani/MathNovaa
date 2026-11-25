@@ -16,7 +16,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.parser.Parser;
 
-/** Parte A: radicales simplificados y aritmética exacta con radicales e i. */
 class NumeroAlgebraicoTest {
 
     private static final NumeroAlgebraico UNO = NumeroAlgebraico.UNO;
@@ -34,12 +33,9 @@ class NumeroAlgebraicoTest {
         return NumeroAlgebraico.de(Racional.de(a, b));
     }
 
-    /** Lee un número del texto, como "1 + √2" o "1/2 - √3·i/2". */
     private static NumeroAlgebraico leer(String texto) {
         return PolinomioAlgebraico.desde(Parser.parse(texto), 'x').coeficiente(0);
     }
-
-    // ------------------------------------------------------------------ Radical
 
     @ParameterizedTest(name = "{0}√{1} = {2}")
     @CsvSource({
@@ -62,8 +58,8 @@ class NumeroAlgebraicoTest {
 
     @Test
     void radicalDeUnaFraccion() {
-        assertEquals("√6/2", Radical.raiz(2, Racional.de(3, 2)).toString()); // √(3/2) = √6/2
-        assertEquals("∛6/2", Radical.raiz(3, Racional.de(3, 4)).toString()); // ∛(3/4) = ∛6/2
+        assertEquals("√6/2", Radical.raiz(2, Racional.de(3, 2)).toString());
+        assertEquals("∛6/2", Radical.raiz(3, Racional.de(3, 4)).toString());
     }
 
     @Test
@@ -81,16 +77,14 @@ class NumeroAlgebraicoTest {
 
     @Test
     void multiplicaRadicales() {
-        assertEquals("2", Radical.raiz(3, 2).multiplicar(Radical.raiz(3, 4)).toString()); // ∛2·∛4 = 2
+        assertEquals("2", Radical.raiz(3, 2).multiplicar(Radical.raiz(3, 4)).toString());
         assertEquals("√6", Radical.raiz(2, 2).multiplicar(Radical.raiz(2, 3)).toString());
-        assertEquals(Radical.raiz(6, 32), Radical.raiz(2, 2).multiplicar(Radical.raiz(3, 2))); // √2·∛2 = ⁶√32
+        assertEquals(Radical.raiz(6, 32), Radical.raiz(2, 2).multiplicar(Radical.raiz(3, 2)));
     }
-
-    // ------------------------------------------------------------------ NumeroAlgebraico
 
     @Test
     void productoDeConjugados() {
-        assertEquals(q(-1), UNO.sumar(r(2, 2)).multiplicar(UNO.restar(r(2, 2)))); // (1 + √2)(1 − √2) = −1
+        assertEquals(q(-1), UNO.sumar(r(2, 2)).multiplicar(UNO.restar(r(2, 2))));
     }
 
     @Test
@@ -103,7 +97,7 @@ class NumeroAlgebraicoTest {
     void cuboDeRaizCubica() {
         assertEquals(q(2), r(3, 2).potencia(3));
         assertEquals(r(3, 4), r(3, 2).potencia(2));
-        assertEquals(q(2).multiplicar(r(3, 2)), r(3, 4).potencia(2)); // (∛4)² = ∛16 = 2∛2
+        assertEquals(q(2).multiplicar(r(3, 2)), r(3, 4).potencia(2));
     }
 
     @Test
@@ -117,23 +111,23 @@ class NumeroAlgebraicoTest {
     @Test
     void productoDeComplejosConjugados() {
         NumeroAlgebraico z = NumeroAlgebraico.complejo(Racional.UNO, Racional.de(2));
-        assertEquals(q(5), z.multiplicar(z.conjugar())); // (1 + 2i)(1 − 2i) = 5
+        assertEquals(q(5), z.multiplicar(z.conjugar()));
     }
 
     @Test
     void raizDeNegativos() {
-        assertEquals(I.multiplicar(q(2)), r(2, -4)); // √−4 = 2i
+        assertEquals(I.multiplicar(q(2)), r(2, -4));
         assertEquals(I.multiplicar(r(2, 3)), r(2, -3));
         assertEquals(r(3, 2).negar(), r(3, -2));
     }
 
     @Test
     void racionalizaDenominadores() {
-        assertEquals(r(2, 2).multiplicar(Racional.de(1, 2)), r(2, 2).inverso()); // 1/√2 = √2/2 (RN29)
-        assertEquals(r(2, 3).multiplicar(Racional.de(1, 3)), r(2, 3).inverso()); // 1/√3 = √3/3
+        assertEquals(r(2, 2).multiplicar(Racional.de(1, 2)), r(2, 2).inverso());
+        assertEquals(r(2, 3).multiplicar(Racional.de(1, 3)), r(2, 3).inverso());
         assertEquals("√3/3", r(2, 3).inverso().toString());
-        assertEquals(r(3, 4).multiplicar(Racional.de(1, 2)), r(3, 2).inverso()); // 1/∛2 = ∛4/2
-        assertEquals(q(-1).sumar(r(2, 2)), UNO.sumar(r(2, 2)).inverso()); // 1/(1 + √2) = √2 − 1
+        assertEquals(r(3, 4).multiplicar(Racional.de(1, 2)), r(3, 2).inverso());
+        assertEquals(q(-1).sumar(r(2, 2)), UNO.sumar(r(2, 2)).inverso());
     }
 
     @Test
@@ -154,8 +148,8 @@ class NumeroAlgebraicoTest {
 
     @Test
     void sumaYResta() {
-        assertEquals(r(2, 2).multiplicar(Racional.de(3)), r(2, 2).sumar(r(2, 8))); // √2 + √8 = 3√2
-        assertEquals(NumeroAlgebraico.CERO, r(2, 12).restar(r(2, 3).multiplicar(Racional.de(2)))); // √12 = 2√3
+        assertEquals(r(2, 2).multiplicar(Racional.de(3)), r(2, 2).sumar(r(2, 8)));
+        assertEquals(NumeroAlgebraico.CERO, r(2, 12).restar(r(2, 3).multiplicar(Racional.de(2))));
         assertTrue(r(2, 2).sumar(r(2, 2).negar()).esCero());
     }
 
@@ -169,15 +163,13 @@ class NumeroAlgebraicoTest {
     @Test
     void potenciasNegativas() {
         assertEquals(q(1, 2), r(2, 2).potencia(-2));
-        assertEquals(q(1, 8).multiplicar(r(2, 2)), r(2, 2).potencia(-5)); // 1/(4√2) = √2/8
+        assertEquals(q(1, 8).multiplicar(r(2, 2)), r(2, 2).potencia(-5));
     }
 
     @Test
     void cardano() {
-        // ∛4 + ∛2 es raíz de x³ − 6x − 6
         NumeroAlgebraico x = r(3, 4).sumar(r(3, 2));
         assertTrue(x.potencia(3).restar(x.multiplicar(Racional.de(6))).restar(q(6)).esCero());
-        // y el cuadrático que queda: x² + r·x + (r² − 6)
         assertEquals(leer("-2 + ∛4 + 2·∛2"), x.potencia(2).restar(q(6)));
     }
 
@@ -188,23 +180,23 @@ class NumeroAlgebraicoTest {
         assertEquals(r(2, 3).multiplicar(Racional.de(1, 2)), z.parteImaginaria());
         assertEquals(leer("1/2 - √3·i/2"), z.conjugar());
         assertEquals(UNO, z.multiplicar(z.conjugar()));
-        assertEquals(q(-1), z.potencia(3)); // e^{iπ/3} al cubo
+        assertEquals(q(-1), z.potencia(3));
     }
 
     @Test
     void signoExacto() {
         assertEquals(1, UNO.sumar(r(2, 2)).signo());
         assertEquals(-1, UNO.restar(r(2, 2)).signo());
-        assertEquals(-1, q(1).restar(r(2, 2).multiplicar(Racional.de(4))).signo()); // 1 − 4√2
-        assertEquals(-1, r(2, 3).sumar(r(2, 2)).restar(r(2, 10)).signo()); // √3 + √2 ≈ 3.146 < √10 ≈ 3.162
+        assertEquals(-1, q(1).restar(r(2, 2).multiplicar(Racional.de(4))).signo());
+        assertEquals(-1, r(2, 3).sumar(r(2, 2)).restar(r(2, 10)).signo());
         assertEquals(-1, r(3, 2).restar(r(2, 2)).signo());
         assertEquals(1, r(3, 3).comparar(r(2, 2)));
     }
 
     @Test
     void raizCuadradaDesanida() {
-        assertEquals(UNO.sumar(r(2, 2)), leer("3 + 2√2").raizCuadrada()); // √(3 + 2√2) = 1 + √2
-        assertEquals(r(2, 3).restar(r(2, 2)), leer("5 - 2√6").raizCuadrada()); // √(5 − 2√6) = √3 − √2
+        assertEquals(UNO.sumar(r(2, 2)), leer("3 + 2√2").raizCuadrada());
+        assertEquals(r(2, 3).restar(r(2, 2)), leer("5 - 2√6").raizCuadrada());
         assertEquals(I.multiplicar(q(3)), q(-9).raizCuadrada());
         assertEquals(NumeroAlgebraico.complejo(Racional.de(2), Racional.UNO), leer("3 + 4i").raizCuadrada());
     }
@@ -214,8 +206,8 @@ class NumeroAlgebraicoTest {
         NumeroAlgebraico z = leer("1 + 4√2").raizCuadrada();
         assertFalse(z.exacto());
         assertEquals("√(1 + 4·√2)", z.toString());
-        assertEquals(leer("1 + 4√2"), z.potencia(2)); // la relación del átomo se usa
-        assertEquals(1, z.restar(q(2)).signo()); // √(1 + 4√2) ≈ 2.58
+        assertEquals(leer("1 + 4√2"), z.potencia(2));
+        assertEquals(1, z.restar(q(2)).signo());
     }
 
     @Test
@@ -233,7 +225,6 @@ class NumeroAlgebraicoTest {
     @Test
     void polinomioMinimo() {
         assertEquals(List.of(Racional.de(-2), Racional.CERO, Racional.UNO), r(2, 2).polinomioMinimo());
-        // 1 + √2: x² − 2x − 1
         assertEquals(List.of(Racional.de(-1), Racional.de(-2), Racional.UNO), UNO.sumar(r(2, 2)).polinomioMinimo());
     }
 

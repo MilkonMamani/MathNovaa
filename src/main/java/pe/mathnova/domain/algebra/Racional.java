@@ -3,11 +3,6 @@ package pe.mathnova.domain.algebra;
 import java.math.BigInteger;
 import java.util.Objects;
 
-/**
- * Número racional exacto (RNF01, RN02): sin double ni float.
- * Siempre está simplificado y con el denominador positivo, así que dos racionales
- * iguales tienen los mismos num y den, y el equals del record sirve tal cual.
- */
 public record Racional(BigInteger num, BigInteger den) implements Comparable<Racional> {
 
     public static final Racional CERO = new Racional(BigInteger.ZERO, BigInteger.ONE);
@@ -42,11 +37,6 @@ public record Racional(BigInteger num, BigInteger den) implements Comparable<Rac
         return new Racional(n, BigInteger.ONE);
     }
 
-    /**
-     * Lee "3", "-7", "0.25" (→ 1/4), "-1.5" o "2/3". El decimal va con punto.
-     *
-     * @throws NumberFormatException si el texto no es un número válido
-     */
     public static Racional parse(String texto) {
         String s = Objects.requireNonNull(texto, "texto").trim();
         int barra = s.indexOf('/');
@@ -91,7 +81,6 @@ public record Racional(BigInteger num, BigInteger den) implements Comparable<Rac
         return new Racional(num.multiply(o.num), den.multiply(o.den));
     }
 
-    /** @throws ArithmeticException si o es cero */
     public Racional dividir(Racional o) {
         if (o.esCero()) {
             throw new ArithmeticException("División entre cero");
@@ -107,7 +96,6 @@ public record Racional(BigInteger num, BigInteger den) implements Comparable<Rac
         return UNO.dividir(this);
     }
 
-    /** Potencia entera; con exponente negativo devuelve el inverso. 0^-n lanza ArithmeticException. */
     public Racional potencia(int n) {
         if (n < 0) {
             return inverso().potencia(-n);
@@ -132,7 +120,6 @@ public record Racional(BigInteger num, BigInteger den) implements Comparable<Rac
         return num.multiply(o.den).compareTo(o.num.multiply(den));
     }
 
-    /** "3", "-1/2". */
     @Override
     public String toString() {
         return esEntero() ? num.toString() : num + "/" + den;

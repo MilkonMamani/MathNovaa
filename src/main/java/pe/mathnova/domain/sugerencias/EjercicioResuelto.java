@@ -11,16 +11,9 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.factorizacion.ResolucionFunciones;
 import pe.mathnova.domain.factorizacion.Simplificacion;
 
-/**
- * Lo que miran las reglas de sugerencias: un polinomio de una letra ya factorizado (en Q, R o C), una
- * fracción de polinomios de una letra ya simplificada, o una expresión con funciones ya factorizada.
- * Exactamente uno de {@code factorizacion}, {@code fraccion} y {@code funciones} no es null. Las
- * reglas no miran el campo: corren igual en Q, R y C.
- */
 public record EjercicioResuelto(Expresion entrada, char variable, Resolucion factorizacion, Simplificacion fraccion,
                                 ResolucionFunciones funciones) {
 
-    /** Vacío si es una constante; con varias letras solo la ven las reglas de varias variables. */
     public static Optional<EjercicioResuelto> de(Resolucion r) {
         Polinomio p;
         try {
@@ -31,7 +24,6 @@ public record EjercicioResuelto(Expresion entrada, char variable, Resolucion fac
         if (p.variables().isEmpty()) {
             return Optional.empty();
         }
-        // Sprint 7: con dos o más letras solo corren las reglas de varias variables (RN41)
         char x = p.variables().contains('x') ? 'x' : p.variables().first();
         return Optional.of(new EjercicioResuelto(r.entrada(), x, r, null, null));
     }
@@ -45,7 +37,6 @@ public record EjercicioResuelto(Expresion entrada, char variable, Resolucion fac
         return Optional.of(new EjercicioResuelto(s.entrada(), letras.iterator().next(), null, s, null));
     }
 
-    /** Una expresión con funciones de x (HU23); vacío si no se pudo factorizar. */
     public static Optional<EjercicioResuelto> de(ResolucionFunciones r) {
         if (!r.factorizable()) {
             return Optional.empty();
@@ -53,7 +44,6 @@ public record EjercicioResuelto(Expresion entrada, char variable, Resolucion fac
         return Optional.of(new EjercicioResuelto(r.entrada(), 'x', null, null, r));
     }
 
-    /** Dos o más letras (RN41). */
     public boolean variasVariables() {
         return pe.mathnova.domain.expresion.Expresiones.variables(entrada).size() >= 2;
     }
@@ -70,7 +60,6 @@ public record EjercicioResuelto(Expresion entrada, char variable, Resolucion fac
         return funciones != null;
     }
 
-    /** La entrada en la sintaxis de la sección 9, para las plantillas. */
     public String texto() {
         return ImpresoraTexto.imprimir(entrada);
     }
@@ -79,13 +68,11 @@ public record EjercicioResuelto(Expresion entrada, char variable, Resolucion fac
         return Polinomio.desde(entrada);
     }
 
-    /** Grado de lo que queda arriba después de simplificar (solo fracciones). */
     int gradoArriba() {
         Polinomio p = fraccion.arriba().expandir();
         return p.esCero() ? -1 : p.gradoEn(variable);
     }
 
-    /** Grado de lo que queda abajo después de simplificar (0 si se canceló todo). */
     int gradoAbajo() {
         return fraccion.abajo().expandir().gradoEn(variable);
     }

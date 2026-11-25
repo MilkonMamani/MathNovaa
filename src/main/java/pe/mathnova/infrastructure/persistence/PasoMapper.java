@@ -8,7 +8,6 @@ import pe.mathnova.domain.factorizacion.FormaFactorizada;
 import pe.mathnova.domain.factorizacion.Paso;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/** Paso del dominio → fila de la tabla paso, con el trabajo intermedio como JSON. */
 public final class PasoMapper {
 
     private PasoMapper() {
@@ -35,13 +34,11 @@ public final class PasoMapper {
         return e;
     }
 
-    /** Un paso en R o C (F21–F30, A5). */
     public static PasoEntity aEntidad(pe.mathnova.domain.factorizacion.Extension.Paso p, int orden) {
         PasoEntity e = new PasoEntity();
         e.setOrden(orden);
         e.setTecnicaCodigo(p.codigoTecnica());
         e.setJustificacion(p.justificacion());
-        // antes_texto y antes_latex son NOT NULL en V1.
         e.setAntesTexto(p.antes() == null ? "" : pe.mathnova.domain.expresion.ImpresoraTexto.imprimir(p.antes()));
         e.setAntesLatex(p.antes() == null ? "" : ImpresoraLatex.imprimir(p.antes()));
         if (p.despues() != null) {
@@ -56,10 +53,6 @@ public final class PasoMapper {
         return e;
     }
 
-    /**
-     * Un paso dado como expresiones (P01, L01–L07, D01–D09). V1 exige "después" en un paso aplicado: si
-     * no hay una expresión (una evaluación que da 0/0), va el último renglón del trabajo.
-     */
     public static PasoEntity aEntidad(String codigo, String justificacion, pe.mathnova.domain.expresion.Expresion antes,
                                       pe.mathnova.domain.expresion.Expresion despues, TrabajoIntermedio trabajo, int orden) {
         PasoEntity e = new PasoEntity();
@@ -85,7 +78,6 @@ public final class PasoMapper {
         return e;
     }
 
-    /** Valor de trabajo_tipo (CHECK de V1). */
     static String tipo(TrabajoIntermedio t) {
         return switch (t) {
             case TrabajoIntermedio.AspaSimple a -> "ASPA_SIMPLE";
@@ -95,7 +87,6 @@ public final class PasoMapper {
             case TrabajoIntermedio.Sustitucion s -> "SUSTITUCION";
             case TrabajoIntermedio.Agrupacion a -> "OTRO";
             case TrabajoIntermedio.Comparacion c -> "OTRO";
-            // V1 no tiene tipos propios para los trabajos del Sprint 7: van como OTRO con su JSON
             case TrabajoIntermedio.TablaPartes p -> "OTRO";
             case TrabajoIntermedio.TrianguloSustitucion ts -> "OTRO";
             case TrabajoIntermedio.AspaDoble a -> "OTRO";
@@ -103,7 +94,6 @@ public final class PasoMapper {
         };
     }
 
-    /** {"tipo":"AGRUPACION","grupos":[…]}, {"tipo":"ASPA_SIMPLE",…}, {"tipo":"TABLA_RUFFINI",…}… */
     static String json(TrabajoIntermedio t) {
         return switch (t) {
             case TrabajoIntermedio.Agrupacion a -> "{\"tipo\":\"AGRUPACION\",\"grupos\":" + lista(a.grupos()) + "}";
@@ -155,7 +145,6 @@ public final class PasoMapper {
         };
     }
 
-    /** Un racional exacto como cadena ("-3/4"): nunca REAL (RN02). */
     private static String numero(Racional r) {
         return texto(r.toString());
     }
@@ -168,7 +157,6 @@ public final class PasoMapper {
         return "[" + String.join(",", valores.stream().map(PasoMapper::texto).toList()) + "]";
     }
 
-    /** Cadena JSON con comillas, barras y caracteres de control escapados. */
     public static String texto(String s) {
         StringBuilder sb = new StringBuilder("\"");
         for (char c : s.toCharArray()) {

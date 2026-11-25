@@ -13,18 +13,8 @@ import pe.mathnova.domain.expresion.ImpresoraLatex;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.pizarra.Pizarra;
 
-/**
- * El desarrollo de una factorización auxiliar (la del numerador de un límite, la del denominador de una
- * integral): los métodos que usó el motor, uno detrás de otro, con sus renglones matemáticos.
- *
- * <p>{@link #filas()} cuenta las filas matemáticas del procedimiento para decidir si se muestra completo (1 a 3)
- * o plegado detrás de "Ver desarrollo" (4 o más). Se cuentan las fórmulas (también la que da la factorización
- * de cada método) y las filas de las tablas de Ruffini; no se cuentan los títulos ni las notas. La cuenta sale de
- * los datos, no del ancho: una fórmula partida en dos líneas sigue siendo una fila.
- */
 final class DesarrolloAuxiliar {
 
-    /** Hasta esta cantidad de filas el desarrollo va a la vista; desde una más, plegado. */
     static final int MAXIMO_A_LA_VISTA = 3;
 
     private final List<Node> nodos = new ArrayList<>();
@@ -44,12 +34,10 @@ final class DesarrolloAuxiliar {
         }
     }
 
-    /** Las filas matemáticas (ver la clase). */
     int filas() {
         return filas;
     }
 
-    /** Va plegado detrás de "Ver desarrollo". */
     boolean largo() {
         return filas > MAXIMO_A_LA_VISTA;
     }
@@ -58,13 +46,11 @@ final class DesarrolloAuxiliar {
         return List.copyOf(nodos);
     }
 
-    /** Las filas de un método, sin dibujarlo (pruebas y decisión A/B). */
     static int filas(VistaPaso h) {
         TrabajoIntermedio t = h.trabajo();
         int conclusion = h.antes() != null && h.despues() != null ? 1 : 0;
         if (t instanceof TrabajoIntermedio.TablaRuffini r) {
             int completo = r.divisiones().getFirst().rellenos().isEmpty() ? 0 : 1;
-            // el polinomio completo, las tres filas de cada tabla y su cociente, y la factorización
             return completo + 4 * r.divisiones().size() + conclusion;
         }
         List<String> lineas = Pizarra.lineas(t);
@@ -119,10 +105,6 @@ final class DesarrolloAuxiliar {
         }
     }
 
-    /**
-     * Ruffini: el polinomio completo con los ceros que faltan (x³ + 0x² − 3x − 2), la tabla, el residuo 0 y el
-     * cociente que forman los coeficientes de abajo.
-     */
     private void ruffini(TrabajoIntermedio.TablaRuffini r, double maximo, double minimo) {
         char x = r.variable();
         TrabajoIntermedio.TablaRuffini.Division primera = r.divisiones().getFirst();
@@ -135,7 +117,6 @@ final class DesarrolloAuxiliar {
                     ? "Se coloca 0 porque falta el término de grado " + faltan.getFirst() + "."
                     : "Se colocan ceros porque faltan los términos de grado " + String.join(", ", faltan) + "."));
         }
-        // La tabla ya dice "Residuo 0 → (x − 2) es factor"; aquí, solo la división que funcionó.
         nodos.add(new pe.mathnova.presentation.pizarra.TablaRuffini(r).sinCandidatos());
         for (TrabajoIntermedio.TablaRuffini.Division d : r.divisiones()) {
             List<Racional> cociente = d.resultados().subList(0, d.resultados().size() - 1);
@@ -146,7 +127,6 @@ final class DesarrolloAuxiliar {
         }
     }
 
-    /** "x³ + 0x² − 3x − 2" (con ceros) o "x² + 2x + 1", en LaTeX; los coeficientes de mayor a menor grado. */
     static String polinomio(List<Racional> coeficientes, char x, boolean conCeros) {
         StringBuilder sb = new StringBuilder();
         int n = coeficientes.size() - 1;
@@ -184,7 +164,6 @@ final class DesarrolloAuxiliar {
         return l;
     }
 
-    /** Todo el desarrollo en una columna (con la sangría y la línea azul, si va plegado). */
     VBox caja() {
         VBox c = new VBox(8);
         c.setMinWidth(0);

@@ -10,17 +10,6 @@ import javafx.scene.shape.Line;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * V04: el diagrama de árbol de la regla de la cadena.
- * <pre>
- *          f
- *        /   \
- *       x     y      ∂f/∂x, ∂f/∂y en las ramas de arriba
- *       |     |
- *       t     t      dx/dt, dy/dt en las de abajo
- * </pre>
- * Debajo, la suma df/dt = fx·x' + fy·y'.
- */
 public final class ArbolCadena extends VBox {
 
     private static final double SEPARACION = 150;

@@ -6,17 +6,14 @@ import pe.mathnova.domain.expresion.ImpresoraLatex;
 import pe.mathnova.domain.expresion.ImpresoraTexto;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/** El valor de un límite: un número exacto, ±∞, "no existe" (con el motivo) o "no se pudo calcular". */
 public sealed interface ResultadoLimite {
 
     String NO_CALCULADO = "No se pudo calcular con los métodos disponibles";
 
-    /** "4", "3/2", "e", "+∞", "−∞", "no existe". */
     String texto();
 
     String latex();
 
-    /** Un número exacto: racional, con radicales, e o π. */
     record Finito(NumeroAlgebraico valor) implements ResultadoLimite {
         public Finito {
             Objects.requireNonNull(valor, "valor");
@@ -45,7 +42,6 @@ public sealed interface ResultadoLimite {
         }
     }
 
-    /** "No existe: lím por la izquierda = −∞ y por la derecha = +∞". */
     record NoExiste(String motivo) implements ResultadoLimite {
         public NoExiste {
             Objects.requireNonNull(motivo, "motivo");
@@ -62,7 +58,6 @@ public sealed interface ResultadoLimite {
         }
     }
 
-    /** Ningún método funcionó: no se inventa un valor. */
     record NoCalculado(String motivo) implements ResultadoLimite {
         public NoCalculado {
             Objects.requireNonNull(motivo, "motivo");

@@ -26,11 +26,6 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.animacion.AnimadorResolucion;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 
-/**
- * "Ver desarrollo" en la Pizarra: formato A o B según las filas (también al cambiar el ancho), cerrado en "Todos
- * los pasos", abierto solo al llegar en "Paso a paso" y respetando al alumno después; un ejercicio nuevo no hereda
- * nada abierto. Sin "Comprobación" en un límite.
- */
 class DesplegablesPizarraTest {
 
     private static final MotorLimites LIMITES = new MotorLimites(new OrquestadorFactorizacion());
@@ -120,14 +115,14 @@ class DesplegablesPizarraTest {
     void pasoAPasoLoAbreAlLlegarYDespuesRespetaAlAlumno() throws Exception {
         enFx(() -> {
             mostrarLimite("lim(x->2, (x^3 - 3x - 2)/(x - 2))");
-            pizarra.botonModo().fire(); // Paso a paso, en el paso 1
+            pizarra.botonModo().fire();
             ToggleButton ver = verDesarrollo().getFirst();
             assertFalse(ver.isSelected(), "todavía no se llegó a la factorización");
-            pizarra.siguiente().fire(); // paso 2: factorizar
-            assertTrue(ver.isSelected(), "se abre al llegar por primera vez");
-            ver.fire(); // el alumno lo pliega
             pizarra.siguiente().fire();
-            pizarra.anterior().fire(); // vuelve al paso 2
+            assertTrue(ver.isSelected(), "se abre al llegar por primera vez");
+            ver.fire();
+            pizarra.siguiente().fire();
+            pizarra.anterior().fire();
             assertFalse(ver.isSelected(), "respeta que lo plegó");
         });
     }

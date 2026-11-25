@@ -16,13 +16,6 @@ import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.expresion.Expresiones;
 import pe.mathnova.domain.expresion.ImpresoraPizarra;
 
-/**
- * RF28: los puntos críticos de f (f′(x) = 0, resuelto con el resolvedor de ecuaciones) y su tipo, los
- * intervalos de crecimiento (signo de f′) y la concavidad con los puntos de inflexión (signo de f″). Todo
- * exacto, para f racional de una variable; con raíces que no son racionales la recta de signos no se arma.
- *
- * @param ecuacion la resolución de f′(x) = 0 (de su numerador), con sus pasos
- */
 public record AnalisisDerivada(char variable, Expresion primera, Expresion segunda, List<PuntoCritico> criticos,
                                Tramos crecimiento, Tramos concavidad, List<Inflexion> inflexiones,
                                ResolucionEcuacion ecuacion) {
@@ -41,20 +34,12 @@ public record AnalisisDerivada(char variable, Expresion primera, Expresion segun
         }
     }
 
-    /** @param criterio "f″(−1) = −12 < 0" o "f′ no cambia de signo" */
     public record PuntoCritico(Racional x, Racional y, Tipo tipo, String criterio) {
     }
 
     public record Inflexion(Racional x, Racional y) {
     }
 
-    /**
-     * Una recta de signos.
-     *
-     * @param marcas las raíces y los puntos donde no está definida, de menor a mayor
-     * @param signos +1 o −1 en cada tramo (uno más que marcas); vacío si no se pudo armar
-     * @param aviso  por qué no se armó, o null
-     */
     public record Tramos(List<Racional> marcas, List<Integer> signos, String aviso) {
         public Tramos {
             marcas = List.copyOf(marcas);
@@ -67,7 +52,6 @@ public record AnalisisDerivada(char variable, Expresion primera, Expresion segun
         inflexiones = List.copyOf(inflexiones);
     }
 
-    /** Vacío si f no es una fracción de polinomios en una sola variable. */
     public static Optional<AnalisisDerivada> de(Expresion f, char x, ResolvedorEcuaciones resolvedor) {
         var letras = Expresiones.variables(f);
         if (letras.size() != 1 || !letras.contains(x)) {
@@ -83,7 +67,7 @@ public record AnalisisDerivada(char variable, Expresion primera, Expresion segun
             FuncionRacional f1 = FuncionRacional.de(d1).orElseThrow();
             FuncionRacional f2 = FuncionRacional.de(d2).orElseThrow();
             if (f1.numerador().esCero()) {
-                return Optional.empty(); // f constante
+                return Optional.empty();
             }
             Ceros noDefinida = ceros(fr.get().denominador(), x, resolvedor);
             ResolucionEcuacion ec = resolvedor.resolver(new Ecuacion(f1.numerador().aExpresion(), Constante.de(0)));
@@ -116,7 +100,6 @@ public record AnalisisDerivada(char variable, Expresion primera, Expresion segun
         }
     }
 
-    /** Las raíces racionales y, si hay raíces reales que no lo son, el aviso. */
     private record Ceros(List<Racional> valores, String aviso) {
     }
 
@@ -138,7 +121,6 @@ public record AnalisisDerivada(char variable, Expresion primera, Expresion segun
         return new Ceros(v, null);
     }
 
-    /** Grado impar, o grado 2 con discriminante ≥ 0. Con grado par mayor no se sabe: se dice que sí. */
     private static boolean tieneRaizReal(Polinomio q, char x) {
         int n = q.gradoEn(x);
         if (n % 2 == 1) {

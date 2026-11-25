@@ -19,7 +19,6 @@ import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 import pe.mathnova.domain.numeros.RaicesAproximadas;
 import pe.mathnova.domain.parser.Parser;
 
-/** Parte E: verificación exacta, numérica con 40 cifras y comparación de formas en R y C. */
 class VerificacionCampoTest {
 
     private static Polinomio p(String t) {
@@ -57,7 +56,6 @@ class VerificacionCampoTest {
 
     @Test
     void comparadorEnRyC() {
-        // El mismo resultado escrito de otra forma (orden, √3·i/2 o (√3/2)i) es igual; otro no.
         var a = ComparadorFactorizacion.leerEnCampo("(x + 1/2 + √3·i/2)(x + 1/2 - √3·i/2)");
         var b = ComparadorFactorizacion.leerEnCampo("(x + 1/2 - (√3/2)i)(x + 1/2 + (√3/2)i)");
         var c = ComparadorFactorizacion.leerEnCampo("(x + 1/2 - √3·i)(x + 1/2 + √3·i)");
@@ -85,7 +83,6 @@ class VerificacionCampoTest {
 
     @Test
     void durandKerner() {
-        // x^5 − x − 1: una raíz real; x^5 − 4x + 2: tres.
         assertEquals(List.of("1.1673039783"), RaicesAproximadas.reales(List.of(Racional.de(-1), Racional.de(-1),
                 Racional.CERO, Racional.CERO, Racional.CERO, Racional.UNO)).stream().map(RaicesAproximadas::texto).toList());
         assertEquals(5, RaicesAproximadas.raices(List.of(Racional.de(2), Racional.de(-4),

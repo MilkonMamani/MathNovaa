@@ -27,10 +27,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Tabla resolucion de V1. RN25: una sola fila por (ejercicio, operación, clave de parámetros).
- * V3 (Sprint 9): el texto que se resolvió, su LaTeX y el tema de la fila del Historial.
- */
 @Entity
 @Table(name = "resolucion")
 @Getter
@@ -49,7 +45,6 @@ public class ResolucionEntity {
     @Column(name = "operacion_codigo", nullable = false)
     private String operacionCodigo;
 
-    /** Q, R o C; solo para factorizar. */
     @Column(name = "campo")
     private String campo;
 
@@ -66,7 +61,6 @@ public class ResolucionEntity {
     @Column(name = "es_aproximado", nullable = false)
     private Boolean esAproximado = Boolean.FALSE;
 
-    /** HU08: el método forzado, o null en automático. */
     @Column(name = "tecnica_forzada")
     private String tecnicaForzada;
 
@@ -81,15 +75,12 @@ public class ResolucionEntity {
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn;
 
-    /** V3: el texto (sección 9) que se resolvió: "lim(x→2, …)", "d/dx(…)". Nulo en filas de antes de V3. */
     @Column(name = "entrada_texto")
     private String entradaTexto;
 
-    /** V3: la fórmula de la fila del Historial. */
     @Column(name = "entrada_latex")
     private String entradaLatex;
 
-    /** V3: el tema de esta resolución (Límites, Derivadas…). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tema_id")
     private TemaEntity tema;
@@ -98,17 +89,14 @@ public class ResolucionEntity {
     @OrderBy("orden")
     private List<PasoEntity> pasos = new ArrayList<>();
 
-    /** HU10: las sugerencias que se mostraron con esta resolución. */
     @OneToMany(mappedBy = "resolucion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden")
     private List<SugerenciaEntity> sugerencias = new ArrayList<>();
 
-    /** RN14, RN34: las restricciones de dominio que se mostraron con el resultado. */
     @OneToMany(mappedBy = "resolucion", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
     private List<RestriccionDominioEntity> restricciones = new ArrayList<>();
 
-    /** Tabla parametro_resolucion: variable, punto y lado de un límite. */
     @ElementCollection
     @CollectionTable(name = "parametro_resolucion", joinColumns = @JoinColumn(name = "resolucion_id"))
     @MapKeyColumn(name = "nombre")

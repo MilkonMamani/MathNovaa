@@ -7,19 +7,12 @@ import java.util.Optional;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F19: aspa doble especial para ax⁴ + bx³ + cx² + dx + e sin raíces racionales:
- * (a1x² + px + e1)(a2x² + qx + e2). Se descomponen los extremos (a = a1·a2, e = e1·e2), se ve
- * cuánto falta para el término x² y se reparte en la columna central (p·q), verificando las aspas
- * laterales: a1·q + a2·p = b (x³) y p·e2 + q·e1 = d (x).
- */
 public final class AspaDobleEspecial extends MetodoBase {
 
     public AspaDobleEspecial() {
         super("F19");
     }
 
-    /** Solo grado 4, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() == 4;
@@ -60,7 +53,6 @@ public final class AspaDobleEspecial extends MetodoBase {
         throw noAplica("Ninguna descomposición de los extremos deja correctas las aspas laterales");
     }
 
-    /** Valores (p, q) de la columna central que pueden cumplir las dos aspas laterales. */
     private static List<long[]> centrales(long a1, long a2, long e1, long e2, long b, long d, long falta) {
         List<long[]> r = new ArrayList<>();
         long det = a2 * e1 - a1 * e2;
@@ -128,7 +120,6 @@ public final class AspaDobleEspecial extends MetodoBase {
                 : pe.mathnova.domain.algebra.Monomio.de(x, e)));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Es de grado 4 y ningún divisor del término independiente lo anula: intenta partirlo en dos trinomios de grado 2 ajustando el término del medio.";

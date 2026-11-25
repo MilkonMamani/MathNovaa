@@ -23,31 +23,15 @@ import pe.mathnova.domain.expresion.Producto;
 import pe.mathnova.domain.expresion.Raiz;
 import pe.mathnova.domain.expresion.Suma;
 
-/**
- * Número exacto de la forma Σ racional × ⁿ√entero × (1 o i), como 1 + √2, ∛4 − 2∛2 o
- * −1/2 + (√3/2)i (i² = −1). Inmutable.
- *
- * <p>Cada término se guarda con su radical canónico (Radical con coeficiente 1). Los radicales de
- * enteros distintos y simplificados son linealmente independientes sobre Q, así que la forma es
- * única: equals compara de verdad (1 + √2 ≠ √3, (√2)² = 2). Lo que no cabe en esta forma (los radicales
- * anidados de Cardano y Ferrari, los cosenos del casus irreducibilis) va como {@link Atomo}: las
- * cuentas siguen siendo formales pero la igualdad ya no está garantizada, y {@link #exacto()} es false.
- */
 public final class NumeroAlgebraico {
 
     public static final NumeroAlgebraico CERO = new NumeroAlgebraico(new TreeMap<>());
     public static final NumeroAlgebraico UNO = de(Racional.UNO);
-    /** La unidad imaginaria. */
     public static final NumeroAlgebraico I = new NumeroAlgebraico(
             new TreeMap<>(Map.of(new Unidad(Radical.UNO, true, Collections.emptySortedMap()), Racional.UNO)));
 
-    /** Grado máximo del polinomio mínimo que se busca para invertir. */
     private static final int GRADO_INVERSO = 96;
 
-    /**
-     * La parte sin coeficiente de un término: un radical canónico, si lleva i y los átomos con su
-     * exponente.
-     */
     public record Unidad(Radical raiz, boolean imaginaria, SortedMap<Atomo, Integer> atomos)
             implements Comparable<Unidad> {
 
@@ -78,14 +62,11 @@ public final class NumeroAlgebraico {
                 .thenComparing(u -> u.atomos.toString());
     }
 
-    /** Unidad → coeficiente, sin ceros. */
     private final SortedMap<Unidad, Racional> terminos;
 
     private NumeroAlgebraico(SortedMap<Unidad, Racional> terminos) {
         this.terminos = terminos;
     }
-
-    // ------------------------------------------------------------------ construcción
 
     public static NumeroAlgebraico de(Racional r) {
         TreeMap<Unidad, Racional> t = new TreeMap<>();
@@ -107,12 +88,10 @@ public final class NumeroAlgebraico {
         return new NumeroAlgebraico(t);
     }
 
-    /** a + b·i con a y b racionales. */
     public static NumeroAlgebraico complejo(Racional a, Racional b) {
         return de(a).sumar(I.multiplicar(b));
     }
 
-    /** ⁿ√q. Con q < 0: si n es impar, −ⁿ√|q|; si n = 2, i·√|q|. */
     public static NumeroAlgebraico raiz(int n, Racional q) {
         if (q.signo() < 0 && n % 2 == 0) {
             if (n != 2) {
@@ -127,7 +106,6 @@ public final class NumeroAlgebraico {
         return raiz(n, Racional.de(q));
     }
 
-    /** Un átomo con coeficiente 1. */
     public static NumeroAlgebraico de(Atomo a) {
         TreeMap<Atomo, Integer> m = new TreeMap<>();
         m.put(a, 1);
@@ -135,8 +113,6 @@ public final class NumeroAlgebraico {
         t.put(new Unidad(Radical.UNO, false, m), Racional.UNO);
         return new NumeroAlgebraico(t);
     }
-
-    // ------------------------------------------------------------------ aritmética
 
     public NumeroAlgebraico sumar(NumeroAlgebraico o) {
         TreeMap<Unidad, Racional> r = new TreeMap<>(terminos);
@@ -187,7 +163,6 @@ public final class NumeroAlgebraico {
         return r.sumar(new NumeroAlgebraico(simples));
     }
 
-    /** factor × unidad × extra (extra es null si ningún átomo se redujo). */
     private record Producto2(Racional factor, Unidad unidad, NumeroAlgebraico extra) {
     }
 
@@ -228,7 +203,6 @@ public final class NumeroAlgebraico {
         return new Producto2(factor, Unidad.UNO, extra.multiplicar(new NumeroAlgebraico(uno)));
     }
 
-    /** Potencia entera; con exponente negativo, la del inverso. */
     public NumeroAlgebraico potencia(int n) {
         if (n < 0) {
             return inverso().potencia(-n);
@@ -248,13 +222,6 @@ public final class NumeroAlgebraico {
         return r;
     }
 
-    /**
-     * 1/z, racionalizado: 1/√2 = √2/2 (RN29), 1/(1 + √2) = −1 + √2, 1/(1 + 2i) = 1/5 − (2/5)i.
-     * Con un solo término se usa que alguna potencia es racional; si no, se busca el polinomio mínimo
-     * c₀ + c₁z + … + zᵏ = 0 y z⁻¹ = −(c₁ + c₂z + … + zᵏ⁻¹)/c₀.
-     *
-     * @throws ArithmeticException si z es cero o no se puede invertir de forma exacta
-     */
     public NumeroAlgebraico inverso() {
         if (esCero()) {
             throw new ArithmeticException("División entre cero");
@@ -281,9 +248,7 @@ public final class NumeroAlgebraico {
         return r.multiplicar(c.getFirst().inverso().negar());
     }
 
-    /** Coeficientes c₀…cₖ (cₖ = 1) del primer polinomio en Q que anula a z. */
     public List<Racional> polinomioMinimo() {
-        // Eliminación gaussiana sobre las potencias 1, z, z², … expresadas en sus unidades.
         List<Map<Unidad, Racional>> filas = new ArrayList<>();
         List<Unidad> pivotes = new ArrayList<>();
         List<Racional[]> combinaciones = new ArrayList<>();
@@ -328,14 +293,12 @@ public final class NumeroAlgebraico {
         return multiplicar(k.inverso());
     }
 
-    /** El conjugado complejo: cambia el signo de los términos con i. */
     public NumeroAlgebraico conjugar() {
         TreeMap<Unidad, Racional> r = new TreeMap<>();
         terminos.forEach((u, c) -> r.put(u, u.imaginaria() ? c.negar() : c));
         return new NumeroAlgebraico(r);
     }
 
-    /** Los términos sin i. */
     public NumeroAlgebraico parteReal() {
         TreeMap<Unidad, Racional> r = new TreeMap<>();
         terminos.forEach((u, c) -> {
@@ -346,7 +309,6 @@ public final class NumeroAlgebraico {
         return new NumeroAlgebraico(r);
     }
 
-    /** b en a + b·i (real). */
     public NumeroAlgebraico parteImaginaria() {
         TreeMap<Unidad, Racional> r = new TreeMap<>();
         terminos.forEach((u, c) -> {
@@ -357,13 +319,6 @@ public final class NumeroAlgebraico {
         return new NumeroAlgebraico(r);
     }
 
-    // ------------------------------------------------------------------ raíces
-
-    /**
-     * √z. Un racional da un radical (√−4 = 2i); a + b√c se desanida si a² − b²c es un cuadrado
-     * (√(3 + 2√2) = 1 + √2); un complejo usa √(a + bi) = √((|z| + a)/2) ± i√((|z| − a)/2). Lo
-     * demás queda anidado: √(1 + 4√2).
-     */
     public NumeroAlgebraico raizCuadrada() {
         if (esCero()) {
             return CERO;
@@ -389,7 +344,6 @@ public final class NumeroAlgebraico {
         return raizReal(2);
     }
 
-    /** √(a + b√c) = √m + signo(b)·√n si a² − b²c = d² y m, n = (a ± d)/2 ≥ 0. */
     private NumeroAlgebraico desanidar() {
         if (terminos.size() > 2 || !exacto()) {
             return null;
@@ -429,15 +383,10 @@ public final class NumeroAlgebraico {
         return raiz(2, m).sumar(b.signo() < 0 ? sn.negar() : sn);
     }
 
-    /** ∛z real (z real). */
     public NumeroAlgebraico raizCubicaReal() {
         return raizReal(3);
     }
 
-    /**
-     * La raíz n-ésima real de un z real (positivo si n es par). Un racional o un solo radical dan un
-     * radical; lo demás queda como átomo ⁿ√(z), con el signo afuera si n es impar.
-     */
     public NumeroAlgebraico raizReal(int n) {
         if (!esReal()) {
             throw new ArithmeticException("La raíz real necesita un número real: " + this);
@@ -452,7 +401,6 @@ public final class NumeroAlgebraico {
             var t = terminos.entrySet().iterator().next();
             Radical r = t.getKey().raiz();
             Racional c = t.getValue();
-            // (c·ᵐ√R)^(1/n) = ⁿᵐ√(cᵐ·R)
             if (c.signo() < 0 && n % 2 == 0) {
                 throw new ArithmeticException("Raíz par de un negativo: " + this);
             }
@@ -468,8 +416,6 @@ public final class NumeroAlgebraico {
         return de(Atomo.raiz(n, this));
     }
 
-    // ------------------------------------------------------------------ consultas
-
     public boolean esCero() {
         return terminos.isEmpty();
     }
@@ -478,7 +424,6 @@ public final class NumeroAlgebraico {
         return terminos.isEmpty() || terminos.size() == 1 && terminos.firstKey().esUno();
     }
 
-    /** @throws ArithmeticException si no es racional */
     public Racional aRacional() {
         if (!esRacional()) {
             throw new ArithmeticException(this + " no es racional");
@@ -486,31 +431,22 @@ public final class NumeroAlgebraico {
         return terminos.isEmpty() ? Racional.CERO : terminos.get(Unidad.UNO);
     }
 
-    /** Sin términos con i. */
     public boolean esReal() {
         return terminos.keySet().stream().noneMatch(Unidad::imaginaria);
     }
 
-    /** Sin átomos: la igualdad y el signo son exactos. */
     public boolean exacto() {
         return terminos.keySet().stream().allMatch(u -> u.atomos().isEmpty());
     }
 
-    /** Si algún término lleva un radical de índice ≥ 2 o un átomo. */
     public boolean tieneRadicales() {
         return terminos.keySet().stream().anyMatch(u -> !u.raiz().esRacional() || !u.atomos().isEmpty());
     }
 
-    /** Los términos: unidad → coeficiente. */
     public SortedMap<Unidad, Racional> terminos() {
         return Collections.unmodifiableSortedMap(terminos);
     }
 
-    /**
-     * Signo de un número real: −1, 0 o 1. Sin átomos es exacto: se encierra cada radical entre dos
-     * racionales cada vez más cercanos (raíz entera de R·10ⁿᵈ) hasta que la suma no toque el cero.
-     * Con átomos se evalúa con 60 cifras.
-     */
     public int signo() {
         if (!esReal()) {
             throw new ArithmeticException("Un complejo no tiene signo: " + this);
@@ -536,7 +472,6 @@ public final class NumeroAlgebraico {
         throw new ArithmeticException("No se pudo decidir el signo de " + this);
     }
 
-    /** [mínimo, máximo] racionales que encierran el valor (real y sin átomos). */
     Racional[] intervalo(int digitos) {
         BigInteger escala = BigInteger.TEN.pow(digitos);
         Racional bajo = Racional.CERO;
@@ -560,17 +495,10 @@ public final class NumeroAlgebraico {
         return new Racional[] {bajo, alto};
     }
 
-    /** Compara dos reales. */
     public int comparar(NumeroAlgebraico o) {
         return restar(o).signo();
     }
 
-    // ------------------------------------------------------------------ texto
-
-    /**
-     * Árbol para imprimir: "1 + √2", "-∛4 + 2·∛2", "1/2 + √3·i/2", "5·i/2", "√(1 + 4·√2)/2".
-     * Primero la parte racional, luego los radicales y al final los términos con i.
-     */
     public Expresion aExpresion() {
         if (terminos.isEmpty()) {
             return Constante.de(0);

@@ -7,18 +7,12 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F15: quita y pon. En ax²ᵐ + bxᵐ + c con a y c cuadrados, se suma y se resta lo que falta para un
- * trinomio cuadrado perfecto (√a·xᵐ ± √c)²; si lo que se resta es un cuadrado k²xᵐ, queda una
- * diferencia de cuadrados: x⁴ + 4 = (x² + 2)² − (2x)² = (x² + 2x + 2)(x² − 2x + 2).
- */
 public final class QuitaYPon extends MetodoBase {
 
     public QuitaYPon() {
         super("F15");
     }
 
-    /** Solo grado 4k con tres términos o menos, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 4 && p.grado() % 4 == 0 && p.terminos().size() <= 3;
@@ -49,7 +43,6 @@ public final class QuitaYPon extends MetodoBase {
         Racional t = Termino.raiz(c, 2).orElseThrow(() -> noAplica(Formato.numero(c) + " no es un cuadrado perfecto"));
         Racional dosST = s.multiplicar(t).multiplicar(Racional.de(2));
         for (boolean mas : List.of(true, false)) {
-            // (s·xᵐ ± t)² − p = (±2st − b)·xᵐ
             Racional d = (mas ? dosST : dosST.negar()).restar(b);
             if (d.signo() <= 0) {
                 continue;
@@ -85,7 +78,6 @@ public final class QuitaYPon extends MetodoBase {
         return resultado(justificacion, p, factores, trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Le falta poco para ser un cuadrado perfecto: suma y resta el mismo término para completarlo.";

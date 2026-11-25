@@ -5,14 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Aplica las reglas RN15–RN19 a lo que se resolvió (RF21). RN20: nada que el sistema todavía no
- * resuelve se ofrece como disponible. Desde el Sprint 6 las derivadas (RN18) y las integrales (RN16, RN17,
- * RN18) también se resuelven.
- */
 public final class MotorSugerencias {
 
-    /** Las operaciones que el sistema ya resuelve. */
     public static final Set<String> DISPONIBLES = Set.of("LIMITE", "ASINTOTAS", "INTEGRAR", "PUNTOS_CRITICOS",
             "DERIVADA_PARCIAL", "GRADIENTE", "EXTREMOS", "INTEGRAL_MULTIPLE");
 
@@ -27,10 +21,6 @@ public final class MotorSugerencias {
         this(reglas, s -> true);
     }
 
-    /**
-     * RN20 con el motor a la vista: una sugerencia solo queda disponible si {@code seResuelve} dice que su
-     * plantilla se resuelve de verdad (una integral que ningún método resuelve queda desactivada).
-     */
     public MotorSugerencias(java.util.function.Predicate<Sugerencia> seResuelve) {
         this(Reglas.todas(), seResuelve);
     }
@@ -40,7 +30,6 @@ public final class MotorSugerencias {
         this.seResuelve = Objects.requireNonNull(seResuelve, "seResuelve");
     }
 
-    /** RN41 para una f de varias variables que no pasó por una factorización (una parcial, un gradiente). */
     public static List<Sugerencia> paraVariasVariables(pe.mathnova.domain.expresion.Expresion f) {
         List<Sugerencia> r = new ArrayList<>();
         for (Sugerencia s : ParcialesDeVariasVariables.de(f)) {
@@ -59,7 +48,7 @@ public final class MotorSugerencias {
             try {
                 s = regla.aplica(resuelto);
             } catch (RuntimeException e) {
-                continue; // una regla que falla no impide las demás
+                continue;
             }
             for (Sugerencia x : s) {
                 boolean disponible = x.disponible() && DISPONIBLES.contains(x.operacion());

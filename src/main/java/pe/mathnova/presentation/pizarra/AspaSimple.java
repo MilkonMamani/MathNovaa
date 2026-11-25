@@ -19,16 +19,6 @@ import pe.mathnova.presentation.latex.TextoLatex;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.Igualdades;
 
-/**
- * F12 y F13: el aspa simple como en el cuaderno, con tipografía matemática.
- * <pre>
- *   x  ╲╱  −2      x·(−3) = −3x
- *   x  ╱╲  −3      x·(−2) = −2x
- *                  −3x − 2x = −5x ✓
- * </pre>
- * Debajo, la descomposición del término central con los productos cruzados, la agrupación y los factores,
- * con los "=" alineados: x² − 5x + 6 = x² − 2x − 3x + 6 = x(x − 2) − 3(x − 2) = (x − 2)(x − 3).
- */
 public final class AspaSimple extends VBox {
 
     private static final double ANCHO_CRUCE = 56;
@@ -56,7 +46,6 @@ public final class AspaSimple extends VBox {
         Igualdades productos = Igualdades.deTextos(cuentas, Pizarra.TAMANO - 2, Pizarra.TAMANO_MINIMO - 1);
         productos.getStyleClass().add("aspa-productos");
 
-        // El aspa y sus productos lado a lado; si la pizarra se angosta, los productos bajan.
         javafx.scene.layout.FlowPane fila = new javafx.scene.layout.FlowPane(28, 10, aspa, productos);
         fila.setRowValignment(javafx.geometry.VPos.CENTER);
         fila.setMinWidth(0);
@@ -73,10 +62,6 @@ public final class AspaSimple extends VBox {
         return modelo;
     }
 
-    /**
-     * La descomposición, la agrupación y los factores en LaTeX, tres renglones; vacía en el aspa homogénea.
-     * Con (a₁x + c₁)(a₂x + c₂): a₁a₂x² + a₂c₁x + a₁c₂x + c₁c₂ = a₂x(a₁x + c₁) + c₂(a₁x + c₁).
-     */
     public static List<String> cadena(TrabajoIntermedio.AspaSimple a) {
         if (a.segunda() != 0) {
             return List.of();
@@ -97,7 +82,6 @@ public final class AspaSimple extends VBox {
         return List.of(original + " = " + descompuesto, "= " + agrupado, "= " + factores);
     }
 
-    /** "+ 3x", "− 2", "x²"; con {@code factor} un coeficiente ±1 se escribe solo con su signo: "− (x − 2)". */
     private static String termino(Racional c, String letra, boolean primero, boolean factor) {
         if (c.esCero()) {
             return "";
@@ -125,7 +109,6 @@ public final class AspaSimple extends VBox {
         return caja;
     }
 
-    /** Dos líneas cruzadas: de cada término de la izquierda al de la otra fila a la derecha. */
     private static Pane cruce() {
         Line a = new Line(6, 8, ANCHO_CRUCE - 6, ALTO_CRUCE - 8);
         Line b = new Line(6, ALTO_CRUCE - 8, ANCHO_CRUCE - 6, 8);

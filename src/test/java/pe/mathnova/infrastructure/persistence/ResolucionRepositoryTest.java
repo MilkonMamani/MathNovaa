@@ -20,7 +20,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.parser.Parser;
 
-/** RN24 y RN25 sobre la base de prueba de target/. Cada prueba se deshace al terminar. */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class ResolucionRepositoryTest {

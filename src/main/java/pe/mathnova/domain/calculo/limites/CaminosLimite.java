@@ -17,27 +17,14 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.factorizacion.FactorizadorFunciones;
 import pe.mathnova.domain.factorizacion.SimplificadorFracciones;
 
-/**
- * Exploración de un límite (Sprint 5): el método que dio el resultado y, para cada uno de los otros,
- * si también llega al mismo valor (con una línea de vista previa) o por qué no aplica. Cada camino se
- * comprueba de verdad: se vuelve a resolver con ese método forzado ({@link MotorLimites#resolver(Limite, String)}).
- * La tabla de valores siempre sirve como comprobación numérica.
- */
 public final class CaminosLimite {
 
-    /** El código de la tabla de valores: no es un método del motor, pero es otro camino. */
     public static final String TABLA = "TABLA";
 
-    /** Los métodos que se pueden forzar, en el orden de la cascada (RN21, RN35). */
     private static final List<String> FORZABLES = List.of("L02", "L03", "L04", "L06", "L07");
 
     public enum Estado { USADO, SIRVE, NO_APLICA }
 
-    /**
-     * @param codigo "L02"…"L07" o {@link #TABLA}
-     * @param texto  la vista previa si sirve ("(2x)/1 en x = 2 → 4"), el motivo si no aplica, o null si
-     *               es el usado
-     */
     public record Camino(String codigo, Estado estado, String texto) {
         public Camino {
             Objects.requireNonNull(codigo, "codigo");
@@ -91,7 +78,6 @@ public final class CaminosLimite {
         return caminos;
     }
 
-    /** El método forzado llega al mismo valor: su línea de vista previa. */
     private Optional<String> vistaPrevia(String codigo, Limite l, ResultadoLimite esperado) {
         ResolucionLimite rc;
         try {
@@ -117,7 +103,6 @@ public final class CaminosLimite {
         });
     }
 
-    /** "(2x)/1 en x = 2": el primer cociente al que se aplicó L'Hôpital, derivado arriba y abajo. */
     private static Optional<String> lhopital(ResolucionLimite rc, Limite l) {
         return rc.pasos().stream().filter(p -> p.codigo().equals("L07") && p.antes() instanceof Cociente)
                 .findFirst().map(p -> {
@@ -157,7 +142,6 @@ public final class CaminosLimite {
         };
     }
 
-    /** "en x = 2", "cuando x → ∞". */
     private static String punto(Limite l) {
         return switch (l.punto()) {
             case Limite.Finito f -> "en " + l.variable() + " = " + texto(f.valor());

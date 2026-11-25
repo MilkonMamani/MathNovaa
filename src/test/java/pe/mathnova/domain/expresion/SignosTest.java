@@ -11,11 +11,6 @@ import pe.mathnova.domain.calculo.integrales.ResolucionIntegral;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Una suma escribe un solo operador por término (x − 3, no x + −3), en la pizarra, en LaTeX y en el texto de
- * los pasos. Los árboles se arman a mano con la forma que dejan los motores (Constante(−3), (−2)·x), que el
- * parser no produce al leer "x - 3".
- */
 class SignosTest {
 
     private static final Variable X = new Variable('x');
@@ -57,7 +52,6 @@ class SignosTest {
 
     @Test
     void restarUnNegativoEsSumar() {
-        // x − (−3): los dos menos se cancelan
         tres(new Suma(X, new Negacion(k(-3))), "x + 3", "x + 3", "x + 3");
         tres(new Suma(X, new Negacion(por(-2, X))), "x + 2x", "x + 2x", "x + 2x");
     }
@@ -83,13 +77,10 @@ class SignosTest {
                 new Suma(new Potencia(X, k(2)), por(-2, X), k(-3)));
         assertEquals("(5x − 3)/(x² − 2x − 3)", ImpresoraPizarra.imprimir(frac));
         assertEquals("\\frac{5x - 3}{x^{2} - 2x - 3}", ImpresoraLatex.imprimir(frac));
-        // x + (−3)/(x + 1): la fracción negativa se resta
         Expresion resta = new Suma(X, new Cociente(k(-3), new Suma(X, k(1))));
         assertEquals("x − 3/(x + 1)", ImpresoraPizarra.imprimir(resta));
         assertEquals("x - \\frac{3}{x + 1}", ImpresoraLatex.imprimir(resta));
-        // x·(−2x): el factor negativo conserva su paréntesis
         assertEquals("x\\left(-2x\\right)", ImpresoraLatex.imprimir(new Producto(X, por(-2, X))));
-        // −(−2x): nunca dos signos seguidos
         assertEquals("−(−2x)", ImpresoraPizarra.imprimir(new Negacion(por(-2, X))));
     }
 
@@ -119,7 +110,6 @@ class SignosTest {
 
     @Test
     void elMasMenosConservaSuSignificado() {
-        // La fórmula cuadrática de los pasos (texto de pizarra) conserva el ± y el menos de −b
         String formula = pe.mathnova.presentation.latex.TextoLatex.convertir("x = (−b ± √(b² − 4ac))/(2a)");
         assertEquals("x = \\frac{-b \\pm \\sqrt{b^{2} - 4ac}}{2a}", formula);
         Expresion menosB = new Suma(new Negacion(new Variable('b')), new Raiz(2, new Variable('d')));
@@ -128,7 +118,6 @@ class SignosTest {
 
     @Test
     void unaFraccionConCoeficienteNegativoSeResta() {
-        // (8/3)ln|x − 1| − (1/3)ln|x + 2| con el segundo coeficiente negativo en el numerador
         Expresion e = new Suma(new Cociente(new Producto(k(8), ln(abs(new Suma(X, k(-1))))), k(3)),
                 new Cociente(new Producto(k(-1), ln(abs(new Suma(X, k(2))))), k(3)));
         assertEquals("(8/3)ln|x − 1| − (1/3)ln|x + 2|", ImpresoraPizarra.imprimir(e));

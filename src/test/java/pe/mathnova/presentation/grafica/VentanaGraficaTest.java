@@ -16,7 +16,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.SimplificadorFracciones;
 import pe.mathnova.domain.parser.Parser;
 
-/** HU35: ventana inicial, puntos exactos y curva cortada en las asíntotas, sin abrir la ventana. */
 class VentanaGraficaTest {
 
     private final OrquestadorFactorizacion motor = new OrquestadorFactorizacion();
@@ -39,7 +38,6 @@ class VentanaGraficaTest {
                 () -> assertTrue(v.contiene(2, 0), "raíz 2"),
                 () -> assertTrue(v.contiene(3, 0), "raíz 3"),
                 () -> assertTrue(v.contiene(2.5, -0.25), "vértice"),
-                // de la raíz menor a la mayor con un 30 % de margen a cada lado
                 () -> assertEquals(1.7, v.xMin(), 1e-9),
                 () -> assertEquals(3.3, v.xMax(), 1e-9));
     }
@@ -53,7 +51,6 @@ class VentanaGraficaTest {
 
     @Test
     void enYSeRecortaAMasMenosCincuenta() {
-        // 1/(x − 1) se dispara cerca de 1: la ventana no pasa de ±50 (más un pequeño aire).
         VentanaGrafica v = VentanaGrafica.inicial(fraccion("(x + 1)/(x^2 - 1)"));
         assertTrue(v.yMax() <= 50 * 1.25 && v.yMin() >= -50 * 1.25, v.toString());
     }
@@ -70,7 +67,6 @@ class VentanaGraficaTest {
                 .filter(r -> r.valor().equals(Racional.UNO)).findFirst().orElseThrow().multiplicidad(), "raíz doble");
     }
 
-    /** (x² − 4)/(x² + x − 6) = (x + 2)/(x + 3): asíntota en −3 y hueco en x = 2. */
     @Test
     void racionalConAsintotaYHueco() {
         DatosGrafica d = fraccion("(x^2 - 4)/(x^2 + x - 6)");
@@ -82,10 +78,9 @@ class VentanaGraficaTest {
                 () -> assertEquals(Racional.de(2, 3), d.corteY().orElseThrow()));
     }
 
-    /** C.7: ningún trazo une las dos ramas de una asíntota. */
     @Test
     void laCurvaSeCortaEnLaAsintota() {
-        DatosGrafica d = fraccion("(x + 1)/(x^2 - 1)"); // 1/(x − 1)
+        DatosGrafica d = fraccion("(x + 1)/(x^2 - 1)");
         List<List<double[]>> trazos = TrazadoCurva.trazos(d.funcion(), -3, 5, 801, List.of(1.0), -200, 200);
         assertTrue(trazos.size() >= 2, "al menos una rama a cada lado");
         for (List<double[]> t : trazos) {

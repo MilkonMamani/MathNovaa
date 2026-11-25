@@ -13,10 +13,6 @@ import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Definición de terminado 1 del Sprint 2: las 131 filas con método principal F01 a F13 (campo Q)
- * se factorizan como dice el banco, comparando por estructura con ComparadorFactorizacion.
- */
 class BancoSprint2Test {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -39,7 +35,6 @@ class BancoSprint2Test {
                         + " (banco: " + f.resultadoSinNota() + ")");
     }
 
-    /** El texto del motor se vuelve a leer y, al expandirlo, da la entrada (HU18). */
     @ParameterizedTest(name = "{0}")
     @MethodSource("filas")
     void elTextoSeVuelveALeer(BancoCsv.Fila f) {

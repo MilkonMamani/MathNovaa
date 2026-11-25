@@ -1,24 +1,6 @@
-﻿# Arma la carpeta portable de MathNova para Windows x64, lista para copiar por USB y usar sin internet:
-#
-#   dist\MathNova\
-#     MathNova.exe            lanzador (jpackage) con su propio Java: no hace falta instalar Java
-#     app\  runtime\          la aplicación y el runtime de Java
-#     reconocedor\
-#       python\               Python 3.11 embebible con torch (CPU), transformers y UniMERNet
-#       servidor\             servidor_unimernet.py (proceso local, stdin/stdout)
-#       modelo\unimernet_small\  pesos, tokenizador y configuración
-#     LICENCIAS\              licencias y avisos de lo que se redistribuye
-#     MANIFIESTO.txt          versiones, fuentes y SHA-256 del modelo
-#
-# Requisitos (solo en la máquina de desarrollo): JDK 21+ con jpackage en el PATH o en JAVA_HOME, y el
-# reconocedor preparado con reconocedor\preparar\preparar-reconocedor.ps1.
-#
-# Uso (desde la raíz del repositorio):
-#   powershell -ExecutionPolicy Bypass -File scripts\empaquetar-windows.ps1 [-Zip] [-SinPruebas]
-param(
+﻿param(
     [switch]$Zip,
     [switch]$SinPruebas,
-    # Dónde queda la carpeta MathNova. Debe ser una ruta corta: hay archivos a 190 caracteres de ella.
     [string]$Destino
 )
 $ErrorActionPreference = 'Stop'
@@ -39,7 +21,6 @@ if ($env:JAVA_HOME -and (Test-Path (Join-Path $env:JAVA_HOME 'bin\jpackage.exe')
     $jpackage = Join-Path $env:JAVA_HOME 'bin\jpackage.exe'
 }
 
-# 1. La aplicación (jar ejecutable de Spring Boot).
 $mvnArgs = @('-q', 'package')
 if ($SinPruebas) { $mvnArgs += '-DskipTests' }
 & (Join-Path $repo 'mvnw.cmd') @mvnArgs
@@ -50,7 +31,6 @@ if (Test-Path $entrada) { Remove-Item -Recurse -Force $entrada }
 New-Item -ItemType Directory $entrada | Out-Null
 Copy-Item $jar.FullName $entrada
 
-# 2. jpackage: carpeta de la aplicación con su runtime de Java.
 if (Test-Path $app) { Remove-Item -Recurse -Force $app }
 & $jpackage --type app-image --name MathNova --app-version 0.2.0 --vendor 'MathNova' `
     --input $entrada --main-jar $jar.Name --dest $dist `
@@ -58,7 +38,6 @@ if (Test-Path $app) { Remove-Item -Recurse -Force $app }
     --java-options '-Dmathnova.reconocedor=unimernet'
 if ($LASTEXITCODE -ne 0) { throw 'jpackage falló' }
 
-# 3. El reconocedor junto al .exe (sin lo que solo sirve para compilar).
 $destRec = Join-Path $app 'reconocedor'
 New-Item -ItemType Directory -Force $destRec | Out-Null
 robocopy (Join-Path $rec 'python') (Join-Path $destRec 'python') /E /NFL /NDL /NJH /NJS /NP `
@@ -69,15 +48,11 @@ robocopy (Join-Path $rec 'modelo\unimernet_small') (Join-Path $destRec 'modelo\u
     /NFL /NDL /NJH /NJS /NP | Out-Null
 robocopy (Join-Path $rec 'pruebas') (Join-Path $destRec 'pruebas') *.json /NFL /NDL /NJH /NJS /NP | Out-Null
 if ($LASTEXITCODE -ge 8) { throw 'robocopy falló' }
-# Los scripts de conversión de checkpoints de transformers nunca se importan al usar el modelo y tienen
-# los nombres más largos: quitarlos da margen frente al límite de 260 caracteres de las rutas de Windows.
 Get-ChildItem (Join-Path $destRec 'python\Lib\site-packages\transformers\models') -Recurse -File -Filter 'convert_*' |
     Remove-Item -Force
 $largo = (Get-ChildItem $app -Recurse -File | ForEach-Object { $_.FullName.Length - $app.Length } | Measure-Object -Maximum).Maximum
 Write-Host "Ruta relativa más larga: $largo caracteres (la carpeta de MathNova puede medir hasta $(259 - $largo))"
 
-
-# 4. Licencias y avisos.
 $lic = Join-Path $app 'LICENCIAS'
 New-Item -ItemType Directory -Force $lic | Out-Null
 Copy-Item (Join-Path $repo 'reconocedor\AVISOS.txt') $lic
@@ -85,13 +60,10 @@ Copy-Item (Join-Path $rec 'LICENSE-UniMERNet.txt') (Join-Path $lic 'UniMERNet-LI
 Copy-Item (Join-Path $rec 'python\LICENSE.txt') (Join-Path $lic 'Python-3.11-LICENSE.txt')
 Copy-Item (Join-Path $repo 'src\main\resources\editor\MATHLIVE-LICENSE.txt') $lic
 Copy-Item (Join-Path $repo 'src\main\resources\editor\fonts\KATEX-LICENSE.txt') $lic
-# Las licencias de cada paquete de Python (dist-info) quedan dentro de reconocedor\python\Lib\site-packages;
-# aquí va la lista con su versión y licencia declarada.
 $py = Join-Path $destRec 'python\python.exe'
 & $py -I (Join-Path $rec 'preparar\listar_paquetes.py') (Join-Path $lic 'paquetes-python.txt')
 if ($LASTEXITCODE -ne 0) { throw 'No se pudo listar los paquetes de Python' }
 
-# 5. Manifiesto: versiones, fuentes y sumas del modelo.
 $m = New-Object System.Collections.Generic.List[string]
 $m.Add('MathNova - paquete portable para Windows x64 (solo CPU, sin red)')
 $m.Add("Generado: $(Get-Date -Format s)")
@@ -114,7 +86,6 @@ Write-Host ("Carpeta portable: {0}  ({1:N0} MB)" -f $app, ($bytes / 1MB))
 if ($Zip) {
     $zipPath = Join-Path $dist 'MathNova-portable-win64.zip'
     if (Test-Path $zipPath) { Remove-Item $zipPath }
-    # tar de Windows 10+ maneja archivos de más de 2 GB mejor que Compress-Archive.
     & tar.exe -a -c -f $zipPath -C $dist MathNova
     Write-Host ("Zip: {0}  ({1:N0} MB)" -f $zipPath, ((Get-Item $zipPath).Length / 1MB))
 }

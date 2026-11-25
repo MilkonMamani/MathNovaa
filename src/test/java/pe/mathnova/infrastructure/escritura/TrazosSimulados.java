@@ -7,18 +7,8 @@ import java.util.Random;
 import pe.mathnova.domain.escritura.Punto;
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * SOLO PARA PRUEBAS TÉCNICAS: trazos SIMULADOS (no son escritura de una persona). Cada símbolo es una
- * polilínea dibujada a mano alzada en una cuadrícula, con un temblor aleatorio fijo (semilla), puntos cada
- * ~2 px y tiempos crecientes, como los que deja el lienzo. Sirven para probar el camino completo
- * trazos → imagen → modelo → editor → Resolver; no miden cuán bien lee el modelo la letra real.
- *
- * <p>Coordenadas de los glifos: x hacia la derecha, y hacia arriba, la línea base en y = 0 y la altura de
- * un dígito = 1. {@link Lienzo} las pasa a píxeles del lienzo (y hacia abajo).
- */
 public final class TrazosSimulados {
 
-    /** Un lienzo donde se van colocando símbolos. */
     public static final class Lienzo {
         private final double escala;
         private final double baseY;
@@ -27,11 +17,6 @@ public final class TrazosSimulados {
         private double x;
         private long t;
 
-        /**
-         * @param escala píxeles por unidad (alto de un dígito)
-         * @param x0     dónde empieza, en píxeles
-         * @param baseY  la línea base, en píxeles desde arriba
-         */
         public Lienzo(double escala, double x0, double baseY, long semilla) {
             this.escala = escala;
             this.x = x0;
@@ -43,7 +28,6 @@ public final class TrazosSimulados {
             return List.copyOf(trazos);
         }
 
-        /** Un símbolo en la posición actual, con tamaño {@code s} y elevado {@code dy} (unidades). */
         public Lienzo simbolo(char c, double s, double dy) {
             Glifo g = glifo(c);
             for (double[][] linea : g.lineas) {
@@ -57,7 +41,6 @@ public final class TrazosSimulados {
             return simbolo(c, 1, 0);
         }
 
-        /** Varios símbolos seguidos, tamaño normal. */
         public Lienzo texto(String s) {
             for (char c : s.toCharArray()) {
                 simbolo(c);
@@ -65,7 +48,6 @@ public final class TrazosSimulados {
             return this;
         }
 
-        /** Exponente: más chico y arriba. */
         public Lienzo exponente(String s) {
             for (char c : s.toCharArray()) {
                 simbolo(c, 0.55, 0.75);
@@ -74,7 +56,6 @@ public final class TrazosSimulados {
             return this;
         }
 
-        /** Un espacio de {@code u} unidades. */
         public Lienzo espacio(double u) {
             x += u * escala;
             return this;
@@ -84,20 +65,17 @@ public final class TrazosSimulados {
             return x;
         }
 
-        /** Mueve la pluma a {@code xPx} (píxeles). */
         public Lienzo irA(double xPx) {
             x = xPx;
             return this;
         }
 
-        /** Una raya horizontal de {@code x0} a {@code x1} (píxeles) a la altura {@code y} (unidades). */
         public Lienzo raya(double x0, double x1, double y) {
             double[][] l = {{0, y}, {(x1 - x0) / escala, y}};
             trazo(l, x0, 0, 1);
             return this;
         }
 
-        /** Una polilínea libre (unidades), con origen en {@code xPx}. */
         public Lienzo polilinea(double xPx, double[][] l) {
             trazo(l, xPx, 0, 1);
             return this;
@@ -105,7 +83,6 @@ public final class TrazosSimulados {
 
         private void trazo(double[][] linea, double ox, double dy, double s) {
             List<Punto> ps = new ArrayList<>();
-            // Un temblor suave por trazo (desplazamiento) y otro por punto.
             double jx = azar.nextGaussian() * 0.015;
             double jy = azar.nextGaussian() * 0.015;
             for (int i = 0; i + 1 < linea.length; i++) {
@@ -123,7 +100,7 @@ public final class TrazosSimulados {
                     t += 8;
                 }
             }
-            t += 180; // levanta el lápiz
+            t += 180;
             trazos.add(new Trazo(ps));
         }
     }
@@ -170,9 +147,6 @@ public final class TrazosSimulados {
         };
     }
 
-    // ------------------------------------------------------------------ los casos de prueba
-
-    /** A. 3x² + 2x − 1 */
     public static List<Trazo> casoA(double escala, long semilla) {
         Lienzo l = new Lienzo(escala, 20, 2.0 * escala, semilla);
         l.texto("3x").exponente("2").espacio(0.15).texto("+").espacio(0.15).texto("2x").espacio(0.15).texto("-")
@@ -180,27 +154,23 @@ public final class TrazosSimulados {
         return l.trazos();
     }
 
-    /** B. ∫ 2x dx */
     public static List<Trazo> casoB(double escala, long semilla) {
         Lienzo l = new Lienzo(escala, 20, 2.1 * escala, semilla);
         l.simbolo('∫').espacio(0.1).texto("2x").espacio(0.3).texto("dx");
         return l.trazos();
     }
 
-    /** C. ∫ de 0 a 1 de 2x dx */
     public static List<Trazo> casoC(double escala, long semilla) {
         Lienzo l = new Lienzo(escala, 20, 2.3 * escala, semilla);
         double x0 = l.x();
         l.simbolo('∫');
         double despues = l.x();
-        // Los límites a la derecha de los extremos del ∫, como se escriben a mano.
         l.irA(x0 + 0.75 * escala).simbolo('1', 0.5, 1.35);
         l.irA(x0 + 0.3 * escala).simbolo('0', 0.5, -0.85);
         l.irA(despues + 0.35 * escala).texto("2x").espacio(0.3).texto("dx");
         return l.trazos();
     }
 
-    /** D. (x + 1)/(x − 1) como fracción vertical. */
     public static List<Trazo> casoD(double escala, long semilla) {
         double base = 2.3 * escala;
         Lienzo arriba = new Lienzo(escala, 20, base - 0.75 * escala, semilla);
@@ -217,7 +187,6 @@ public final class TrazosSimulados {
         return r;
     }
 
-    /** E. √(x² + 1): la raíz abarca toda la suma. */
     public static List<Trazo> casoE(double escala, long semilla) {
         Lienzo l = new Lienzo(escala, 20, 2.1 * escala, semilla);
         double x0 = l.x();

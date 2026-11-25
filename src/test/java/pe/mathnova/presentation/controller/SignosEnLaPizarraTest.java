@@ -31,17 +31,12 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.latex.VistaLatex;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/**
- * Ninguna fórmula de "Resolver" (pasos, desarrollos, resultado, comprobación y pestañas) escribe dos signos
- * seguidos: x − 3, no x + −3. Las comprobaciones aritméticas con paréntesis, como "1 + (−3) = −2", sí valen.
- */
 class SignosEnLaPizarraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
     private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
-    /** Un signo seguido de otro: "+ −", "+ -", "− −", "- -". */
     private static final Pattern DOBLE = Pattern.compile("[+\\-−]\\s*[\\-−]");
 
     private static final class Preferencias extends ConfiguracionService {
@@ -121,7 +116,6 @@ class SignosEnLaPizarraTest {
                 ((TitledPane) n).setExpanded(true);
             }
             juntar(raiz[0], textos);
-            // las demás pestañas (Análisis, Comprobación, …)
             for (Node b : raiz[0].lookupAll(".toggle-button")) {
                 if (b instanceof ToggleButton t) {
                     t.fire();

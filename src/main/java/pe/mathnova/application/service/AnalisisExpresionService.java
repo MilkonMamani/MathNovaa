@@ -24,10 +24,6 @@ import pe.mathnova.domain.expresion.VariablePrincipal;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Puente entre la pantalla de entrada y el dominio: lee, clasifica y prepara la vista previa.
- * Las operaciones (HU34) solo se reconocen y se describen; no se resuelven.
- */
 @Service
 public class AnalisisExpresionService {
 
@@ -63,7 +59,6 @@ public class AnalisisExpresionService {
         }
     }
 
-    /** En una operación, la expresión sobre la que actúa; si no, la expresión misma. */
     private static Expresion cuerpo(Expresion e) {
         return switch (e) {
             case Limite l -> l.cuerpo();
@@ -77,7 +72,6 @@ public class AnalisisExpresionService {
         };
     }
 
-    /** "límite cuando x → 2⁺", "derivada de orden 2 respecto de x", "integral definida de 0 a 1 respecto de x"… */
     private static Optional<String> describirOperacion(Expresion e) {
         return Optional.ofNullable(switch (e) {
             case Limite l -> {

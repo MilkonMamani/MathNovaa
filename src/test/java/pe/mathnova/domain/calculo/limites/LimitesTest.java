@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Parte C del Sprint 5: los 16 ejemplos exactos, con sus métodos y la comprobación numérica. */
 class LimitesTest {
 
     private static final MotorLimites MOTOR = new MotorLimites(new OrquestadorFactorizacion());
@@ -69,7 +68,6 @@ class LimitesTest {
         }
     }
 
-    /** Se evalúa la función cerca del punto con 30 cifras y se ve que se acerca al resultado. */
     private static void comprobarNumericamente(Limite l, ResultadoLimite.Finito resultado) {
         BigDecimal esperado = EvaluacionNumerica.evaluar(resultado.valor().aExpresion(), Map.of(), MC).re();
         List<Racional> puntos;
@@ -145,7 +143,6 @@ class LimitesTest {
         assertInstanceOf(ResultadoLimite.NoExiste.class, resolver("lim(x→∞, sen(x))").resultado());
     }
 
-    /** Ayuda para comparar con la forma simplificada. */
     private static final class Simplificar {
         static Expresion de(String texto) {
             return pe.mathnova.domain.calculo.derivadas.Simplificador.simplificar(Parser.parse(texto));

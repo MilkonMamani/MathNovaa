@@ -5,19 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Pasa a LaTeX los renglones de pizarra que el motor entrega como texto ("x⁶ − 6x⁴ + 9x² = (x³ − 3x)²",
- * "(x + 1)² = x² + 2x + 1", "a² + 2ab + b² = (a + b)² con a = x y b = 1") para dibujarlos con la misma
- * tipografía matemática que el resto de la pizarra. No cambia el contenido: solo la escritura.
- *
- * <p>Las palabras ("con", "Integrando") van en {@code \text{}}. Si el renglón es sobre todo prosa (cuatro
- * palabras o más) o tiene un símbolo que no se conoce, devuelve null y quien llama lo deja como texto.
- */
 public final class TextoLatex {
 
     private static final String SUPER = "⁰¹²³⁴⁵⁶⁷⁸⁹";
     private static final String SUB = "₀₁₂₃₄₅₆₇₈₉";
-    /** Más palabras que esto y el renglón es prosa. */
     private static final int MAX_PALABRAS = 3;
 
     private static final Set<String> FUNCIONES = Set.of("sin", "cos", "tan", "cot", "sec", "csc", "ln", "log",
@@ -55,7 +46,6 @@ public final class TextoLatex {
     private record Pieza(Tipo tipo, String latex) {
     }
 
-    /** El renglón en LaTeX, o null si no se puede (prosa o un símbolo desconocido). */
     public static String convertir(String texto) {
         if (texto == null || texto.isBlank()) {
             return null;
@@ -71,13 +61,11 @@ public final class TextoLatex {
         return unir(piezas);
     }
 
-    /** Un espacio fino antes de cada diferencial: "2x\,dx", "u^{5}\,du" (no en \frac{d}{dx} ni en \cdot). */
     public static String conDiferenciales(String latex) {
         return latex == null ? null
                 : latex.replaceAll("(?<![a-zA-Z\\\\{,])d([a-z]|\\\\theta)(?![a-zA-Z])", "\\\\,d$1");
     }
 
-    /** El "=" de afuera (fuera de llaves y paréntesis); -1 si no hay. */
     public static int igualDeAfuera(String latex) {
         int nivel = 0;
         for (int i = 0; i < latex.length(); i++) {
@@ -96,8 +84,6 @@ public final class TextoLatex {
         }
         return -1;
     }
-
-    // ------------------------------------------------------------------ lectura
 
     private static boolean leer(String s, List<Pieza> piezas) {
         int n = s.length();
@@ -118,7 +104,6 @@ public final class TextoLatex {
                 }
                 String palabra = s.substring(i, j);
                 if (palabra.equals("sqrt") && j < n && s.charAt(j) == '(') {
-                    // sqrt(x + 4) es √(x + 4)
                     int[] fin = new int[1];
                     String radicando = radicando(s, j, fin);
                     if (radicando == null) {
@@ -137,7 +122,6 @@ public final class TextoLatex {
                 while (j < n && Character.isDigit(s.charAt(j))) {
                     j++;
                 }
-                // 1835/729 como fracción
                 if (j + 1 < n && s.charAt(j) == '/' && Character.isDigit(s.charAt(j + 1))
                         && (i == 0 || s.charAt(i - 1) != '^')) {
                     int k = j + 1;
@@ -164,7 +148,6 @@ public final class TextoLatex {
                             : String.valueOf((char) ('0' + SUPER.indexOf(d))));
                     j++;
                 }
-                // ³√x: el índice de la raíz
                 if (j < n && s.charAt(j) == '√') {
                     int[] fin = new int[1];
                     String radicando = radicando(s, j + 1, fin);
@@ -253,7 +236,6 @@ public final class TextoLatex {
         return new Pieza(Tipo.MATE, p);
     }
 
-    /** "xyz", "abc": tres letras de variable seguidas se leen como producto, no como palabra. */
     private static boolean esVariables(String p) {
         return p.length() <= 3 && p.chars().allMatch(ch -> "abcdxyzhkmnpqrstuvw".indexOf(ch) >= 0)
                 && p.chars().distinct().count() == p.length() && !Set.of("vez", "sus", "son", "par", "cam").contains(p);
@@ -277,7 +259,6 @@ public final class TextoLatex {
         return '\0';
     }
 
-    /** Lo que sigue a ^ o _: (…) sin los paréntesis, un número o una letra. */
     private static String argumento(String s, int i, int[] fin) {
         if (i >= s.length()) {
             return null;
@@ -308,7 +289,6 @@ public final class TextoLatex {
         return convertirInterno(s.substring(i, j));
     }
 
-    /** Lo que va bajo √: (…) sin los paréntesis, o un número, o una letra. */
     private static String radicando(String s, int i, int[] fin) {
         if (i < s.length() && s.charAt(i) == '(') {
             int cierre = cierre(s, i);
@@ -351,15 +331,6 @@ public final class TextoLatex {
         return leer(s.strip(), piezas) ? unir(piezas) : null;
     }
 
-    // ------------------------------------------------------------------ fracciones
-
-    /**
-     * "x²/2", "(3² − 9)/(3 − 3)", "1/x", "((x + 3)(x − 3))/(x − 3)": cada "/" pegado a sus dos operandos se
-     * escribe como fracción vertical. El numerador es lo que va pegado a la izquierda (un número, letras con
-     * su exponente, un paréntesis, varios factores juntos); el denominador, lo que va pegado a la derecha (un
-     * número, una letra con su exponente o un paréntesis). Con un espacio de por medio el "/" queda en línea.
-     * Los paréntesis de afuera de cada parte se quitan: la raya de la fracción ya agrupa.
-     */
     private static List<Pieza> fracciones(List<Pieza> piezas) {
         List<Pieza> ps = new ArrayList<>(piezas);
         boolean cambio = true;
@@ -402,7 +373,6 @@ public final class TextoLatex {
                 && FUNCIONES.contains(l.substring(1).strip()));
     }
 
-    /** Un número, letras, una raíz, una fracción o una constante (π, ∞). */
     private static boolean esAtomo(Pieza p) {
         if (p.tipo() != Tipo.MATE || esFuncion(p) || esExponente(p)) {
             return false;
@@ -424,7 +394,6 @@ public final class TextoLatex {
         return p.tipo() == Tipo.MATE && latex.equals(p.latex());
     }
 
-    /** Dónde empieza el numerador que termina en {@code fin}; -1 si no hay uno pegado. */
     private static int inicioNumerador(List<Pieza> ps, int fin) {
         int i = fin;
         int inicio = -1;
@@ -453,12 +422,10 @@ public final class TextoLatex {
             }
             inicio = comienzo;
             i = comienzo - 1;
-            // Factores juntos ("2x", "(x + 3)(x − 3)"): sigue mientras no haya espacio ni operador.
             if (i < 0 || !(es(ps.get(i), ")") || esAtomo(ps.get(i)) || esExponente(ps.get(i)))) {
                 break;
             }
         }
-        // "sen u/u", "csc²θ/9": la función (con su exponente) va con su argumento en el numerador.
         if (inicio > 0) {
             int k = inicio - 1;
             if (k >= 0 && ps.get(k).tipo() == Tipo.ESPACIO) {
@@ -474,7 +441,6 @@ public final class TextoLatex {
         return inicio;
     }
 
-    /** Dónde termina el denominador que empieza en {@code ini}; -1 si no hay uno pegado. */
     private static int finDenominador(List<Pieza> ps, int ini) {
         Pieza p = ps.get(ini);
         int fin;
@@ -520,7 +486,6 @@ public final class TextoLatex {
         return -1;
     }
 
-    /** Sin el par de paréntesis de afuera, si encierra todo. */
     private static List<Pieza> sinParentesis(List<Pieza> ps) {
         if (ps.size() >= 2 && es(ps.getFirst(), "(") && cierra(ps, 0) == ps.size() - 1) {
             return ps.subList(1, ps.size() - 1);

@@ -26,16 +26,13 @@ import sys
 import tempfile
 import time
 
-# Sin red: nada de Hugging Face Hub ni telemetría. Se fija antes de importar transformers.
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_DATASETS_OFFLINE"] = "1"
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
-# albumentations consulta en internet si hay una versión nueva al importarse: se apaga.
 os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-# Sin cachés en la carpeta del usuario: todo lo que se lea viene de --modelo.
 _CACHE = os.path.join(tempfile.gettempdir(), "mathnova-unimernet-cache")
 os.environ["HF_HOME"] = _CACHE
 os.environ["TORCH_HOME"] = _CACHE
@@ -44,7 +41,6 @@ os.environ["MPLCONFIGDIR"] = _CACHE
 
 VERSION = "mathnova-unimernet 1 (unimernet 0.2.3 @5a2c80d, wanderkid/unimernet_small @82cb854)"
 
-# La salida estándar real queda solo para el protocolo.
 _PROTOCOLO = os.fdopen(os.dup(sys.stdout.fileno()), "w", encoding="utf-8", newline="\n", buffering=1)
 sys.stdout = sys.stderr
 
@@ -83,11 +79,9 @@ run:
     temperature: 0.0
 """
 
-
 def enviar(obj):
     _PROTOCOLO.write(json.dumps(obj, ensure_ascii=False) + "\n")
     _PROTOCOLO.flush()
-
 
 class Reconocedor:
     def __init__(self, carpeta_modelo, hilos=None):
@@ -110,7 +104,6 @@ class Reconocedor:
         import unimernet.tasks as tasks
         from unimernet.processors import load_processor
 
-        # YAML con rutas absolutas (comillas simples: admite espacios y barras de Windows).
         yaml = PLANTILLA.format(modelo=carpeta.replace("'", "''"), pesos=pesos.replace("'", "''"))
         fd, ruta_cfg = tempfile.mkstemp(prefix="mathnova-unimernet-", suffix=".yaml")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -133,7 +126,6 @@ class Reconocedor:
             salida = self.modelo.generate({"image": x})
         return salida["pred_str"][0]
 
-
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--modelo", required=True)
@@ -146,7 +138,7 @@ def main():
     inicio = time.perf_counter()
     try:
         r = Reconocedor(a.modelo, a.hilos)
-    except Exception as e:  # el modelo no cargó: se avisa y se termina
+    except Exception as e:
         enviar({"listo": False, "error": f"{type(e).__name__}: {e}"})
         return 2
     carga_ms = int((time.perf_counter() - inicio) * 1000)
@@ -182,7 +174,6 @@ def main():
         except Exception as e:
             enviar({"id": ident, "error": f"{type(e).__name__}: {e}"})
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

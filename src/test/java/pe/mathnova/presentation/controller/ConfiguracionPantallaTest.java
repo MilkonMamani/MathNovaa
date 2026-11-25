@@ -40,11 +40,6 @@ import pe.mathnova.presentation.Navegador;
 import pe.mathnova.presentation.latex.Apariencia;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/**
- * Sprint 9, parte E: la pantalla Configuración con los servicios de verdad (base de prueba de target/). Cada
- * ajuste se guarda al cambiarlo y se aplica sin reiniciar: en la vista previa, en el tema de la ventana y en
- * Resolver. Al terminar, todo vuelve a lo de fábrica.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class ConfiguracionPantallaTest {
 
@@ -137,7 +132,6 @@ class ConfiguracionPantallaTest {
         });
     }
 
-    /** Visible él y todos sus contenedores. */
     private static boolean seVe(Node n) {
         for (Node p = n; p != null; p = p.getParent()) {
             if (!p.isVisible()) {
@@ -147,7 +141,6 @@ class ConfiguracionPantallaTest {
         return true;
     }
 
-    /** Terminó de aparecer (la animación sube la opacidad de él o de su fila). */
     private static boolean opaco(Node n) {
         for (Node p = n; p != null; p = p.getParent()) {
             if (p.getOpacity() < 1) {
@@ -182,7 +175,6 @@ class ConfiguracionPantallaTest {
         assertEquals("oscuro", valor(ConfiguracionService.TEMA));
         assertEquals(List.of("Guardado", "Guardado", "Guardado", "Guardado", "Guardado", "Guardado"), avisos);
 
-        // Un clic en el elegido no lo deja sin nada ni guarda otra vez
         Fx.enFx(() -> ((ToggleButton) buscar("#temaOscuro")).fire());
         assertTrue(Fx.enFx(() -> ((ToggleButton) buscar("#temaOscuro")).isSelected()));
         assertEquals(6, avisos.size());
@@ -226,13 +218,11 @@ class ConfiguracionPantallaTest {
         assertTrue(texto.endsWith("prueba-mathnova.db."), texto);
         int ejemplos = jdbc.queryForObject("SELECT COUNT(*) FROM ejemplo", Integer.class);
 
-        // Cancelar no borra
         Fx.enFx(() -> {
             controlador.setConfirmar(w -> false);
             ((Button) buscar("#borrarHistorial")).fire();
         });
         assertEquals(2, historial.ejerciciosGuardados());
-        // Confirmar sí
         Fx.enFx(() -> {
             controlador.setConfirmar(w -> true);
             ((Button) buscar("#borrarHistorial")).fire();
@@ -279,19 +269,15 @@ class ConfiguracionPantallaTest {
             marco.getChildren().setAll(r[0]);
         });
         Fx.esperar(() -> r[0].lookup(".editor-matematico") != null, "el editor no cargó");
-        // El campo por defecto
         assertTrue(Fx.enFx(() -> ((ToggleButton) r[0].lookup("#campoR")).isSelected()));
-        // y cambia en vivo
         Fx.enFx(() -> configuracion.guardarCampoPorDefecto(Campo.Q));
         assertTrue(Fx.enFx(() -> ((ToggleButton) r[0].lookup("#campoQ")).isSelected()));
 
         Fx.enFx(() -> c[0].resolver("x^3 - 2x^2 - x + 2"));
         Fx.esperar(() -> c[0].estado() == EstadoResolucion.RESUELTO, "no se resolvió");
-        // Paso a paso: los pasos que faltan muestran solo su número; el método se ve solo en el primero
         Fx.esperar(() -> r[0].lookupAll(".pizarra-metodo").stream().filter(ConfiguracionPantallaTest::seVe).count() == 1
                 && opaco(r[0].lookupAll(".pizarra-metodo").stream().filter(ConfiguracionPantallaTest::seVe)
                 .findFirst().orElseThrow()), "no apareció solo el primer paso");
-        // Paso a paso: la pizarra abre en el paso 1
         String etiqueta = Fx.enFx(() -> ((Label) r[0].lookup(".pizarra-etiqueta-pasos")).getText());
         assertTrue(etiqueta.startsWith("Paso 1 de "), etiqueta);
         capturar(marco, "resolver-oscuro.png");

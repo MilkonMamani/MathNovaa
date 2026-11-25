@@ -20,23 +20,11 @@ import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.factorizacion.Factor;
 import pe.mathnova.domain.factorizacion.FormaFactorizada;
 
-/**
- * P02 e I06: la división de polinomios y las fracciones parciales de N/D, con D ya factorizado en Q.
- * <ul>
- *   <li>factor lineal simple: A/(x − a)</li>
- *   <li>lineal repetido: A/(x − a) + B/(x − a)²</li>
- *   <li>cuadrático irreducible (RN22): (Ax + B)/(x² + bx + c)</li>
- * </ul>
- * Los A, B, … salen de igualar coeficientes: un sistema lineal que se resuelve exacto.
- */
 final class FraccionesParciales {
 
     private FraccionesParciales() {
     }
 
-    // ------------------------------------------------------------------ P02
-
-    /** Cociente y resto de a ÷ b en la variable x. */
     record Division(Polinomio cociente, Polinomio resto) {
     }
 
@@ -56,31 +44,13 @@ final class FraccionesParciales {
         return new Division(q, r);
     }
 
-    // ------------------------------------------------------------------ I06
-
-    /** Un sumando A/pʲ o (Bx + C)/q, con sus letras. */
     record Sumando(Polinomio factor, int potencia, boolean cuadratico, List<String> letras) {
     }
 
-    /**
-     * La descomposición resuelta.
-     *
-     * @param planteo     "A/(x − 1) + B/(x + 2)"
-     * @param identidad   "3x + 5 = A(x + 2) + B(x − 1)"
-     * @param ecuaciones  (potencia, ecuación): ("x", "A + B = 3"), ("1", "2A − B = 5")
-     * @param valores     las letras con su valor, en orden
-     * @param integrales  "∫(8/3)/(x − 1) dx = (8/3)ln|x − 1|", uno por sumando
-     * @param integral    la suma, sin C
-     */
     record Descomposicion(List<Sumando> sumandos, String planteo, String identidad, List<String[]> ecuaciones,
                           Map<String, Racional> valores, List<String> integrales, Expresion integral) {
     }
 
-    /**
-     * @param numerador de grado menor que el del denominador
-     * @param forma     el denominador factorizado
-     * @return vacío si hay un factor de grado 3 o más, un cuadrático con raíces reales o repetido
-     */
     static Optional<Descomposicion> descomponer(Polinomio numerador, FormaFactorizada forma, char x) {
         List<Factor> factores = new ArrayList<>(forma.factores().stream()
                 .filter(f -> f.polinomio().gradoEn(x) > 0).toList());
@@ -90,7 +60,6 @@ final class FraccionesParciales {
                 return Optional.empty();
             }
         }
-        // lineales primero (por su término independiente), después los cuadráticos
         factores.sort(Comparator.comparingInt((Factor f) -> f.polinomio().gradoEn(x))
                 .thenComparing(f -> f.polinomio().constante().dividir(f.polinomio().coeficiente(
                         Monomio.de(x, f.polinomio().gradoEn(x))))));
@@ -104,7 +73,6 @@ final class FraccionesParciales {
                 sumandos.add(new Sumando(f.polinomio(), j, cuad, letras));
             }
         }
-        // N/k = Σ (letra)·(D'/pʲ): una columna por letra
         Polinomio dSinConstante = Polinomio.UNO;
         for (Factor f : factores) {
             dSinConstante = dSinConstante.multiplicar(f.polinomio().potencia(f.multiplicidad()));
@@ -153,7 +121,6 @@ final class FraccionesParciales {
         for (int k = 0; k < m; k++) {
             valores.put(nombres.get(k), sol.get()[k]);
         }
-        // integrar cada sumando
         List<String> planteo = new ArrayList<>();
         List<String> integrales = new ArrayList<>();
         List<Expresion> partes = new ArrayList<>();
@@ -195,14 +162,12 @@ final class FraccionesParciales {
         return pizarra(Simplificador.simplificar(p.aExpresion()));
     }
 
-    /** "(x − 1)", "(x − 1)²", "x", "x²". */
     private static String denominador(Sumando s, char x) {
         String base = s.factor().equals(Polinomio.variable(x)) ? String.valueOf(x) : "(" + texto(s.factor()) + ")";
         return s.potencia() == 1 ? base : base + ImpresoraPizarra.imprimir(
                 Simplificador.potencia(new Variable('z'), Constante.de(s.potencia()))).substring(1);
     }
 
-    /** "(x + 2)", "x(x² + 1)" para la identidad. */
     private static String envolverProducto(Polinomio p, char x) {
         if (p.equals(Polinomio.variable(x))) {
             return String.valueOf(x);
@@ -234,7 +199,6 @@ final class FraccionesParciales {
                 .sumar(Polinomio.constante(c)).aExpresion()));
     }
 
-    /** Gauss-Jordan exacto; vacío si el sistema no tiene solución única. */
     private static Optional<Racional[]> resolver(Racional[][] a, int m) {
         int n = a.length;
         int fila = 0;
@@ -284,9 +248,6 @@ final class FraccionesParciales {
         return Optional.of(r);
     }
 
-    // ------------------------------------------------------------------ integrales de cada sumando
-
-    /** ∫A/(αx + β)ʲ dx: (A/α)ln|αx + β| si j = 1; −A/(α(j − 1)(αx + β)ʲ⁻¹) si no. */
     static Expresion lineal(Racional a, Polinomio p, int j, char x) {
         Racional alfa = p.coeficiente(Monomio.de(x, 1));
         Expresion base = Simplificador.simplificar(p.aExpresion());
@@ -297,10 +258,6 @@ final class FraccionesParciales {
         return Simplificador.cociente(new Constante(c), Simplificador.potencia(base, Constante.de(j - 1)));
     }
 
-    /**
-     * (2αx + β)/√Δ'. Si √Δ' es racional se escribe con numerador entero y sin factor común:
-     * (2x + 2)/4 queda (x + 1)/2.
-     */
     private static Expresion argumentoArctan(Racional dosAlfa, Racional beta, Racional delta, Expresion raiz, char x) {
         if (!(raiz instanceof Constante s)) {
             return Simplificador.simplificar(Simplificador.cociente(Simplificador.simplificar(
@@ -323,10 +280,6 @@ final class FraccionesParciales {
                 new Constante(Racional.de(d)));
     }
 
-    /**
-     * ∫(Bx + C)/(αx² + βx + γ) dx = (B/(2α))·ln(q) + (C − Bβ/(2α))·(2/√Δ')·arctan((2αx + β)/√Δ'), con
-     * Δ' = 4αγ − β² > 0.
-     */
     static Expresion cuadratico(Racional b, Racional c, Polinomio q, char x) {
         Racional alfa = q.coeficiente(Monomio.de(x, 2));
         Racional beta = q.coeficiente(Monomio.de(x, 1));

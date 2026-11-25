@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Parte E del Sprint 5 (HU10, RN15–RN20). */
 class SugerenciasTest {
 
     private static final OrquestadorFactorizacion ORQUESTADOR = new OrquestadorFactorizacion();
@@ -46,14 +45,11 @@ class SugerenciasTest {
         assertTrue(limite.justificacion().contains("indeterminación 0/0"), limite.justificacion());
         assertEquals("lim(x→2, (x^2 - 4)/(x - 2))", limite.plantilla());
         assertTrue(limite.disponible());
-        // La plantilla se resuelve con la cascada y da 4.
         var r = new MotorLimites(ORQUESTADOR).resolver((Limite) Parser.parse(limite.plantilla()));
         assertEquals("4", r.resultado().texto());
-        // Al simplificarse queda x + 2: no hay asíntotas que sugerir.
         assertFalse(reglas(s).contains("RN19"));
     }
 
-    /** x = 1 se cancela (límite activo) y x = 2 queda abajo (asíntota vertical). */
     @Test
     void ceroSobreCeroYAsintotaVertical() {
         String texto = "(x^2 - 1)/(x^2 - 3x + 2)";
@@ -71,13 +67,11 @@ class SugerenciasTest {
         assertEquals("ASINTOTAS", asintotas.operacion());
         assertTrue(asintotas.disponible());
         assertEquals(texto, asintotas.plantilla());
-        // Lo que abre la pestaña Análisis: la asíntota vertical en x = 2 (x = 1 es un hueco, no asíntota).
         var simp = new SimplificadorFracciones(ORQUESTADOR).simplificar(Parser.parse(asintotas.plantilla()));
         var a = pe.mathnova.domain.calculo.limites.Asintotas.de(simp).orElseThrow();
         assertEquals(List.of("x = 2"), a.textoVerticales());
     }
 
-    /** Si se cancelan varios factores, una tarjeta de límite por cada raíz, de menor a mayor. */
     @Test
     void unaTarjetaDeLimitePorCadaFactorCancelado() {
         List<Sugerencia> limites = deFraccion("((x - 1)(x + 3)(x - 5))/((x - 1)(x + 3))").stream()
@@ -94,7 +88,7 @@ class SugerenciasTest {
         Sugerencia parciales = s.stream().filter(x -> x.regla().equals("RN16")).findFirst().orElseThrow();
         assertEquals("Integral por fracciones parciales", parciales.titulo());
         assertEquals("INTEGRAR", parciales.operacion());
-        assertTrue(parciales.disponible()); // Sprint 6: ya se resuelve
+        assertTrue(parciales.disponible());
         assertFalse(reglas(s).contains("RN15"), "Nada se cancela: no hay 0/0");
         assertFalse(reglas(s).contains("RN17"));
         Sugerencia asintotas = s.stream().filter(x -> x.regla().equals("RN19")).findFirst().orElseThrow();
@@ -131,15 +125,12 @@ class SugerenciasTest {
                 s.disponible()));
     }
 
-    // ------------------------------------------------------------------ R y C
-
     private static List<Sugerencia> enCampo(String texto, Campo campo) {
         var r = ORQUESTADOR.resolver(Parser.parse(texto), campo);
         assertEquals(campo, r.campo());
         return MOTOR.sugerir(EjercicioResuelto.de(r).orElseThrow());
     }
 
-    /** Las reglas no dependen del campo: x² − 3 en R da las mismas sugerencias que en Q. */
     @Test
     void enRSugiereLoMismoQueEnQ() {
         List<Sugerencia> enR = enCampo("x^2 - 3", Campo.R);
@@ -149,7 +140,6 @@ class SugerenciasTest {
                 enR.stream().map(Sugerencia::titulo).toList());
     }
 
-    /** x² + 4 en C da las mismas sugerencias que en Q. */
     @Test
     void enCSugiereLoMismoQueEnQ() {
         List<Sugerencia> enC = enCampo("x^2 + 4", Campo.C);
@@ -159,7 +149,6 @@ class SugerenciasTest {
                 enC.stream().map(Sugerencia::titulo).toList());
     }
 
-    /** El servicio tampoco filtra por campo: "Qué más puedes hacer" sale en Q, R y C. */
     @Test
     void elServicioSugiereEnLosTresCampos() {
         var servicio = new pe.mathnova.application.service.FactorizacionService(ORQUESTADOR);
@@ -173,7 +162,6 @@ class SugerenciasTest {
         }
     }
 
-    /** Después de factorizar una expresión con funciones también hay sugerencias. */
     @Test
     void funcionesTrascendentesTambienTienenSugerencias() {
         var funciones = new pe.mathnova.domain.factorizacion.FactorizadorFunciones(ORQUESTADOR);
@@ -185,9 +173,7 @@ class SugerenciasTest {
         assertTrue(derivada.justificacion().contains("u = sen(x)"), derivada.justificacion());
         assertEquals(Parser.parse("d/dx(2sen^2(x) - sen(x) - 1)"), Parser.parse(derivada.plantilla()));
         assertTrue(derivada.disponible());
-        // Las de fracciones y las de polinomios no se cuelan.
         assertTrue(s.stream().noneMatch(x -> Set.of("RN15", "RN16", "RN17", "RN19").contains(x.regla())));
-        // Lo que no se factorizó no tiene sugerencias.
         assertTrue(EjercicioResuelto.de(funciones.resolver(Parser.parse("x + sen(x)"))).isEmpty());
     }
 }

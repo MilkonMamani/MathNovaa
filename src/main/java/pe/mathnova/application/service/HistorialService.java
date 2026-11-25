@@ -72,27 +72,15 @@ import pe.mathnova.infrastructure.persistence.TecnicaRepository;
 import pe.mathnova.infrastructure.persistence.TemaEntity;
 import pe.mathnova.infrastructure.persistence.TemaRepository;
 
-/**
- * Historial (HU14, HU15). Guarda cada resolución que termina bien (RN24) con su ejercicio, sus temas, todos
- * sus pasos (también los descartados, con su motivo), sus restricciones y sus sugerencias, en una sola
- * transacción: si algo falla no queda nada a medias. RN25: el mismo ejercicio con la misma operación y los
- * mismos parámetros no se duplica, solo cambia actualizado_en.
- *
- * <p>La pantalla Historial lee de aquí: páginas de 50 filas con filtros, favoritos, el borrado en cascada
- * (RN26) y la hoja de una resolución, armada con lo guardado sin recalcular. Solo si la guardó otra versión
- * del motor se vuelve a resolver (RNF19).
- */
 @Service
 public class HistorialService {
 
     private static final Logger LOG = LoggerFactory.getLogger(HistorialService.class);
 
-    /** Filas por página de la tabla. */
     public static final int TAMANO_PAGINA = 50;
     public static final String TODOS_LOS_CURSOS = "Todos";
     static final String SIN_DATO = "—";
 
-    /** Lo que dice la columna Operación y la cabecera de la hoja. */
     static final Map<String, String> VERBOS = Map.ofEntries(
             Map.entry("FACTORIZAR", "Factorizar"),
             Map.entry("SIMPLIFICAR", "Simplificar"),
@@ -115,7 +103,6 @@ public class HistorialService {
             "nov", "dic"};
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
 
-    /** El selector de fecha. */
     public enum Periodo {
         CUALQUIERA("Cualquier fecha"), HOY("Hoy"), SEMANA("Esta semana"), MES("Este mes");
 
@@ -129,7 +116,6 @@ public class HistorialService {
             return texto;
         }
 
-        /** Desde cuándo cuenta, en la zona de {@code ahora}; null para cualquier fecha. */
         Instant desde(ZonedDateTime ahora) {
             LocalDate hoy = ahora.toLocalDate();
             return switch (this) {
@@ -142,12 +128,6 @@ public class HistorialService {
         }
     }
 
-    /**
-     * Los filtros de la barra.
-     *
-     * @param texto buscador: expresión, operación o tema; vacío o null no filtra
-     * @param curso el nombre del curso, o null / "Todos"
-     */
     public record Filtro(String texto, String curso, Periodo periodo, boolean soloFavoritos) {
 
         public static Filtro todo() {
@@ -155,49 +135,25 @@ public class HistorialService {
         }
     }
 
-    /** Una fila de la tabla: una resolución (un ejercicio con una operación y sus parámetros). */
     public record Fila(int id, int ejercicioId, String latex, String texto, String operacion, String tema,
                        String curso, String campo, Instant fecha, boolean favorito) {
     }
 
-    /** Una página de la tabla, de la más reciente a la más antigua. */
     public record Pagina(List<Fila> filas, long total, int numero, boolean hayMas) {
     }
 
-    /**
-     * Un paso de la hoja.
-     *
-     * @param numero "1", "2", o "2.1" para un paso anidado (factorización dentro de un límite)
-     * @param nivel  0 arriba, 1 anidado…
-     */
     public record PasoHoja(String numero, int nivel, String codigo, String titulo, String latex, String nota) {
     }
 
-    /** Un método que se probó y no aplicó (HU05), con su motivo. */
     public record Descartado(String codigo, String titulo, String latex, String motivo) {
     }
 
-    /**
-     * La hoja de una resolución, tal como se guardó.
-     *
-     * @param entradaTexto  lo que "Abrir en Resolver" pone en el editor
-     * @param campo         Q, R o C para una factorización; null si no aplica
-     * @param metodoForzado el método con que se empezó (HU08), o null
-     * @param recalculada   si se volvió a resolver porque la guardó otra versión del motor (RNF19)
-     */
     public record Hoja(int id, String verbo, String latexEntrada, String entradaTexto, String campo,
                        String metodoForzado, List<PasoHoja> pasos, List<Descartado> descartados,
                        List<String> restricciones, String resultadoLatex, String resultadoTexto, String versionMotor,
                        boolean recalculada) {
     }
 
-    /**
-     * Lo que se guarda al terminar de resolver.
-     *
-     * @param texto      lo que se resolvió (sección 9)
-     * @param resolucion el objeto del dominio: Resolucion, Simplificacion, ResolucionLimite…
-     * @param forzado    el método con que se empezó ("Probar" en Exploración), o null
-     */
     public record Guardado(String texto, Object resolucion, String forzado, List<Sugerencia> sugerencias) {
 
         public Guardado {
@@ -234,18 +190,11 @@ public class HistorialService {
         return base.versionMotor();
     }
 
-    // ================================================================== guardar (RN24, RN25)
-
-    /** @return el id de la resolución guardada; vacío si no hay nada que guardar (no se resolvió) */
     @Transactional
     public Optional<Integer> guardar(Guardado g) {
         return guardar(g, Instant.now(), base.versionMotor());
     }
 
-    /**
-     * @param ahora   la fecha que se guarda (al segundo)
-     * @param version la versión del motor que la resolvió
-     */
     @Transactional
     public Optional<Integer> guardar(Guardado g, Instant ahora, String version) {
         String texto = g.texto();
@@ -378,7 +327,6 @@ public class HistorialService {
         return Optional.of(res.getId());
     }
 
-    /** Lo de V3: el texto, su fórmula y el tema; las restricciones si todavía no están. */
     private void completar(ResolucionEntity res, String texto, String tema, List<Restriccion> restricciones) {
         res.setEntradaTexto(texto);
         res.setEntradaLatex(latexDe(texto));
@@ -401,7 +349,6 @@ public class HistorialService {
     private record Restriccion(String texto, String origen) {
     }
 
-    /** Derivadas, integrales y Cálculo 3: el ejercicio es la función; los pasos, los del motor con sus hijos. */
     private Optional<ResolucionEntity> calculo(String operacion, Expresion funcion, String variablesSiConstante,
                                                String clave, Map<String, String> parametros, String forzado,
                                                String resultadoTexto, String resultadoLatex, List<PasoLimite> pasos,
@@ -428,7 +375,6 @@ public class HistorialService {
         }));
     }
 
-    /** HU23: T01–T05 con la factorización en las letras (u = eˣ…) colgando de él. */
     private Optional<ResolucionEntity> funciones(String texto, ResolucionFunciones f, List<Sugerencia> sug,
                                                  Instant ahora, String version) {
         if (!f.factorizable() || f.resultado() == null) {
@@ -468,7 +414,6 @@ public class HistorialService {
                 }));
     }
 
-    /** HU38: pasar a un lado, factorizar (con los pasos de la factorización adentro), igualar y despejar. */
     private Optional<ResolucionEntity> ecuacion(ResolucionEcuacion r, String forzado, Instant ahora, String version) {
         Instant fecha = ahora.truncatedTo(ChronoUnit.SECONDS);
         String variable = String.valueOf(r.variable());
@@ -544,7 +489,6 @@ public class HistorialService {
         return String.join(",\\quad ", partes);
     }
 
-    /** La forma canónica de la entrada: así "∂/∂x( x*y )" y "∂/∂x(x·y)" son el mismo ejercicio. */
     private static String canonico(String texto, Expresion entrada) {
         try {
             return ImpresoraTexto.imprimir(entrada);
@@ -553,7 +497,6 @@ public class HistorialService {
         }
     }
 
-    /** RN34: de dónde sale una restricción ("x > 0" de un logaritmo, "x ≠ π/2 + kπ" de una tangente). */
     static String origen(String restriccion, Expresion funcion) {
         String f = funcion == null ? "" : ImpresoraTexto.imprimir(funcion);
         if (restriccion.contains("π") && (f.contains("tan") || f.contains("tg") || f.contains("sec"))) {
@@ -571,9 +514,6 @@ public class HistorialService {
         return "OTRA";
     }
 
-    // ================================================================== tabla (HU15)
-
-    /** Los cursos del selector, con "Todos" primero. */
     @Transactional(readOnly = true)
     public List<String> cursos() {
         List<String> r = new ArrayList<>();
@@ -587,12 +527,6 @@ public class HistorialService {
         return listar(filtro, pagina, ZonedDateTime.now(zona));
     }
 
-    /**
-     * Una página de 50 filas, de la más reciente a la más antigua.
-     *
-     * @param pagina 0 la primera
-     * @param ahora  para "Hoy", "Esta semana" y "Este mes"
-     */
     @Transactional(readOnly = true)
     public Pagina listar(Filtro filtro, int pagina, ZonedDateTime ahora) {
         Filtro f = filtro == null ? Filtro.todo() : filtro;
@@ -643,7 +577,6 @@ public class HistorialService {
         };
     }
 
-    /** "límite", "limite" o "LIM" encuentran LIMITE y LIMITE_DOBLE. */
     private Set<String> operacionesQueDicen(String buscado) {
         String b = plano(buscado);
         Set<String> r = new java.util.HashSet<>();
@@ -685,7 +618,6 @@ public class HistorialService {
         return r.getEntradaTexto() != null ? r.getEntradaTexto() : r.getEjercicio().getExpresionEntrada();
     }
 
-    /** "Hoy, 20:14", "Ayer, 18:40", "21 nov, 16:30" o "21 nov 2025, 16:30". */
     public static String fecha(Instant instante, ZonedDateTime ahora) {
         ZonedDateTime f = instante.atZone(ahora.getZone());
         LocalDate dia = f.toLocalDate();
@@ -705,26 +637,16 @@ public class HistorialService {
         return fecha(instante, ZonedDateTime.now(zona));
     }
 
-    // ================================================================== acciones
-
-    /** Cuántos ejercicios hay guardados (Configuración · Datos). */
     public long ejerciciosGuardados() {
         return resoluciones.contarEjercicios();
     }
 
-    /**
-     * "Borrar todo el historial" (Configuración · Datos): ejercicios, resoluciones, pasos y sesiones de práctica.
-     * Los ejemplos y los catálogos no se tocan.
-     *
-     * @return cuántos ejercicios se borraron
-     */
     @Transactional
     public int borrarTodo() {
         resoluciones.borrarTodas();
         return resoluciones.borrarEjercicios();
     }
 
-    /** La estrella: marca o desmarca el ejercicio de la fila. @return si quedó como favorito */
     @Transactional
     public boolean alternarFavorito(int resolucionId) {
         ResolucionEntity r = resoluciones.findById(resolucionId)
@@ -736,10 +658,6 @@ public class HistorialService {
         return ahora;
     }
 
-    /**
-     * RN26: borra la fila con sus pasos, parámetros, restricciones y sugerencias (ON DELETE CASCADE). Si el
-     * ejercicio se queda sin resoluciones, también se borra.
-     */
     @Transactional
     public void eliminar(int resolucionId) {
         Optional<ResolucionEntity> r = resoluciones.findById(resolucionId);
@@ -751,14 +669,6 @@ public class HistorialService {
         resoluciones.borrarEjercicioSinResoluciones(ejercicio);
     }
 
-    // ================================================================== hoja
-
-    /**
-     * La hoja de una fila, con lo guardado en resolucion y paso: no se recalcula. Solo si la guardó otra
-     * versión del motor se vuelve a resolver y se lee lo nuevo (RNF19); si eso falla, queda lo guardado.
-     *
-     * @throws IllegalArgumentException si la fila ya no existe
-     */
     public Hoja hoja(int resolucionId) {
         Hoja h = lectura.execute(s -> leerHoja(resolucionId, false));
         if (h == null) {
@@ -821,7 +731,6 @@ public class HistorialService {
                 r.getResultadoTexto(), r.getVersionMotor(), recalculada);
     }
 
-    /** El método forzado: tecnica_forzada o, si no es del catálogo (POLARES…), el ";metodo=" de la clave. */
     private static String metodo(ResolucionEntity r) {
         if (r.getTecnicaForzada() != null) {
             return r.getTecnicaForzada();
@@ -835,7 +744,6 @@ public class HistorialService {
         return clave.substring(i + "metodo=".length(), fin < 0 ? clave.length() : fin);
     }
 
-    /** "antes = después"; solo el después si ya es una igualdad o si no hay antes. */
     static String formula(PasoEntity p) {
         String antes = p.getAntesLatex();
         String despues = p.getDespuesLatex();
@@ -859,9 +767,6 @@ public class HistorialService {
         return n.getOrDefault(codigo, Tecnicas.nombre(codigo));
     }
 
-    // ================================================================== texto y LaTeX
-
-    /** El LaTeX de un texto de la sección 9; si no se lee, el texto tal cual. */
     static String latexDe(String texto) {
         if (texto == null || texto.isBlank()) {
             return "";
@@ -878,13 +783,11 @@ public class HistorialService {
                 .replace("$", "").replace("%", "\\%").replace("&", "\\&").replace("#", "\\#") + "}";
     }
 
-    /** "x ≠ 2" → "x \neq 2". */
     static String latexRestriccion(String texto) {
         return texto.replace("≠", "\\neq ").replace("≥", "\\geq ").replace("≤", "\\leq ").replace("π", "\\pi ")
                 .replace("·", "\\cdot ").replace("∈", "\\in ").replace("ℤ", "\\mathbb{Z}");
     }
 
-    /** Minúsculas, sin tildes ni espacios de más: "Límites" → "limites". */
     static String plano(String s) {
         String sinTildes = Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         return sinTildes.toLowerCase(Locale.ROOT).replace('_', ' ').strip();

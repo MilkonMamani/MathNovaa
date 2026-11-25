@@ -34,12 +34,6 @@ import pe.mathnova.application.service.EjemplosService.Ejemplo;
 import pe.mathnova.application.service.EjemplosService.Tema;
 import pe.mathnova.presentation.Navegador;
 
-/**
- * Pantalla "Ejemplos" (Sprint 9, parte B): una pestaña por curso, subrayada en azul la activa; a la izquierda
- * los temas del curso con su cantidad de ejemplos, el activo con fondo azul claro; a la derecha una tarjeta por
- * ejemplo con el verbo, la fórmula, la nota y los botones Resolver y Practicar. Resolver lo abre en el editor y
- * lo resuelve; Practicar lo abre en Práctica ya iniciado (parte D).
- */
 @Component
 @Scope("prototype")
 public class EjemplosController {
@@ -49,9 +43,7 @@ public class EjemplosController {
     private static final PseudoClass ACTIVO = PseudoClass.getPseudoClass("activo");
     static final String PRACTICA_PRONTO = "Por ahora se practican factorizaciones en Q y límites";
 
-    /** Ancho mínimo de una tarjeta: con menos espacio se pasa a menos columnas. */
     static final double ANCHO_MINIMO_TARJETA = 300;
-    /** Ancho del nombre de un tema en la columna de 260 px (sin márgenes ni la pastilla de la cantidad). */
     static final double ANCHO_NOMBRE_TEMA = 168;
 
     private final EjemplosService ejemplos;
@@ -99,7 +91,6 @@ public class EjemplosController {
         }
         grupoCursos.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
-                // Una pestaña no se apaga con un segundo clic: siempre hay un curso a la vista.
                 grupoCursos.selectToggle(antes);
                 return;
             }
@@ -112,8 +103,6 @@ public class EjemplosController {
             mostrarTarjetas(List.of());
         }
     }
-
-    // ---------------------------------------------------------------- curso y tema
 
     private void elegirCurso(Curso c) {
         cursoActivo = c;
@@ -131,10 +120,7 @@ public class EjemplosController {
                 .orElse(c.temas().isEmpty() ? null : c.temas().getFirst()));
     }
 
-    /** "Factorización en Q" a la izquierda y su cantidad en una pastilla a la derecha. */
     private Button botonTema(Tema t) {
-        // Un Text con ancho fijo: un Label que parte líneas dentro del gráfico de un botón se mide con ancho -1
-        // y queda una palabra por renglón.
         Text nombre = new Text(t.nombre());
         nombre.getStyleClass().add("ejemplos-tema-nombre");
         nombre.setWrappingWidth(ANCHO_NOMBRE_TEMA);
@@ -186,14 +172,10 @@ public class EjemplosController {
         ajustarAnchos();
     }
 
-    /** "1 ejemplo", "4 ejemplos". */
     static String conteo(int n) {
         return n == 1 ? "1 ejemplo" : n + " ejemplos";
     }
 
-    // ---------------------------------------------------------------- tarjeta
-
-    /** Verbo en mayúsculas pequeñas, la fórmula, la nota y los dos botones. */
     private Node tarjeta(Ejemplo e) {
         Label verbo = new Label(e.enunciado().toUpperCase(Locale.ROOT));
         verbo.getStyleClass().add("ejemplo-verbo");
@@ -218,7 +200,6 @@ public class EjemplosController {
         practicar.setOnAction(ev -> practicar(e));
         Node envolturaPracticar = practicar;
         if (!navegador.sePuedePracticar(e.texto(), e.campo())) {
-            // Un botón deshabilitado no recibe el mouse: el tooltip va en un contenedor.
             practicar.setDisable(true);
             practicar.setAccessibleHelp(PRACTICA_PRONTO);
             StackPane envoltura = new StackPane(practicar);
@@ -237,7 +218,6 @@ public class EjemplosController {
         return tarjeta;
     }
 
-    /** Reparte el ancho: tantas columnas como quepan con el ancho mínimo, todas del mismo ancho. */
     private void ajustarAnchos() {
         double ancho = desplazamiento.getViewportBounds().getWidth() - tarjetas.getInsets().getLeft()
                 - tarjetas.getInsets().getRight();
@@ -246,8 +226,6 @@ public class EjemplosController {
         }
         double hueco = tarjetas.getHgap();
         int columnas = Math.max(1, (int) Math.floor((ancho + hueco) / (ANCHO_MINIMO_TARJETA + hueco)));
-        // Un píxel de holgura por columna: con la pantalla escalada (125 %), 449 px se ajustan a 449,6 y la última
-        // tarjeta ya no cabía en la fila.
         double cada = Math.floor((ancho - hueco * (columnas - 1)) / columnas) - 1;
         for (Node n : tarjetas.getChildren()) {
             if (n instanceof Region r) {
@@ -258,14 +236,10 @@ public class EjemplosController {
         }
     }
 
-    // ---------------------------------------------------------------- acciones
-
-    /** Resolver: el ejemplo en el editor, en su campo, resuelto en la pizarra. */
     void resolver(Ejemplo e) {
         navegador.abrirEnResolver(e.texto(), e.campo(), null);
     }
 
-    /** Practicar: el ejemplo en la pantalla Práctica, ya iniciado (parte D). */
     void practicar(Ejemplo e) {
         navegador.abrirEnPractica(e.texto(), e.campo());
     }
@@ -274,8 +248,6 @@ public class EjemplosController {
         t.setShowDelay(Duration.millis(300));
         return t;
     }
-
-    // ---------------------------------------------------------------- pruebas
 
     Curso cursoActivo() {
         return cursoActivo;
@@ -289,7 +261,6 @@ public class EjemplosController {
         return visibles;
     }
 
-    /** Elige el curso por su nombre, como un clic en su pestaña (pruebas). */
     void elegirCurso(String nombre) {
         grupoCursos.getToggles().stream().filter(t -> ((Curso) t.getUserData()).nombre().equals(nombre))
                 .findFirst().ifPresent(grupoCursos::selectToggle);

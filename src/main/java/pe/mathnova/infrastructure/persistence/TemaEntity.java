@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Tabla tema de V1 (catálogo de V2, solo lectura): "Factorización en Q", "Límites"… con su curso. */
 @Entity
 @Table(name = "tema")
 @Getter

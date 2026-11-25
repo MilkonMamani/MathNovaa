@@ -9,10 +9,6 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * A5 (RN30): raíces de un polinomio sin fórmula por radicales, con Durand-Kerner y refinamiento de
- * Newton en BigDecimal con 50 cifras. Se muestran con 10 decimales y ≈.
- */
 public final class RaicesAproximadas {
 
     public static final int PRECISION = 50;
@@ -23,10 +19,6 @@ public final class RaicesAproximadas {
     private RaicesAproximadas() {
     }
 
-    /**
-     * Todas las raíces complejas de c₀ + c₁x + … + cₙxⁿ (de menor a mayor grado), ordenadas por parte
-     * real y luego imaginaria.
-     */
     public static List<ComplejoDecimal> raices(List<Racional> coeficientes) {
         int n = coeficientes.size() - 1;
         if (n < 1) {
@@ -37,7 +29,6 @@ public final class RaicesAproximadas {
         for (Racional c : coeficientes) {
             a.add(ComplejoDecimal.de(c, MC).dividir(principal, MC));
         }
-        // Arranque clásico: (0.4 + 0.9i)^k, escalado por una cota de las raíces.
         BigDecimal cota = BigDecimal.ONE;
         for (int k = 0; k < n; k++) {
             cota = cota.max(a.get(k).modulo(MC).add(BigDecimal.ONE));
@@ -68,7 +59,6 @@ public final class RaicesAproximadas {
                 break;
             }
         }
-        // Newton para pulir cada raíz.
         List<ComplejoDecimal> derivada = new ArrayList<>();
         for (int k = 1; k <= n; k++) {
             derivada.add(a.get(k).multiplicar(BigDecimal.valueOf(k), MC));
@@ -91,17 +81,14 @@ public final class RaicesAproximadas {
         return r;
     }
 
-    /** Solo las reales, de menor a mayor. */
     public static List<BigDecimal> reales(List<Racional> coeficientes) {
         return raices(coeficientes).stream().filter(x -> x.esReal(PRECISION - 20)).map(ComplejoDecimal::re).toList();
     }
 
-    /** "1.1673039783". */
     public static String texto(BigDecimal x) {
         return x.setScale(DECIMALES, RoundingMode.HALF_UP).toPlainString();
     }
 
-    /** "1.1673039783" o "-0.7648844336 + 0.3524715460i". */
     public static String texto(ComplejoDecimal x) {
         if (x.esReal(PRECISION - 20)) {
             return texto(x.re());

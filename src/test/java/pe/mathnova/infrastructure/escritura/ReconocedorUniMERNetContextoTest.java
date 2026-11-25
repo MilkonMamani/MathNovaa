@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import pe.mathnova.domain.escritura.ReconocedorEscritura;
 
-/** Spring arma el reconocedor real con mathnova.reconocedor=unimernet, sin arrancar el proceso. */
 class ReconocedorUniMERNetContextoTest {
 
     private final ApplicationContextRunner contexto = new ApplicationContextRunner()
@@ -40,7 +39,6 @@ class ReconocedorUniMERNetContextoTest {
 
     @Test
     void sinLosArchivosDelReconocedorDiceQueFaltaYComoConseguirlo(@org.junit.jupiter.api.io.TempDir Path vacia) {
-        // Lo que tiene quien clona el repositorio: el código, pero no python\ ni modelo\ (no van en Git).
         ReconocedorUniMERNet r = new ReconocedorUniMERNet(vacia.toString(), 0, 10, 10);
         IllegalStateException e = org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, r::preparar);
         assertTrue(e.getMessage().startsWith(ReconocedorUniMERNet.FALTA), e.getMessage());

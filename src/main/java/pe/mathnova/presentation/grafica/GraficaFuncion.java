@@ -29,25 +29,11 @@ import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 import pe.mathnova.presentation.resolucion.VistaPropiedades;
 
-/**
- * HU35 (RF63–RF66): la gráfica de una función de una variable, dibujada en un Canvas.
- * <ul>
- *   <li>ejes con flechas y nombres, marcas numeradas y cuadrícula gris clara</li>
- *   <li>la curva en azul, 2 px, con antialiasing; en una racional se corta en cada asíntota</li>
- *   <li>leyenda f(x) = … en LaTeX arriba a la derecha</li>
- *   <li>raíces, corte con el eje y, vértice con su eje de simetría, asíntotas en rojo punteado y
- *       huecos como círculos vacíos; las etiquetas son exactas ("(1/2, 0)")</li>
- *   <li>rueda: acercar y alejar; arrastrar: mover; doble clic: vista inicial; al pasar el cursor,
- *       el punto de la curva más cercano</li>
- * </ul>
- * {@link #progresoProperty()} va de 0 a 1 y dibuja la curva de izquierda a derecha.
- */
 public final class GraficaFuncion extends Region {
 
     private static final Color AZUL = Color.web("#2563eb");
     private static final Color MARINO = Color.web("#1e3a6e");
     private static final Color ROJO = Color.web("#dc2626");
-    /** Sprint 6: la segunda curva (f′ o la antiderivada). */
     private static final Color NARANJA = Color.web("#ea580c");
     private static final Color TEXTO = Color.web("#0f172a");
     private static final Color TEXTO_2 = Color.web("#475569");
@@ -55,9 +41,7 @@ public final class GraficaFuncion extends Region {
     private static final Color EJE = Color.web("#64748b");
     private static final Font FUENTE = Font.font("System", 11);
     private static final Font FUENTE_ETIQUETA = Font.font("System", FontWeight.BOLD, 11);
-    /** Una muestra cada tantos px de ancho. */
     private static final double PX_POR_MUESTRA = 1.5;
-    /** Distancia máxima (px) para mostrar el punto de la curva bajo el cursor. */
     private static final double CERCANIA = 24;
 
     private final DatosGrafica datos;
@@ -73,7 +57,6 @@ public final class GraficaFuncion extends Region {
     private double toqueX;
     private double toqueY;
     private boolean toqueDeslizado;
-    /** Punto de la curva bajo el cursor, en coordenadas del plano; NaN si no hay. */
     private double cursorX = Double.NaN;
     private double cursorY = Double.NaN;
     private String nombreCursor = "f";
@@ -124,7 +107,6 @@ public final class GraficaFuncion extends Region {
         return ventana;
     }
 
-    /** Vuelve al encuadre inicial del ejercicio actual. */
     public void restablecer() {
         ventana = inicial;
         ocultarConsulta();
@@ -150,8 +132,6 @@ public final class GraficaFuncion extends Region {
         dibujar();
     }
 
-    // ------------------------------------------------------------------ coordenadas
-
     private double px(double x) {
         return (x - ventana.xMin()) / ventana.ancho() * lienzo.getWidth();
     }
@@ -167,8 +147,6 @@ public final class GraficaFuncion extends Region {
     private double planoY(double py) {
         return ventana.yMax() - py / lienzo.getHeight() * ventana.alto();
     }
-
-    // ------------------------------------------------------------------ mouse
 
     private void configurarConsulta() {
         setOnMouseMoved(e -> {
@@ -199,7 +177,6 @@ public final class GraficaFuncion extends Region {
         dibujarConsulta();
     }
 
-    /** El punto de la curva más cercano al cursor (en pantalla), si está a menos de {@link #CERCANIA} px. */
     private void actualizarCursor(double mx, double my) {
         cursorX = Double.NaN;
         double mejor = CERCANIA;
@@ -258,8 +235,6 @@ public final class GraficaFuncion extends Region {
         return xs;
     }
 
-    // ------------------------------------------------------------------ dibujo
-
     private void dibujar() {
         double w = lienzo.getWidth();
         double h = lienzo.getHeight();
@@ -297,7 +272,6 @@ public final class GraficaFuncion extends Region {
         for (double y = Math.ceil(ventana.yMin() / pasoY) * pasoY; y <= ventana.yMax(); y += pasoY) {
             g.strokeLine(0, py(y), w, py(y));
         }
-        // Ejes: si el origen queda fuera, se dibujan pegados al borde.
         double ejeY = Math.max(0, Math.min(h, py(0)));
         double ejeX = Math.max(0, Math.min(w, px(0)));
         g.setStroke(EJE);
@@ -316,7 +290,6 @@ public final class GraficaFuncion extends Region {
         g.setTextBaseline(VPos.TOP);
         g.fillText("y", ejeX + 8, 4);
 
-        // Marcas numeradas
         g.setFont(FUENTE);
         g.setStroke(EJE);
         g.setLineWidth(1);
@@ -340,7 +313,6 @@ public final class GraficaFuncion extends Region {
         }
     }
 
-    /** "2", "0.5", "−1.5": con los decimales que pide el paso de las marcas. */
     private static String numero(double v, double paso) {
         int decimales = (int) Math.max(0, Math.ceil(-Math.log10(paso) + 1e-9));
         String s = String.format(Locale.ROOT, "%." + decimales + "f", v);
@@ -363,7 +335,6 @@ public final class GraficaFuncion extends Region {
             double x = px(a);
             g.strokeLine(x, 0, x, h);
         }
-        // RF26: horizontal y oblicua
         double w = lienzo.getWidth();
         if (datos.extra().horizontal() != null) {
             double y = py(datos.extra().horizontal());
@@ -376,10 +347,6 @@ public final class GraficaFuncion extends Region {
         g.setLineDashes((double[]) null);
     }
 
-    /**
-     * Sprint 5: la recta x = a punteada, el círculo vacío en (a, L) si f no está definida en a, flechas
-     * sobre la curva que se acercan por cada lado y, al infinito, la asíntota y = L.
-     */
     private void limite(GraphicsContext g, double w, double h) {
         DatosGrafica.MarcaLimite m = datos.extra().limite();
         if (m == null) {
@@ -426,7 +393,6 @@ public final class GraficaFuncion extends Region {
         }
     }
 
-    /** Una flecha pequeña sobre la curva, de x1 hacia x2. */
     private void flecha(GraphicsContext g, double x1, double x2) {
         double y1 = funcion.valor(x1);
         double y2 = funcion.valor(x2);
@@ -456,7 +422,6 @@ public final class GraficaFuncion extends Region {
         });
     }
 
-    /** La curva hasta {@code progreso} del ancho, cortada en las asíntotas (ver {@link TrazadoCurva}). */
     private void curva(GraphicsContext g, double w, FuncionReal funcion, Color color) {
         double hasta = w * Math.max(0, Math.min(1, progreso.get()));
         if (hasta <= 0) {
@@ -483,10 +448,6 @@ public final class GraficaFuncion extends Region {
         }
     }
 
-    /**
-     * Sprint 6: el área de una definida entre la curva y el eje x, azul donde f > 0 y roja donde f < 0, con
-     * el valor escrito encima. Sigue el progreso de la animación como la curva.
-     */
     private void area(GraphicsContext g) {
         DatosGrafica.Calculo calculo = datos.extra().calculo();
         if (calculo == null || calculo.area() == null) {
@@ -521,7 +482,6 @@ public final class GraficaFuncion extends Region {
         g.setLineDashes(null);
     }
 
-    /** Sprint 6: qué curva es cuál (azul y naranja), arriba a la izquierda. */
     private void leyendaCurvas(GraphicsContext g) {
         DatosGrafica.Calculo calculo = datos.extra().calculo();
         if (calculo == null || calculo.segunda() == null) {
@@ -548,7 +508,6 @@ public final class GraficaFuncion extends Region {
         }
     }
 
-    /** Las asíntotas periódicas (tan x: π/2 + kπ) que caen en la ventana. */
     private List<Double> periodicas() {
         List<Double> r = new ArrayList<>();
         for (DatosGrafica.Periodica p : datos.extra().periodicas()) {
@@ -559,7 +518,6 @@ public final class GraficaFuncion extends Region {
 
     private void puntos(GraphicsContext g) {
         g.setFont(FUENTE_ETIQUETA);
-        // R y C: raíces con radicales (√2) o aproximadas (≈ 1.1673)
         for (DatosGrafica.Marca m : datos.extra().marcas()) {
             punto(g, m.x(), 0, MARINO, m.etiqueta(), true);
         }
@@ -611,7 +569,6 @@ public final class GraficaFuncion extends Region {
         }
     }
 
-    /** Etiqueta con fondo blanco, arriba a la derecha del punto. */
     private void etiqueta(GraphicsContext g, double sx, double sy, String texto) {
         g.setFont(FUENTE_ETIQUETA);
         double ancho = texto.length() * 6.4 + 8;
@@ -675,7 +632,6 @@ public final class GraficaFuncion extends Region {
         DatosGrafica.Calculo calculo = datos.extra().calculo();
         String pendiente = null;
         if (calculo != null && calculo.pendiente() != null) {
-            // Sprint 6: la recta tangente en el punto, con su pendiente
             double m = calculo.pendiente().valor(cursorX);
             if (Double.isFinite(m)) {
                 g.setStroke(NARANJA);
@@ -697,7 +653,6 @@ public final class GraficaFuncion extends Region {
         etiquetaConsulta(g, sx, sy, pendiente == null ? texto : texto + " · " + pendiente);
     }
 
-    /** El punto bajo el cursor es aproximado: dos decimales. */
     private static String aproximado(double v) {
         String s = String.format(Locale.ROOT, "%.2f", v);
         if (s.equals("-0.00")) {

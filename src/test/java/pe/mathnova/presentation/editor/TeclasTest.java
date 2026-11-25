@@ -16,7 +16,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import pe.mathnova.application.editor.TraductorLatex;
 import pe.mathnova.domain.parser.Parser;
 
-/** RF72: distribución de las pestañas y que cada plantilla se traduzca. */
 class TeclasTest {
 
     private static List<String> etiquetas(List<Teclas.Tecla> fila) {
@@ -53,9 +52,7 @@ class TeclasTest {
         assertEquals("fuera del alcance", abs.ayuda());
         Teclas.Bloque der = Teclas.FUNCIONES.derecha();
         assertEquals("lím d/dx ∂/∂x ∫ ∬", fila(der, 0));
-        // Sprint 8: el límite doble y los extremos en el lugar de ! y °
         assertEquals("∭ ∞ i lím(x,y) extr", fila(der, 1));
-        // Sprint 7: ∇f y Dᵤf en el lugar de las llaves, que la gramática no usa
         assertEquals("□₍□₎ ∇f Dᵤf ∂ ⌫", fila(der, 2));
         assertEquals("→ , ← → Enter", fila(der, 3));
     }
@@ -110,7 +107,6 @@ class TeclasTest {
                 .filter(t -> t.accion() == Teclas.Accion.INSERTAR);
     }
 
-    /** Toda plantilla, con sus casillas llenas, se traduce sin error. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("teclasQueInsertan")
     void cadaPlantillaSeTraduce(Teclas.Tecla t) {
@@ -127,11 +123,9 @@ class TeclasTest {
                 .filter(t -> t.accion() == Teclas.Accion.INSERTAR || t.accion() == Teclas.Accion.ESCRIBIR);
     }
 
-    /** Lo que inserta CADA tecla, con sus casillas llenas con "x", se traduce sin error. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("todasLasTeclas")
     void cadaTeclaConXSeTraduce(Teclas.Tecla t) {
-        // Como en MathLive, cada casilla es un grupo: \to{x} y no \tox.
         String lleno = t.valor().replace("#@", "x").replace("#?", "{x}");
         assertDoesNotThrow(() -> TraductorLatex.traducir(lleno), lleno);
         assertTrue(TraductorLatex.casillaVacia(lleno).isEmpty(), lleno);
@@ -140,7 +134,6 @@ class TeclasTest {
     private static final List<String> ESTRUCTURAS = List.of("\\int", "\\iint", "\\iiint", "\\lim", "\\frac",
             "\\partial", "\\nabla", "\\sum", "\\sqrt", "\\surd");
 
-    /** Ninguna tecla inserta \int, \lim, \frac, \partial, \nabla, \sum o \sqrt sueltos: van con sus casillas. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("teclasQueInsertan")
     void ningunaTeclaInsertaUnSimboloSuelto(Teclas.Tecla t) {
@@ -151,7 +144,6 @@ class TeclasTest {
         }
     }
 
-    /** √, sqrt y raiz escritos a mano insertan la plantilla de la raíz, nunca \surd. */
     @Test
     void losAtajosDeLaRaizSonPlantillas() {
         assertEquals(Plantillas.RAIZ, Plantillas.ATAJOS.get("√"));
@@ -164,14 +156,12 @@ class TeclasTest {
         }
     }
 
-    /** La tecla ∂ es la derivada parcial respecto de la variable que se escriba. */
     @Test
     void laTeclaParcialEsPlantilla() {
         String lleno = Plantillas.PARCIAL_EN.replaceFirst("#\\?", "y").replace("#?", "x^2 y");
         assertEquals(Parser.parse("∂/∂y(x^2 y)"), Parser.parse(TraductorLatex.traducir(lleno)));
     }
 
-    /** Las plantillas de estructura, llenas, dan algo que el parser acepta. */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
             "#@^{2}            | x^2",
@@ -191,7 +181,6 @@ class TeclasTest {
             "\\int_{#?}^{#?}#?\\,dx | ∫(2, x, 2, 2)",
             "\\iint_{[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy | ∬(2, x, 2, 2, y, 2, 2)",
             "\\iiint_{[#?,#?]\\times[#?,#?]\\times[#?,#?]}#?\\,dx\\,dy\\,dz | ∭(2, x, 2, 2, y, 2, 2, z, 2, 2)",
-            // Las teclas ∬ y ∭: integrales iteradas, cada límite junto a su ∫.
             "\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy | ∬(2, x, 2, 2, y, 2, 2)",
             "\\int_{#?}^{#?}\\int_{#?}^{#?}\\int_{#?}^{#?}#?\\,dx\\,dy\\,dz | ∭(2, x, 2, 2, y, 2, 2, z, 2, 2)",
             "\\operatorname{extremos}\\left(#?\\right) | extremos(2)"
@@ -203,7 +192,6 @@ class TeclasTest {
         assertDoesNotThrow(() -> Parser.parse(traducido));
     }
 
-    /** RF69: la integral recién insertada, con solo el cuerpo lleno, es indefinida y está completa. */
     @Test
     void integralSinLimitesEsIndefinida() {
         String latex = "\\int_{\\placeholder{}}^{\\placeholder{}}x\\,dx";
@@ -211,7 +199,6 @@ class TeclasTest {
         assertEquals("∫(x, x)", TraductorLatex.traducir(latex));
     }
 
-    /** RF70: cada palabra de la lista tiene al menos una sugerencia. */
     @Test
     void sugerenciasCubrenLasDiezPalabras() {
         for (String palabra : List.of("lim", "der", "int", "sen", "cos", "tan", "ln", "log", "raiz", "frac")) {

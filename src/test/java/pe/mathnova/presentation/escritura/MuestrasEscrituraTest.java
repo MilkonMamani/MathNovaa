@@ -40,7 +40,6 @@ import pe.mathnova.infrastructure.escritura.ArchivoMuestras;
 import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 
-/** Primer hito del reconocedor propio: capturar, guardar y reproducir trazos reales. */
 class MuestrasEscrituraTest {
 
     @TempDir
@@ -59,7 +58,6 @@ class MuestrasEscrituraTest {
     void abrir() throws Exception {
         panel = enFx(() -> {
             PanelEscritura p = new PanelEscritura(new ReconocedorSimulado(0), latex -> { }, carpeta);
-            // Una página más alta que la ventana, como "Resolver ejercicio": se puede desplazar.
             VBox contenido = new VBox(p, new StackPane());
             contenido.setMinHeight(2000);
             pagina = new ScrollPane(contenido);
@@ -82,12 +80,11 @@ class MuestrasEscrituraTest {
         enFx(() -> Fx.trazo(lienzo().canvas(), puntos));
     }
 
-    /** El «2» de un solo contacto y la «x» de dos diagonales separadas. */
     private void escribir2x() throws Exception {
         trazo(new double[] {40, 80}, new double[] {55, 65}, new double[] {75, 62}, new double[] {88, 75},
                 new double[] {80, 100}, new double[] {50, 140}, new double[] {40, 150}, new double[] {95, 150});
         trazo(new double[] {120, 100}, new double[] {140, 125}, new double[] {160, 150});
-        Thread.sleep(15); // que la segunda diagonal empiece un poco después
+        Thread.sleep(15);
         trazo(new double[] {160, 100}, new double[] {140, 125}, new double[] {120, 150});
     }
 
@@ -103,7 +100,6 @@ class MuestrasEscrituraTest {
         assertEquals(3, dibujados.size(), "«2» de un contacto + «x» de dos");
         assertEquals(8, dibujados.get(0).puntos().size());
 
-        // Puntos en orden, relativos al lienzo, con el tiempo desde el primer punto.
         assertEquals(0, dibujados.getFirst().puntos().getFirst().t());
         assertEquals(40, dibujados.getFirst().puntos().getFirst().x(), 1e-3);
         assertEquals(80, dibujados.getFirst().puntos().getFirst().y(), 1e-3);
@@ -117,7 +113,6 @@ class MuestrasEscrituraTest {
         assertTrue(dibujados.get(2).puntos().getFirst().t() > dibujados.get(1).puntos().getLast().t(),
                 "la segunda diagonal empieza después de la primera");
 
-        // Guardar con la etiqueta del desarrollador.
         BarraMuestras barra = panel.muestras();
         assertNotNull(barra, "con carpeta de muestras aparece la barra de desarrollo");
         Path archivo = enFx(() -> {
@@ -135,12 +130,10 @@ class MuestrasEscrituraTest {
         assertEquals(LienzoEscritura.ALTO, leida.alto(), 1e-9);
         assertEquals(dibujados, leida.trazos(), "el JSON tiene los mismos puntos y tiempos");
 
-        // Limpiar.
         ButtonBase borrarTodo = boton("Borrar todo");
         enFx(() -> borrarTodo.fire());
         enFx(() -> assertTrue(lienzo().isVacio()));
 
-        // Cargar: el mismo «2x».
         assertTrue(enFx(() -> barra.cargar(archivo)));
         enFx(() -> {
             assertEquals(dibujados, lienzo().trazos());
@@ -149,7 +142,6 @@ class MuestrasEscrituraTest {
             assertTrue(barra.estado().getText().contains("2x"));
         });
 
-        // Deshacer quita la última diagonal.
         ButtonBase deshacer = boton("Deshacer");
         enFx(() -> deshacer.fire());
         enFx(() -> {
@@ -191,7 +183,6 @@ class MuestrasEscrituraTest {
                 var tipoToque = i == 0 ? TouchEvent.TOUCH_PRESSED : TouchEvent.TOUCH_MOVED;
                 var estado = i == 0 ? TouchPoint.State.PRESSED : TouchPoint.State.MOVED;
                 toque(c, tipoToque, estado, puntos[i][0], puntos[i][1]);
-                // Windows manda además el mismo gesto como mouse, marcado "sintetizado".
                 raton(c, i == 0 ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_DRAGGED, puntos[i][0], puntos[i][1], true);
             }
             toque(c, TouchEvent.TOUCH_RELEASED, TouchPoint.State.RELEASED, 70, 100);
@@ -200,7 +191,6 @@ class MuestrasEscrituraTest {
             assertEquals(1, lienzo().trazos().size(), "un gesto, un trazo");
             assertEquals(3, lienzo().trazos().getFirst().puntos().size(), "sin puntos repetidos");
         });
-        // El mouse de verdad sigue escribiendo.
         trazo(new double[] {100, 60}, new double[] {140, 100});
         enFx(() -> assertEquals(2, lienzo().trazos().size()));
     }
@@ -211,9 +201,9 @@ class MuestrasEscrituraTest {
             pagina.applyCss();
             pagina.layout();
             Node c = lienzo().canvas();
-            desplazar(c, true, -120); // dedo
+            desplazar(c, true, -120);
             assertEquals(0, pagina.getVvalue(), 1e-9, "el desplazamiento táctil no mueve la página");
-            desplazar(c, false, -120); // rueda del mouse
+            desplazar(c, false, -120);
             assertTrue(pagina.getVvalue() > 0, "la rueda sí mueve la página");
         });
     }
@@ -242,8 +232,6 @@ class MuestrasEscrituraTest {
             assertEquals(40, fin.t(), "el tiempo no se escala");
         });
     }
-
-    // ------------------------------------------------------------------ eventos
 
     private static void toque(Node n, EventType<TouchEvent> tipo, TouchPoint.State estado, double x, double y) {
         Point2D e = n.localToScene(x, y);

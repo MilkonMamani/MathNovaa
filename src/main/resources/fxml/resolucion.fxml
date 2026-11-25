@@ -18,15 +18,6 @@
 <?import javafx.scene.shape.SVGPath?>
 <?import pe.mathnova.presentation.resolucion.DivisionPaneles?>
 
-<!-- "Resolver ejercicio" (Sprint S3b, mockups A, F, G y H; wireframe de la Pizarra).
-     Arriba: el editor visual a lo ancho (HU36), el selector Q/R/C y "Resolver", que decide qué hacer con
-     lo que se escribió. Bajo el editor ya no va el resultado en vivo (RF71 retirado): el resultado depende
-     del método y del campo, y solo aparece al final de la Pizarra.
-     A la izquierda, pestañas Teclado | Escribir | Gráfica | Análisis | Exploración; a la derecha, la
-     Pizarra (con su Comprobación debajo) y "Propiedades de la función" plegable.
-     Entre las dos columnas hay un separador que el alumno arrastra (SplitPane horizontal): uno solo para las
-     cinco pestañas. Empieza en 40 % / 60 % del ancho útil y luego manda la posición elegida.
-     ResolucionController crea el editor y el teclado. Los estilos están en css/mathnova.css. -->
 <ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.mathnova.presentation.controller.ResolucionController"
             fitToWidth="true" hbarPolicy="AS_NEEDED" focusTraversable="false" styleClass="contenido-scroll">
@@ -42,11 +33,8 @@
         </VBox>
 
         <VBox fx:id="zonaEntrada" spacing="6">
-            <!-- En una ventana angosta, ResolucionController pasa el selector y el botón a una segunda fila -->
             <HBox fx:id="barraEntrada" styleClass="barra-entrada" alignment="CENTER_LEFT" fillHeight="false">
-                <!-- ResolucionController pone aquí el EditorMatematico -->
                 <StackPane fx:id="zonaEditor" HBox.hgrow="ALWAYS" minWidth="0"/>
-                <!-- "Usar este ejercicio" en Escribir; se va al editar con el teclado -->
                 <Label fx:id="etiquetaEscritoAMano" text="✎ Escrito a mano" styleClass="etiqueta-escrito-a-mano"
                        minWidth="-Infinity" visible="false" managed="false"/>
                 <HBox fx:id="selectorCampo" styleClass="selector-campo" minWidth="-Infinity">
@@ -77,18 +65,13 @@
                         disable="true" focusTraversable="false" minWidth="120"/>
             </HBox>
             <Label fx:id="avisoEntrada" styleClass="mensaje-error" wrapText="true" visible="false" managed="false"/>
-            <!-- Los paneles muestran el resultado de lo que había antes en el editor -->
             <Label fx:id="notaActualizar" styleClass="nota-actualizar" wrapText="true" visible="false" managed="false"/>
         </VBox>
 
-        <!-- El margen negativo y el relleno de cada panel dejan ver la sombra de las tarjetas: el SplitPane
-             recorta lo que sale de cada panel. Si la ventana no alcanza para los dos mínimos, la pantalla se
-             desplaza a lo ancho en vez de cortar un panel. -->
         <DivisionPaneles fx:id="division" orientation="HORIZONTAL" styleClass="division-trabajo">
             <VBox.margin>
                 <Insets top="-12" right="-16" bottom="-20" left="-16"/>
             </VBox.margin>
-            <!-- Izquierda: pestañas y la herramienta activa -->
             <VBox fx:id="panelHerramientas" styleClass="panel-herramientas">
             <VBox fx:id="columnaIzquierda" spacing="12">
                 <HBox fx:id="pestanasIzquierda" styleClass="pestanas-panel" spacing="6" alignment="CENTER_LEFT">
@@ -100,17 +83,14 @@
                 </HBox>
 
                 <StackPane fx:id="contenidoIzquierda">
-                    <!-- Teclado (HU33) -->
                     <VBox fx:id="vistaTeclado" styleClass="tarjeta">
                         <StackPane fx:id="zonaTeclado"/>
                     </VBox>
 
-                    <!-- Escribir: escritura a mano; ResolucionController pone aquí el PanelEscritura -->
                     <VBox fx:id="vistaEscritura" styleClass="tarjeta" visible="false" managed="false">
                         <StackPane fx:id="zonaEscritura"/>
                     </VBox>
 
-                    <!-- Gráfica: la tarjeta Solución y la gráfica (Sprint 3) -->
                     <VBox fx:id="vistaGrafica" spacing="20" visible="false" managed="false">
                         <VBox fx:id="tarjetaSolucion" styleClass="tarjeta">
                             <HBox spacing="12" alignment="CENTER_LEFT">
@@ -126,8 +106,6 @@
 
                             <StackPane>
                                 <VBox fx:id="cuerpoSolucion" spacing="12">
-                                    <!-- ResolucionController pone aquí la fórmula (FormulaAjustable: 28 → 18 px y,
-                                         si no cabe, dos líneas) con "Verificado" al costado o debajo -->
                                     <StackPane fx:id="recuadroFormula" styleClass="recuadro-formula" minWidth="0">
                                         <Label fx:id="etiquetaVerificado" text="Verificado" styleClass="etiqueta-verificado"
                                                minWidth="-Infinity">
@@ -148,7 +126,6 @@
                                 <Label fx:id="errorSolucion" styleClass="mensaje-error" wrapText="true"
                                        visible="false" managed="false" StackPane.alignment="TOP_LEFT"/>
 
-                                <!-- HU08: el método elegido no aplica; se muestra el motivo, no un error -->
                                 <VBox fx:id="avisoNoAplica" styleClass="aviso-metodo" visible="false" managed="false"
                                       StackPane.alignment="TOP_LEFT">
                                     <Label fx:id="tituloNoAplica" styleClass="aviso-titulo" wrapText="true"/>
@@ -159,7 +136,6 @@
 
                         <VBox fx:id="tarjetaGrafica" styleClass="tarjeta" visible="false" managed="false">
                             <Label text="Gráfica de la función" styleClass="titulo-tarjeta"/>
-                            <!-- ResolucionController pone aquí el componente GraficaFuncion (Canvas) -->
                             <StackPane fx:id="zonaGrafica" styleClass="zona-grafica"/>
                             <Label fx:id="graficaNoDisponible" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
                                    text="La gráfica está disponible para funciones de una variable"
@@ -169,7 +145,6 @@
                         </VBox>
                     </VBox>
 
-                    <!-- Análisis: propiedades y recta de signos (RF66) -->
                     <VBox fx:id="vistaAnalisis" styleClass="tarjeta" visible="false" managed="false">
                         <Label text="Análisis de la función" styleClass="titulo-tarjeta"/>
                         <VBox fx:id="analisis" spacing="10"/>
@@ -177,7 +152,6 @@
                                text="Resuelve un polinomio, una fracción o una ecuación de una variable para ver su análisis."/>
                     </VBox>
 
-                    <!-- Exploración: los métodos como tarjetas y la comparación Q/R/C -->
                     <VBox fx:id="vistaExploracion" styleClass="tarjeta" spacing="14" minWidth="0" visible="false" managed="false">
                         <Label text="Métodos" styleClass="titulo-tarjeta"/>
                         <FlowPane fx:id="tarjetasMetodos" hgap="10" vgap="10" styleClass="tarjetas-metodos"/>
@@ -190,14 +164,11 @@
             </VBox>
             </VBox>
 
-            <!-- Derecha: la Pizarra, su Comprobación y "Qué más puedes hacer"; la tarjeta mide lo que su contenido -->
             <VBox fx:id="panelPizarra" styleClass="panel-pizarra">
             <VBox fx:id="tarjetaProcedimiento" styleClass="tarjeta">
-                <!-- ResolucionController pone aquí la PizarraResolucion -->
                 <StackPane fx:id="zonaPizarra"/>
                 <Label fx:id="sinPasos" styleClass="nota-sin-pasos" wrapText="true" maxWidth="Infinity"
                        visible="false" managed="false"/>
-                <!-- HU10: sugerencias con su justificación y el botón Resolver -->
                 <VBox fx:id="zonaSugerencias" spacing="8" styleClass="zona-sugerencias" visible="false" managed="false">
                     <Label text="Qué más puedes hacer" styleClass="rotulo"/>
                     <VBox fx:id="sugerencias" spacing="8"/>

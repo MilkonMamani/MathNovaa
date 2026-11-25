@@ -11,14 +11,8 @@ import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Forma final en R o C: constante racional × factores con coeficientes {@link NumeroAlgebraico},
- * como 2(x − 1 + √6/2)(x − 1 − √6/2). Los factores que salen de partir uno de Q son mónicos; los
- * que no se partieron quedan como estaban en Q.
- */
 public record FormaExtendida(Racional constante, List<Factor> factores) {
 
-    /** Un factor con su multiplicidad. {@code polinomio} es exacto o lleva átomos (anidados). */
     public record Factor(PolinomioAlgebraico polinomio, int multiplicidad) {
         public Factor {
             Objects.requireNonNull(polinomio, "polinomio");
@@ -33,7 +27,6 @@ public record FormaExtendida(Racional constante, List<Factor> factores) {
         factores = List.copyOf(factores);
     }
 
-    /** La forma de Q tal cual: sin partir nada. */
     public static FormaExtendida de(FormaFactorizada q) {
         List<Factor> l = new ArrayList<>();
         for (var f : q.factores()) {
@@ -42,12 +35,10 @@ public record FormaExtendida(Racional constante, List<Factor> factores) {
         return new FormaExtendida(q.constante(), l);
     }
 
-    /** Si todos los coeficientes son exactos (sin radicales anidados ni valores trigonométricos). */
     public boolean exacta() {
         return factores.stream().allMatch(f -> f.polinomio().exacto());
     }
 
-    /** constante × Π factorᵐ, con las cuentas exactas o formales. */
     public PolinomioAlgebraico expandir() {
         char v = factores.isEmpty() ? 'x' : factores.getFirst().polinomio().variable();
         PolinomioAlgebraico r = PolinomioAlgebraico.constante(v, NumeroAlgebraico.de(constante));
@@ -57,7 +48,6 @@ public record FormaExtendida(Racional constante, List<Factor> factores) {
         return r;
     }
 
-    /** "(x - √2)(x + √2)", "2(x - 1 + √6/2)(x - 1 - √6/2)", "-(x + 2·i)(x - 2·i)". */
     public String aTexto() {
         if (factores.isEmpty()) {
             return constante.toString();
@@ -89,7 +79,6 @@ public record FormaExtendida(Racional constante, List<Factor> factores) {
         return Parser.parse(aTexto());
     }
 
-    /** Los factores que siguen siendo de Q (coeficientes racionales), para la nota de irreducibles. */
     List<Polinomio> factoresDeQ() {
         return factores.stream().filter(f -> f.polinomio().coeficientesRacionales())
                 .map(f -> f.polinomio().aPolinomio()).toList();

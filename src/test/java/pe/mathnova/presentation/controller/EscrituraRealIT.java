@@ -42,12 +42,6 @@ import pe.mathnova.infrastructure.escritura.TrazosSimulados;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.editor.EditorMatematico;
 
-/**
- * Recorrido completo con el MODELO REAL en la pantalla real: trazos SIMULADOS (no son escritura de una
- * persona) llegan al lienzo como eventos de mouse, el reconocedor los lee, el resultado aparece en el campo
- * de arriba y "Resolver" lo manda a la Pizarra. Cada caso se compara con la misma entrada escrita con el
- * teclado. Se corre con {@code -Dmathnova.it.unimernet=true}; deja target/reconocimiento/mathnova.tsv.
- */
 @EnabledIfSystemProperty(named = "mathnova.it.unimernet", matches = "true")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class EscrituraRealIT {
@@ -61,7 +55,6 @@ class EscrituraRealIT {
             "caso\tlectura del modelo\tcampo superior\ttexto MathNova\tsolución (escritura)\tsolución (teclado)\tigual\n");
 
     private static ReconocedorUniMERNet real;
-    /** Lo que devolvió el modelo en cada lectura, tal cual. */
     private static final List<String> LECTURAS = new CopyOnWriteArrayList<>();
 
     private Stage ventana;
@@ -153,7 +146,6 @@ class EscrituraRealIT {
         enFx(() -> editor.setLatex(""));
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.VACIO, "el editor no quedó vacío");
         enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
-        // La primera vez el modelo tarda en cargar.
         Fx.esperar(real::listo, "el modelo no cargó");
         LECTURAS.clear();
     }
@@ -167,7 +159,7 @@ class EscrituraRealIT {
         for (Trazo t : trazos) {
             double[][] ps = t.puntos().stream().map(p -> new double[] {p.x(), p.y()}).toArray(double[][]::new);
             enFx(() -> Fx.trazo(c, ps));
-            Thread.sleep(40); // el estudiante levanta el dedo entre trazos
+            Thread.sleep(40);
         }
     }
 
@@ -182,7 +174,6 @@ class EscrituraRealIT {
                 : "ERROR: " + ((javafx.scene.control.Label) raiz.lookup("#avisoEntrada")).getText());
     }
 
-    /** Dibuja, espera la lectura, resuelve; después lo mismo con el teclado. */
     private void caso(String nombre, BiFunction<Double, Long, List<Trazo>> trazos, String teclado) throws Exception {
         dibujar(trazos.apply(45.0, 1L));
         Fx.esperar(() -> !LECTURAS.isEmpty() && !controlador.panelEscritura().leyendo(), "no se reconoció");
@@ -234,7 +225,7 @@ class EscrituraRealIT {
     @Order(6)
     void resolverJustoDespuesDelUltimoTrazo() throws Exception {
         dibujar(TrazosSimulados.casoB(45.0, 2L));
-        enFx(() -> ((Button) raiz.lookup("#botonResolver")).fire()); // antes de la pausa
+        enFx(() -> ((Button) raiz.lookup("#botonResolver")).fire());
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO
                 || controlador.estado() == EstadoResolucion.ERROR, "no terminó de resolver");
         assertEquals(1, LECTURAS.size(), "se leyó una vez, lo último escrito");
@@ -250,11 +241,10 @@ class EscrituraRealIT {
         enFx(() -> editor.setLatex("x^2-1"));
         Fx.esperar(() -> "x^2-1".equals(enFxSilencioso()), "no se escribió");
         dibujar(TrazosSimulados.casoB(45.0, 3L));
-        // Esperar a que empiece la lectura (pasó la pausa) y borrar todo en ese momento.
         Thread.sleep(800);
         enFx(() -> raiz.lookupAll(".herramienta-escritura").stream().map(n -> (javafx.scene.control.ButtonBase) n)
                 .filter(b -> "Borrar todo".equals(b.getAccessibleText())).findFirst().orElseThrow().fire());
-        Thread.sleep(3000); // la lectura en curso termina en el proceso y se descarta
+        Thread.sleep(3000);
         assertEquals("x^2-1", enFx(() -> editor.getLatex()), "el campo conserva la última entrada");
         TABLA.append("limpiar-durante-lectura\t\t").append(enFx(() -> editor.getLatex())).append("\t\t\t\t\n");
     }
@@ -268,10 +258,8 @@ class EscrituraRealIT {
     void corregirEnElEditorYMoverElSeparador() throws Exception {
         dibujar(TrazosSimulados.casoB(45.0, 1L));
         Fx.esperar(() -> !LECTURAS.isEmpty() && !controlador.panelEscritura().leyendo(), "no se reconoció");
-        // El estudiante corrige el integrando en el campo: 2x → 3x.
         String corregido = enFx(() -> editor.getLatex()).replace("2x", "3x");
         enFx(() -> editor.setLatex(corregido));
-        // Mover el separador con la fórmula escrita: los trazos y el campo se conservan.
         int antes = enFx(() -> controlador.panelEscritura().lookupAll(".lienzo-escritura").size());
         SplitPane division = enFx(() -> (SplitPane) raiz.lookup(".split-pane"));
         if (division != null) {

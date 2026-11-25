@@ -23,18 +23,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-/**
- * Animaciones de la pantalla de resolución: fases de carga, cascada de pasos, entrada de la
- * solución y despliegue de cada paso. Con las animaciones desactivadas (configuracion
- * "animaciones" = "false") todo queda en su estado final al instante.
- *
- * <p>Se usa solo desde el hilo de JavaFX.
- */
 public final class AnimadorResolucion {
 
-    /** El indicador de carga se ve al menos este tiempo, para que no parpadee. */
     public static final Duration MINIMO_CARGA = Duration.millis(600);
-    /** Cada mensaje de fase se ve al menos este tiempo (3 fases × 200 ms = 600 ms). */
     static final Duration MINIMO_FASE = Duration.millis(200);
     static final Duration DURACION_FILA = Duration.millis(220);
     static final Duration ENTRE_FILAS = Duration.millis(140);
@@ -45,7 +36,6 @@ public final class AnimadorResolucion {
     private static final String ANIMACION_DESPLIEGUE = "animador.despliegue";
 
     private boolean activas = true;
-    /** La espera mínima o la cascada en curso; se cancela si llega un ejercicio nuevo. */
     private Animation actual;
     private Timeline relojFases;
     private ObservableStringValue mensajeSeguido;
@@ -59,7 +49,6 @@ public final class AnimadorResolucion {
         this.activas = activas;
     }
 
-    /** Detiene la espera, la cascada y el seguimiento de fases en curso. */
     public void cancelar() {
         if (actual != null) {
             actual.stop();
@@ -68,13 +57,6 @@ public final class AnimadorResolucion {
         detenerFases();
     }
 
-    // ---------------------------------------------------------------- fases de carga
-
-    /**
-     * Muestra en {@code etiqueta} las fases que publica el Task con updateMessage. Con animaciones,
-     * cada fase queda al menos {@link #MINIMO_FASE} en pantalla aunque el motor ya haya pasado a la
-     * siguiente; nunca se muestra una fase que el Task todavía no alcanzó.
-     */
     public void seguirFases(Labeled etiqueta, ObservableStringValue mensaje, List<String> fases) {
         detenerFases();
         int[] alcanzada = {0};
@@ -117,10 +99,6 @@ public final class AnimadorResolucion {
         }
     }
 
-    /**
-     * Corre {@code accion} cuando hayan pasado al menos {@link #MINIMO_CARGA} desde {@code inicioNanos}
-     * (System.nanoTime()). Sin animaciones, la corre enseguida.
-     */
     public void trasCargaMinima(long inicioNanos, Runnable accion) {
         double transcurrido = (System.nanoTime() - inicioNanos) / 1_000_000.0;
         double falta = MINIMO_CARGA.toMillis() - transcurrido;
@@ -137,19 +115,6 @@ public final class AnimadorResolucion {
         espera.play();
     }
 
-    // ---------------------------------------------------------------- cascada
-
-    /**
-     * Las filas de los pasos entran una por una (fade de 0 a 1 y 12 px hacia arriba, 220 ms cada
-     * una, empezando cada 140 ms; el círculo numerado crece de 0.6 a 1). Después entra la solución
-     * con un fade y al final la etiqueta de verificación con un pequeño rebote.
-     *
-     * @param filas    las filas de los pasos, en orden
-     * @param numeros  el círculo numerado de cada fila, en el mismo orden
-     * @param solucion la fórmula y lo que la acompaña, que entra con un fade
-     * @param etiqueta la etiqueta "Verificado"
-     * @param alTerminar se corre al final, o enseguida sin animaciones; no se corre si se cancela
-     */
     public void presentar(List<? extends Node> filas, List<? extends Node> numeros, List<? extends Node> solucion,
                           Node etiqueta, Runnable alTerminar) {
         cancelar();
@@ -256,12 +221,6 @@ public final class AnimadorResolucion {
         }
     }
 
-    // ---------------------------------------------------------------- despliegue de un paso
-
-    /**
-     * Abre o cierra el detalle de un paso animando su alto, y gira la flecha. El detalle necesita
-     * minHeight 0 para poder encogerse.
-     */
     public void desplegar(Region detalle, Node flecha, boolean abrir) {
         Animation previa = (Animation) detalle.getProperties().remove(ANIMACION_DESPLIEGUE);
         if (previa != null) {
@@ -327,16 +286,8 @@ public final class AnimadorResolucion {
         return -1;
     }
 
-    // ---------------------------------------------------------------- gráfica (HU35)
-
     static final Duration DURACION_CURVA = Duration.millis(500);
 
-    /**
-     * Después de la solución: la tarjeta de la gráfica entra con un fade y la curva se dibuja de
-     * izquierda a derecha en {@link #DURACION_CURVA}. Sin animaciones aparece completa.
-     *
-     * @param progreso de 0 a 1, cuánto de la curva se dibuja; null si no hay curva (solo el fade)
-     */
     public void presentarGrafica(Node tarjeta, javafx.beans.property.DoubleProperty progreso) {
         if (!activas) {
             tarjeta.setOpacity(1);

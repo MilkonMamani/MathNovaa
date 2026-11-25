@@ -2,11 +2,6 @@ package pe.mathnova.domain.factorizacion;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * Un método de una letra que también sirve en varias (F01, F05, F07, F04…), con el código de la
- * sección 2.13: M01 factor común, M03 productos notables, M02 agrupación. Hace la misma cuenta; solo
- * cambia el código del paso.
- */
 final class EnVariasVariables implements MetodoFactorizacion {
 
     private final String codigo;
@@ -27,7 +22,6 @@ final class EnVariasVariables implements MetodoFactorizacion {
         return Tecnicas.nombre(codigo);
     }
 
-    /** El método de una letra que hace la cuenta ("F05"). */
     String codigoBase() {
         return base.codigo();
     }
@@ -52,7 +46,6 @@ final class EnVariasVariables implements MetodoFactorizacion {
                 x.trabajo(), x.descartado(), x.motivoDescarte()));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return base.pista();

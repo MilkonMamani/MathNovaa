@@ -37,10 +37,6 @@ import pe.mathnova.presentation.resolucion.ComparacionCampos;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.VistaDesarrollo;
 
-/**
- * Pruebas de aceptación de la pantalla "Resolver ejercicio": A) el cúbico 3x³ + 8x² − x + 10 en R, con
- * Exploración y el separador; B) "Ver comprobación" del grado ocho; C) los encabezados de paso en peso regular.
- */
 class CardanoYExpansionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -113,13 +109,11 @@ class CardanoYExpansionTest {
         enFx(() -> ventana.close());
     }
 
-    /** A: Q, R y C visibles, tarjetas dentro del panel y fórmulas legibles al mover el separador. */
     @Test
     void cubicoEnRConExploracionYSeparador() throws Exception {
         elegirCampo("R");
         resolver("3x^3 + 8x^2 - x + 10");
 
-        // Pizarra: el paso de Cardano por renglones, sin radicales anidados a la vista, y "Ver valor exacto de r".
         enFx(() -> {
             VistaDesarrollo d = (VistaDesarrollo) raiz.lookup(".pizarra-desarrollo");
             assertTrue(d != null && seVe(d), "el paso de Cardano no está desarrollado");
@@ -134,10 +128,9 @@ class CardanoYExpansionTest {
             legibles();
         });
 
-        // Exploración
         enFx(() -> ((ToggleButton) raiz.lookup("#pestanaExploracion")).fire());
         ComparacionCampos comp = esperarComparacion();
-        enFx(() -> comp.controles().getFirst().fire()); // el detalle de la raíz en la fila R
+        enFx(() -> comp.controles().getFirst().fire());
         double inicial = enFx(controlador::posicionSeparador);
         for (double dx : new double[] {150, -300}) {
             Node divisor = enFx(() -> division.lookup(".split-pane-divider"));
@@ -172,7 +165,6 @@ class CardanoYExpansionTest {
         }
     }
 
-    /** B: la primera línea es el resultado celeste y la última la entrada; los "=" alineados. */
     @Test
     void verExpansionDelGradoOcho() throws Exception {
         resolver("2x^8 - 12x^6 + 18x^4 - 8x^2");
@@ -190,7 +182,6 @@ class CardanoYExpansionTest {
             assertEquals("2x^{8} - 12x^{6} + 18x^{4} - 8x^{2}", c.expresiones().getLast());
             assertEquals(7, c.expresiones().size(), "con el renglón distribuido antes de reducir");
             assertTrue(c.expresiones().stream().noneMatch(l -> l.equals("x^{2} = x^{2}")));
-            // Los "=" en la misma columna: cada renglón es "= expresión" (el primero con un "=" invisible).
             List<Double> xs = new ArrayList<>();
             for (Node fila : c.lookupAll(".pizarra-cadena-fila")) {
                 Node f = ((Parent) fila).getChildrenUnmodifiable().getFirst();
@@ -201,7 +192,6 @@ class CardanoYExpansionTest {
         });
     }
 
-    /** C: número, flecha y método en peso regular, con y sin explicaciones, en los dos modos. */
     @Test
     void encabezadosEnPesoRegular() throws Exception {
         resolver("2x^8 - 12x^6 + 18x^4 - 8x^2");
@@ -229,9 +219,6 @@ class CardanoYExpansionTest {
         }
     }
 
-    // ------------------------------------------------------------------ ayudas
-
-    /** Ninguna fórmula de la pizarra por debajo del 80 % de su tamaño mínimo (14 px). */
     private void legibles() {
         for (Node n : raiz.lookupAll(".formula-ajustable")) {
             if (n instanceof FormulaAjustable f && seVe(f) && f.getLatex() != null && f.getWidth() > 0

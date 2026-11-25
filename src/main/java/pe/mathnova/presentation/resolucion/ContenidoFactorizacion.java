@@ -9,13 +9,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.factorizacion.ResolucionFunciones;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 
-/**
- * Factorización de un polinomio o de una expresión con funciones: la gráfica, el análisis (propiedades, raíces y
- * conjunto solución, ver {@link AnalisisFactorizacion}), los métodos y la comparación Q/R/C.
- *
- * <p>Con varias variables (Sprint 7) la gráfica muestra el aviso de siempre, Análisis tiene el grado
- * total, el grado en cada variable y si es homogéneo, y Exploración los métodos M alternativos.
- */
 public record ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica> grafica,
                                      Optional<VistaPropiedades> propiedades, VistaExploracion exploracion,
                                      Optional<String> comparacion, List<SeccionAnalisis> secciones,
@@ -48,7 +41,6 @@ public record ContenidoFactorizacion(String latexSolucion, Optional<DatosGrafica
                 VistaExploracion.de(r, codigos), Optional.of(texto));
     }
 
-    /** Con dos o más letras: grado total, grado en cada letra y si es homogéneo. */
     static List<SeccionAnalisis> grados(Resolucion r) {
         Polinomio p;
         try {

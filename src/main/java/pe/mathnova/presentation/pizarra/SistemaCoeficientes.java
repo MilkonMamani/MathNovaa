@@ -12,10 +12,6 @@ import pe.mathnova.presentation.latex.TextoLatex;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.Igualdades;
 
-/**
- * F20 y fracciones parciales: el planteo, una ecuación por coeficiente (con qué coeficiente se igualó, en gris al
- * costado), la solución y lo que queda con los valores encontrados; todo con tipografía matemática.
- */
 public final class SistemaCoeficientes extends VBox {
 
     public SistemaCoeficientes(TrabajoIntermedio.SistemaCoeficientes s) {
@@ -37,7 +33,6 @@ public final class SistemaCoeficientes extends VBox {
         }
         getChildren().add(tabla);
 
-        // A = 2,  B = −1
         getChildren().add(formula(String.join(", ", s.solucion())));
         getChildren().add(Igualdades.deTextos(List.of(s.resultado()), Pizarra.TAMANO, Pizarra.TAMANO_MINIMO));
     }

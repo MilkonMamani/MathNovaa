@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Sprint 6, Parte B: los ejemplos exactos de integrales (HU13, RF29–RF32). */
 class IntegralesTest {
 
     private static final MotorIntegrales MOTOR = new MotorIntegrales(new OrquestadorFactorizacion());
@@ -97,7 +96,6 @@ class IntegralesTest {
 
     @Test
     void sinMetodoNoInventaNada() {
-        // ∫x·eˣ ya se resuelve por partes (Sprint 7); e^(x²) no tiene antiderivada elemental
         ResolucionIntegral r = resolver("∫(e^(x^2), x)");
         assertFalse(r.resuelta());
         assertEquals(MotorIntegrales.SIN_METODO, r.texto());

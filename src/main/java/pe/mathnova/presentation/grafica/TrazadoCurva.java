@@ -3,23 +3,11 @@ package pe.mathnova.presentation.grafica;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Los trazos de la curva, en coordenadas del plano y sin JavaFX. Se empieza un trazo nuevo donde el
- * valor no es finito, donde hay una asíntota entre dos muestras (así no se une una rama con la
- * otra) y donde la curva se va muy lejos de la ventana.
- */
 public final class TrazadoCurva {
 
     private TrazadoCurva() {
     }
 
-    /**
-     * @param desde,hasta  tramo de x que se muestrea
-     * @param muestras     cuántas muestras (al menos 2)
-     * @param asintotas    las x de las asíntotas verticales
-     * @param yMin,yMax    más allá de esto el trazo se recorta y se corta
-     * @return cada trazo es una lista de puntos {x, y}
-     */
     public static List<List<double[]>> trazos(FuncionReal f, double desde, double hasta, int muestras,
                                              List<Double> asintotas, double yMin, double yMax) {
         List<List<double[]>> trazos = new ArrayList<>();
@@ -50,7 +38,7 @@ public final class TrazadoCurva {
             }
             actual.add(new double[] {x, recortado});
             if (recortado != y) {
-                actual = null; // se fue muy lejos: lo que sigue es otro trazo
+                actual = null;
             }
         }
         return trazos;

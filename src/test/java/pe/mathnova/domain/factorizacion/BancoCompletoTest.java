@@ -13,10 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import pe.mathnova.domain.BancoCsv;
 
-/**
- * Definición de terminado 1 del Sprint 7: el banco completo, las 300 filas, cada una con su comprobación
- * (ComprobacionBanco). Corre con "mvn test", sin perfil.
- */
 class BancoCompletoTest {
 
     static List<BancoCsv.Fila> filas() {
@@ -29,7 +25,6 @@ class BancoCompletoTest {
         ComprobacionBanco.comprobar(f);
     }
 
-    /** 275 de los Sprints 2–4 y 25 de varias variables (M01–M07). */
     @Test
     void sonTrescientas() {
         assertEquals(300, filas().size());

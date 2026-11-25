@@ -14,10 +14,6 @@ import pe.mathnova.domain.numeros.Atomo;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.numeros.Radical;
 
-/**
- * Cuentas exactas con {@link NumeroAlgebraico} que necesita el motor de límites: e y π como átomos,
- * los valores notables de sen, cos, ln y las inversas, y la división con respaldo simbólico (1/e).
- */
 final class Exactos {
 
     static final NumeroAlgebraico E = NumeroAlgebraico.de(Atomo.simbolico(new ConstanteEspecial(ConstanteEspecial.Tipo.E)));
@@ -25,7 +21,6 @@ final class Exactos {
     private static final Atomo ATOMO_E = Atomo.simbolico(new ConstanteEspecial(ConstanteEspecial.Tipo.E));
     private static final Atomo ATOMO_PI = Atomo.simbolico(new ConstanteEspecial(ConstanteEspecial.Tipo.PI));
 
-    /** sen(rπ) para r en [0, 1/2], con r = k/12. */
     private static final Map<Racional, NumeroAlgebraico> SENOS = Map.of(
             Racional.CERO, NumeroAlgebraico.CERO,
             Racional.de(1, 6), NumeroAlgebraico.de(Racional.de(1, 2)),
@@ -36,7 +31,6 @@ final class Exactos {
     private Exactos() {
     }
 
-    /** Un valor que solo se conoce por su expresión: sen 1, ln 2, e^(1/2). */
     static NumeroAlgebraico simbolico(Expresion e) {
         return NumeroAlgebraico.de(Atomo.simbolico(e));
     }
@@ -49,7 +43,6 @@ final class Exactos {
         }
     }
 
-    /** r si z = r·π (incluido 0); vacío si no. */
     static Optional<Racional> multiploDePi(NumeroAlgebraico z) {
         if (z.esCero()) {
             return Optional.of(Racional.CERO);
@@ -66,7 +59,6 @@ final class Exactos {
         return Optional.of(t.getValue());
     }
 
-    /** n si z = eⁿ con n entero (1 = e⁰); vacío si no. */
     static Optional<Integer> potenciaDeE(NumeroAlgebraico z) {
         if (z.equals(NumeroAlgebraico.UNO)) {
             return Optional.of(0);
@@ -83,7 +75,6 @@ final class Exactos {
         return Optional.of(u.atomos().get(ATOMO_E));
     }
 
-    /** eᶻ exacto si z es entero (e⁰ = 1, e¹ = e, e² …); si no, el valor simbólico. */
     static NumeroAlgebraico exp(NumeroAlgebraico z) {
         if (z.esRacional() && z.aRacional().esEntero() && z.aRacional().num().bitLength() < 12) {
             int n = z.aRacional().num().intValueExact();
@@ -95,9 +86,7 @@ final class Exactos {
         return simbolico(new Potencia(new ConstanteEspecial(ConstanteEspecial.Tipo.E), z.aExpresion()));
     }
 
-    /** sen(rπ) exacto si r es múltiplo de 1/6 o de 1/4; vacío si no. */
     static Optional<NumeroAlgebraico> senoDe(Racional r) {
-        // r módulo 2, en [0, 2)
         Racional dos = Racional.de(2);
         Racional m = r.restar(dos.multiplicar(Racional.de(piso(r.dividir(dos)))));
         boolean negativo = false;
@@ -120,7 +109,6 @@ final class Exactos {
         return q.signo() < 0 && dr[1].signum() != 0 ? dr[0].subtract(java.math.BigInteger.ONE) : dr[0];
     }
 
-    /** El valor de sen, cos o tan en z: exacto en los ángulos notables, si no simbólico. */
     static Valor trigonometrica(TipoFuncion tipo, NumeroAlgebraico z) {
         Optional<Racional> r = multiploDePi(z);
         Optional<NumeroAlgebraico> sen = r.flatMap(Exactos::senoDe);
@@ -151,7 +139,6 @@ final class Exactos {
         return new Valor.Numero(dividir(a, b));
     }
 
-    /** arcsen, arccos y arctan en sus valores notables; si no, simbólico (dentro del dominio). */
     static Valor inversa(TipoFuncion tipo, NumeroAlgebraico z) {
         boolean fuera = z.restar(NumeroAlgebraico.UNO).signo() > 0 || z.sumar(NumeroAlgebraico.UNO).signo() < 0;
         if (tipo != TipoFuncion.ARCTAN && fuera) {
@@ -178,7 +165,6 @@ final class Exactos {
         return new Valor.Numero(simbolico(new Funcion(tipo, z.aExpresion())));
     }
 
-    /** ln z y log_b z: exactos en 1, en eⁿ y en bⁿ; −∞ en 0 (desde la derecha). */
     static Valor logaritmo(Funcion f, NumeroAlgebraico z) {
         int s = z.signo();
         if (s == 0) {
@@ -206,7 +192,6 @@ final class Exactos {
         return new Valor.Numero(simbolico(new Funcion(TipoFuncion.LOG, z.aExpresion(), f.base())));
     }
 
-    /** ⁿ√z real: exacta con radicales; vacío si n es par y z negativo. */
     static Optional<NumeroAlgebraico> raiz(int n, NumeroAlgebraico z) {
         if (!z.esReal()) {
             return Optional.empty();

@@ -5,21 +5,6 @@ import java.util.Map;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Escribe un árbol como se escribe en la pizarra (Sprint 6): "2x·sen x + x²·cos x", "eˣ(cos x − sen x)",
- * "(8/3)ln|x − 1|", "(x² + 1)⁶/6", "x/√(x² + 1)". Es la forma de los resultados de derivadas e integrales
- * y la de sus pasos. A diferencia de {@link ImpresoraTexto}, lo que sale no se vuelve a leer con el parser.
- *
- * <ul>
- *   <li>Los exponentes enteros y los de una sola letra van como superíndice (x², xˣ, eˣ); los demás con
- *       ^ y paréntesis: e^(x²).</li>
- *   <li>Una función de una letra va sin paréntesis (sen x, ln x); si no, con ellos: cos(3x²).</li>
- *   <li>En un producto, el número va pegado (2x, 3ln|x|), igual que un paréntesis (eˣ(…)); entre los
- *       demás factores va "·" (2x·sen x, 2a·t).</li>
- *   <li>Un coeficiente fraccionario delante de una función se escribe aparte: (1/2)ln(x² + 1); en lo
- *       demás, la fracción entera: x³/3.</li>
- * </ul>
- */
 public final class ImpresoraPizarra implements Visitante<String> {
 
     public static final String MENOS = "−";
@@ -35,7 +20,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         return e.aceptar(INSTANCIA);
     }
 
-    /** Un número de pizarra: "3", "−2", "3/4". */
     public static String numero(Racional r) {
         return r.signo() < 0 ? MENOS + r.negar() : r.toString();
     }
@@ -48,7 +32,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         return "(" + s + ")";
     }
 
-    /** Lo que se escribe sin paréntesis como argumento de una función o base de una potencia. */
     private static boolean atomo(Expresion e) {
         return e instanceof Variable || e instanceof ConstanteEspecial
                 || e instanceof Constante c && c.valor().esEntero() && c.valor().signo() >= 0
@@ -59,7 +42,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         return e instanceof Derivada d && d.orden() == 1 && d.cuerpo() instanceof Variable;
     }
 
-    /** "²", "⁻¹", "ˣ"; null si no se puede escribir como superíndice. */
     static String superindice(Expresion exponente) {
         if (exponente instanceof Constante c && c.valor().esEntero()) {
             StringBuilder sb = new StringBuilder();
@@ -78,8 +60,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         }
         return null;
     }
-
-    // ------------------------------------------------------------------ hojas
 
     @Override
     public String visitar(Constante c) {
@@ -100,8 +80,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         };
     }
 
-    // ------------------------------------------------------------------ operaciones
-
     @Override
     public String visitar(Suma s) {
         StringBuilder sb = new StringBuilder();
@@ -112,7 +90,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
                 sb.append(x instanceof Suma ? parentesis(p(x)) : p(x));
                 continue;
             }
-            // Un solo operador por término: x − 3, x − 2x y x + 3, no x + −3, x + −2x ni x − −3 (ver Signos)
             Signos.Termino signo = Signos.separar(x);
             Expresion v = signo.valor();
             sb.append(signo.negativo() ? " " + MENOS + " " : " + ").append(v instanceof Suma ? parentesis(p(v)) : p(v));
@@ -123,7 +100,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
     @Override
     public String visitar(Negacion n) {
         Expresion a = n.argumento();
-        // −(x + 1), −(−3), −(−2x): nunca dos signos seguidos
         boolean envolver = a instanceof Suma || Signos.conMenos(a);
         return MENOS + (envolver ? parentesis(p(a)) : p(a));
     }
@@ -131,7 +107,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
     @Override
     public String visitar(Producto prod) {
         if (prod.factores().getFirst() instanceof Constante k && k.valor().signo() < 0) {
-            // −2x, no (−2)x; −x, no (−1)x
             Expresion resto = Signos.sinMenos(prod).orElseThrow();
             return MENOS + (resto instanceof Suma || Signos.conMenos(resto) ? parentesis(p(resto)) : p(resto));
         }
@@ -158,7 +133,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
     public String visitar(Cociente c) {
         Expresion num = c.numerador();
         Expresion den = c.denominador();
-        // (1/2)ln(x² + 1), (8/3)ln|x − 1|: el coeficiente aparte delante de una función
         if (den instanceof Constante d && d.valor().esEntero() && d.valor().signo() > 0) {
             Racional coef = Racional.UNO;
             Expresion resto = num;
@@ -182,7 +156,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         String sup = superindice(pot.exponente());
         if (base instanceof Funcion f && sup != null && pot.exponente() instanceof Constante c && c.valor().signo() > 0
                 && f.tipo() != TipoFuncion.SQRT && f.tipo() != TipoFuncion.ABS && f.tipo() != TipoFuncion.EXP) {
-            // sec²x
             return nombre(f) + sup + argumento(f.argumento()).strip();
         }
         String b = atomo(base) ? p(base) : parentesis(p(base));
@@ -221,7 +194,6 @@ public final class ImpresoraPizarra implements Visitante<String> {
         return f.tipo() == TipoFuncion.LOG && f.base() != 10 ? "log_" + f.base() : f.tipo().nombre();
     }
 
-    /** " x" si es una letra o un número; "(3x²)" si no. */
     private String argumento(Expresion u) {
         return atomo(u) ? " " + p(u) : parentesis(p(u));
     }

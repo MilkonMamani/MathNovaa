@@ -22,17 +22,6 @@ import pe.mathnova.domain.expresion.ImpresoraPizarra;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * HU30 (RF55): puntos críticos y extremos de un polinomio f.
- * <ul>
- *   <li>Sin restricción: se resuelve ∇f = 0 por sustitución y factorización ({@link SistemaPolinomico}) y cada punto
- *       se clasifica con el criterio del Hessiano (V07): D = fxx·fyy − fxy²; D &gt; 0 y fxx &gt; 0 mínimo local,
- *       D &gt; 0 y fxx &lt; 0 máximo local, D &lt; 0 punto de silla, D = 0 el criterio no decide (RN39).</li>
- *   <li>Con "; g = c": multiplicadores de Lagrange (V08), ∇f = λ∇g y g = 0, y se compara f en los puntos hallados
- *       (o, si hay uno solo, con otros puntos de la restricción) para decir cuál es el máximo y cuál el mínimo.</li>
- * </ul>
- * Solo se dan puntos con coordenadas exactas (racionales).
- */
 public final class MotorExtremos {
 
     public static final String HESSIANO = "V07";
@@ -54,7 +43,6 @@ public final class MotorExtremos {
         return ImpresoraPizarra.numero(q);
     }
 
-    /** "(3)" si es negativo o una fracción, para escribir productos. */
     private static String np(Racional q) {
         return q.signo() < 0 || !q.esEntero() ? "(" + n(q) + ")" : n(q);
     }
@@ -68,14 +56,9 @@ public final class MotorExtremos {
         }
     }
 
-    /**
-     * @throws IllegalArgumentException si f (o g) no es un polinomio, o si f no tiene dos variables
-     */
     public ResolucionExtremos resolver(Extremos e) {
         return e.conRestriccion() ? lagrange(e) : hessiano(e);
     }
-
-    // ================================================================== V07
 
     private ResolucionExtremos hessiano(Extremos e) {
         Expresion fe = e.funcion();
@@ -152,8 +135,6 @@ public final class MotorExtremos {
                 null, puntos, pasos, s.avisos(), s.completo());
     }
 
-    // ================================================================== V08
-
     private ResolucionExtremos lagrange(Extremos e) {
         Expresion fe = e.funcion();
         Polinomio f = polinomio(fe, "f");
@@ -223,7 +204,6 @@ public final class MotorExtremos {
         return "(" + String.join(", ", letras.stream().map(v -> n(m.get(v))).toList()) + ")";
     }
 
-    /** Se compara f en los puntos hallados; con uno solo, con otros puntos de la restricción. */
     private static List<Punto> clasificar(Polinomio f, Polinomio g, List<Character> letras,
                                           List<Map<Character, Racional>> soluciones, List<PasoLimite> pasos) {
         List<Racional> valores = soluciones.stream().map(f::evaluar).toList();
@@ -283,9 +263,6 @@ public final class MotorExtremos {
         return puntos;
     }
 
-    /**
-     * Otros puntos de g = 0 cerca de p0: se despeja una variable que aparece lineal en g y las demás se mueven ±1.
-     */
     private static List<Map<Character, Racional>> vecinos(Polinomio g, List<Character> letras,
                                                            Map<Character, Racional> p0) {
         for (char v : letras) {

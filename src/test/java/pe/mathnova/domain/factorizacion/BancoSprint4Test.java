@@ -18,12 +18,6 @@ import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Definición de terminado 1 del Sprint 4: las filas con método principal F01 a F30, A4, A5, P01 y
- * T01 a T05, en su campo. Q como en el Sprint 3; R y C por estructura con la comparación de la Parte E
- * (exacta, o numérica con 40 cifras si hay radicales anidados) y con la verificación del resultado;
- * A5 con las mismas raíces aproximadas; T01–T05 por estructura con cada función como una letra.
- */
 class BancoSprint4Test {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -102,7 +96,6 @@ class BancoSprint4Test {
                 () -> assertTrue(r.irreducibles().getFirst().certificada()));
     }
 
-    /** "Irreducible en Q; raíces reales ≈ -1.5185121528, 0.5084994847, 1.2435963906". */
     @ParameterizedTest(name = "{0}")
     @MethodSource("aproximadas")
     void aproximaLasRaices(BancoCsv.Fila f) {
@@ -139,7 +132,6 @@ class BancoSprint4Test {
                 .collect(Collectors.toSet());
     }
 
-    /** T01–T05: cada función de x pasa a una letra y se compara como en Q. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("funciones")
     void factorizaConFunciones(BancoCsv.Fila f) {
@@ -153,10 +145,6 @@ class BancoSprint4Test {
                 () -> assertEquals(f.metodo(), r.codigo()));
     }
 
-    /**
-     * El enunciado dice 285, pero el CSV tiene 275 filas con esos métodos: 188 en Q (F01–F20), 40 en R y C
-     * (F21–F30), 6 de A4, 4 de A5, 10 de P01 y 27 de T01–T05. Las 25 restantes son M01–M07.
-     */
     @Test
     void sonDoscientasSetentaYCinco() {
         assertEquals(275, filas().size());

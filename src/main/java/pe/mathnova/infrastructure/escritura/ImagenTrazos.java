@@ -17,32 +17,18 @@ import javax.imageio.ImageIO;
 import pe.mathnova.domain.escritura.Punto;
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * La imagen que se manda al reconocedor, hecha solo con los trazos (no con el lienzo): tinta negra sobre
- * fondo blanco, recortada a lo escrito, con margen alrededor y sin deformar (la misma escala en x e y).
- * La cuadrícula, el cursor, los botones y "Escribe aquí tu ejercicio" no están en los trazos, así que no
- * llegan a la imagen.
- *
- * <p>La escala lleva la altura de lo escrito a {@link #ALTO_TINTA} píxeles (sin pasar de
- * {@link #ANCHO_MAXIMO} de ancho) y el grosor de la tinta crece con ella, para que el trazo de 2,5 px del
- * lienzo se vea como un trazo de bolígrafo en la imagen que lee el modelo.
- */
 public final class ImagenTrazos {
 
-    /** Alto de la tinta en la imagen, en píxeles. */
     static final double ALTO_TINTA = 160;
     static final double ANCHO_MAXIMO = 1400;
-    /** El margen, como fracción del alto de la tinta (y nunca menos de {@link #MARGEN_MINIMO} px). */
     static final double MARGEN = 0.18;
     static final int MARGEN_MINIMO = 24;
-    /** Grosor de la tinta como fracción del alto de la tinta. */
     static final double GROSOR = 0.035;
     static final double GROSOR_MINIMO = 3;
 
     private ImagenTrazos() {
     }
 
-    /** La imagen de los trazos; null si no hay ningún punto. */
     public static BufferedImage dibujar(List<Trazo> trazos) {
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
@@ -59,7 +45,6 @@ public final class ImagenTrazos {
         if (minX == Double.MAX_VALUE) {
             return null;
         }
-        // Un punto o una raya horizontal: la altura mínima evita escalas enormes.
         double ancho = Math.max(maxX - minX, 8);
         double alto = Math.max(maxY - minY, 24);
         double escala = Math.min(ALTO_TINTA / alto, ANCHO_MAXIMO / ancho);
@@ -104,7 +89,6 @@ public final class ImagenTrazos {
         return img;
     }
 
-    /** La imagen como PNG; null si no hay ningún punto. */
     public static byte[] png(List<Trazo> trazos) {
         BufferedImage img = dibujar(trazos);
         if (img == null) {

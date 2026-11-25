@@ -6,19 +6,6 @@ import java.util.Objects;
 
 import pe.mathnova.domain.expresion.Expresion;
 
-/**
- * Una regla de derivación aplicada (RF27): D01 constante, D02 potencia, D03 suma, D04 producto,
- * D05 cociente, D06 cadena, D07 función trascendente, D08 derivación implícita, D09 derivación
- * logarítmica.
- *
- * @param codigo   "D01"…"D09", como en la tabla tecnica de V2
- * @param regla    la regla con sus valores: "(sen u)' = cos u · u' con u = 3x"
- * @param antes    lo que se deriva
- * @param despues  su derivada, ya simplificada
- * @param formula  la regla en general, para Trabajo: "(u·v)' = u'·v + u·v'"
- * @param trabajo  qué es u y v en este caso y sus derivadas: "u = x², v = sen x", "u' = 2x, v' = cos x"
- * @param hijos    las reglas que se aplicaron dentro de esta (la cadena dentro del producto)
- */
 public record PasoDerivada(String codigo, String regla, Expresion antes, Expresion despues, String formula,
                            List<String> trabajo, List<PasoDerivada> hijos) {
 
@@ -36,7 +23,6 @@ public record PasoDerivada(String codigo, String regla, Expresion antes, Expresi
         this(codigo, regla, antes, despues, regla, List.of(), List.of());
     }
 
-    /** Nombre de la regla, igual al del catálogo de V2. */
     public String nombre() {
         return nombre(codigo);
     }
@@ -56,7 +42,6 @@ public record PasoDerivada(String codigo, String regla, Expresion antes, Expresi
         };
     }
 
-    /** Este código y los de sus reglas internas, en orden. */
     public List<String> codigos() {
         List<String> r = new ArrayList<>();
         r.add(codigo);

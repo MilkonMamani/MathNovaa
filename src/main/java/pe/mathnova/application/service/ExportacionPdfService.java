@@ -22,12 +22,6 @@ import pe.mathnova.domain.factorizacion.ResolucionFunciones;
 import pe.mathnova.domain.factorizacion.Simplificacion;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * Exportar una resolución a PDF (Sprint 9, parte C). Resolver y la hoja del Historial sacan el mismo PDF: los
- * pasos, el resultado y las restricciones son los de la resolución guardada (la hoja del Historial), y la
- * comprobación se vuelve a pedir al motor, igual que en la Pizarra. El archivo lo escribe el puerto
- * {@link ExportadorPdf}.
- */
 @Service
 public class ExportacionPdfService {
 
@@ -51,14 +45,6 @@ public class ExportacionPdfService {
         this.exportador = exportador;
     }
 
-    /**
-     * El PDF de lo que está en la Pizarra: se resuelve otra vez (es instantáneo), se guarda (RN25: la misma fila
-     * del historial, solo cambia la fecha) y se arma con la hoja guardada.
-     *
-     * @param campo   el campo de la pantalla; null es Q
-     * @param forzado el método con que se empezó, o null
-     * @throws RuntimeException si el texto no se resuelve o no se pudo guardar
-     */
     public DocumentoPdf desdeResolver(String texto, Campo campo, String forzado, LocalDate hoy) {
         Object r = resolver.resolver(texto, campo, forzado);
         int id = resolver.guardar(texto, r, forzado, resolver.sugerencias(r))
@@ -66,7 +52,6 @@ public class ExportacionPdfService {
         return documento(historial.hoja(id), comprobacion(r), hoy).conEscala(escala());
     }
 
-    /** El PDF de una fila del Historial. @throws IllegalArgumentException si la fila ya no existe */
     public DocumentoPdf desdeHistorial(int resolucionId, LocalDate hoy) {
         HistorialService.Hoja h = historial.hoja(resolucionId);
         DocumentoPdf.Comprobacion c = null;
@@ -81,7 +66,6 @@ public class ExportacionPdfService {
         return documento(h, c, hoy).conEscala(escala());
     }
 
-    /** Sprint 9, parte E: el tamaño de letra de Configuración también vale para el PDF. */
     private double escala() {
         return configuracion == null ? 1 : configuracion.tamanoLetra().factor();
     }
@@ -90,13 +74,11 @@ public class ExportacionPdfService {
         exportador.exportar(documento, destino);
     }
 
-    /** "mathnova-factorizar-2026-11-24.pdf", "mathnova-calcular-limite-2026-11-24.pdf". */
     public static String nombreArchivo(String verbo, LocalDate fecha) {
         String operacion = HistorialService.plano(verbo).replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
         return "mathnova-" + (operacion.isEmpty() ? "resolucion" : operacion) + "-" + fecha + ".pdf";
     }
 
-    /** "24 de noviembre de 2026". */
     static String fecha(LocalDate d) {
         return FECHA.format(d);
     }
@@ -109,9 +91,6 @@ public class ExportacionPdfService {
                 h.resultadoTexto(), h.restricciones(), c, null);
     }
 
-    // ------------------------------------------------------------------ comprobación (HU18)
-
-    /** La comprobación del motor, como la de la Pizarra; null si esta operación no se comprueba. */
     DocumentoPdf.Comprobacion comprobacion(Object r) {
         try {
             return switch (r) {
@@ -165,7 +144,6 @@ public class ExportacionPdfService {
         return new DocumentoPdf.Comprobacion("Derivando el resultado", List.of(linea), v.coincide(), mensaje);
     }
 
-    /** "(x - 1)^2 = x^2 - 2x + 1" → LaTeX. */
     private static List<String> lineas(List<String> textos) {
         return textos.stream().map(HistorialService::latexDe).toList();
     }

@@ -9,11 +9,6 @@ import javafx.scene.layout.VBox;
 
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * F19: el aspa doble especial en tres columnas (x² | x | término independiente). Primero los
- * extremos y cuánto falta para el término x²; ese resto se reparte en la columna central y se
- * verifican las dos aspas laterales (x³ y x).
- */
 public final class AspaDobleEspecial extends VBox {
 
     private final ModeloAspaDoble modelo;

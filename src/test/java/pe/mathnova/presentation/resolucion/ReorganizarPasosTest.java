@@ -15,10 +15,6 @@ import pe.mathnova.domain.expresion.Limite;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * La factorización que necesita un límite va en su propio paso ("Factorizar el numerador con Ruffini…") y después
- * el límite completo con la expresión factorizada ("Sustituir en el límite"); el desarrollo se pliega desde 4 filas.
- */
 class ReorganizarPasosTest {
 
     private static final MotorLimites LIMITES = new MotorLimites(new OrquestadorFactorizacion());
@@ -66,11 +62,8 @@ class ReorganizarPasosTest {
 
     @Test
     void umbralDeTresYCuatroFilas() {
-        // diferencia de cuadrados: la identidad y la factorización
         assertEquals(2, filas(auxiliar(pasos("lim(x->3, (x^2 - 9)/(x - 3))"))));
-        // factor común (1) + diferencia de cuadrados (2): a la vista
         assertEquals(3, filas(auxiliar(pasos("lim(x->1, (x^3 - x)/(x - 1))"))));
-        // dos diferencias de cuadrados: plegado
         assertEquals(4, filas(auxiliar(pasos("lim(x->1, (x^4 - 1)/(x - 1))"))));
         assertFalse(3 > DesarrolloAuxiliar.MAXIMO_A_LA_VISTA);
         assertTrue(4 > DesarrolloAuxiliar.MAXIMO_A_LA_VISTA);

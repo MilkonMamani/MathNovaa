@@ -13,7 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Tabla restriccion_dominio de V1: "x ≠ 2" de una fracción, "x > 0" de un logaritmo (RN14, RN34). */
 @Entity
 @Table(name = "restriccion_dominio")
 @Getter
@@ -35,7 +34,6 @@ public class RestriccionDominioEntity {
     @Column(name = "latex", nullable = false)
     private String latex;
 
-    /** DENOMINADOR, LOGARITMO, RAIZ_PAR, TANGENTE u OTRA. */
     @Column(name = "origen", nullable = false)
     private String origen;
 }

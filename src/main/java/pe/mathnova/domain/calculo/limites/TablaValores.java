@@ -11,24 +11,11 @@ import pe.mathnova.domain.expresion.Limite;
 import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * La forma numérica de "ver" un límite (pestaña Análisis): f evaluada en puntos que se acercan al
- * punto por cada lado. Es lo único del motor de límites que usa decimales (BigDecimal, 30 cifras): no
- * decide nada, solo muestra.
- * <ul>
- *   <li>x → a: a − 0.1, a − 0.01, a − 0.001 por la izquierda y a + 0.001, a + 0.01, a + 0.1 por la derecha</li>
- *   <li>x → ±∞: ±10, ±100, …, ±10⁶</li>
- * </ul>
- *
- * @param izquierda las filas que se acercan por la izquierda (vacía al infinito)
- * @param derecha   las que se acercan por la derecha, o hacia ±∞
- */
 public record TablaValores(char variable, List<Fila> izquierda, List<Fila> derecha) {
 
     public static final int DECIMALES = 6;
     private static final MathContext MC = new MathContext(30);
 
-    /** x y f(x) ya como texto: "1.999", "3.999000"; "no definida" si f no es real ahí. */
     public record Fila(String x, String valor) {
     }
 

@@ -2,7 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.Objects;
 
-/** Signo menos unario: -argumento. */
 public record Negacion(Expresion argumento) implements Expresion {
 
     public Negacion {

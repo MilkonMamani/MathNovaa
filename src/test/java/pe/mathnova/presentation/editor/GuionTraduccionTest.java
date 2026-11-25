@@ -17,11 +17,6 @@ import pe.mathnova.application.service.ResolverService;
 import pe.mathnova.domain.ecuacion.ResolvedorEcuaciones;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 
-/**
- * El guion de demostración sin pantalla: el LaTeX guardado de cada caso (el que arman las teclas,
- * capturado en PruebaHumoTest) se traduce al texto esperado, y ese texto tiene un plan que se puede
- * resolver o, si el caso es de error, uno inválido.
- */
 class GuionTraduccionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();

@@ -15,7 +15,6 @@ import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.expresion.ImpresoraLatex;
 import pe.mathnova.domain.parser.Parser;
 
-/** jlatexmath entiende todo lo que produce ImpresoraLatex, y lo dibuja rápido (RF03). */
 class RenderizadorLatexTest {
 
     private static final RenderizadorLatex RENDERIZADOR = new RenderizadorLatex(24f);
@@ -23,7 +22,7 @@ class RenderizadorLatexTest {
     @BeforeAll
     static void calentar() {
         System.setProperty("java.awt.headless", "true");
-        RENDERIZADOR.dibujar("x"); // la primera llamada carga las fuentes
+        RENDERIZADOR.dibujar("x");
     }
 
     static java.util.List<String> entradas() {
@@ -39,7 +38,6 @@ class RenderizadorLatexTest {
         assertTrue(tieneTinta(imagen), latex);
     }
 
-    /** HU34: jlatexmath entiende el LaTeX de las operaciones y de las letras griegas. */
     @ParameterizedTest(name = "{0}")
     @ValueSource(strings = {
             "lim(x→2, (x^2 - 4)/(x - 2))", "lim(x->2+, 1/(x - 2))", "lim(x→∞, (2x^2 + 1)/(x^2 - 3))",

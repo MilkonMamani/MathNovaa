@@ -11,18 +11,10 @@ import javafx.beans.property.BooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 
-/**
- * Cómo se dibujan las fórmulas en toda la app (Sprint 9, parte E): el tamaño de letra de Configuración (solo
- * dentro de la Pizarra, la hoja del Historial y Práctica, que llevan la clase {@link #CLASE_ESCALABLE}) y el
- * color de la tinta según el tema. Las fórmulas escuchan {@link #version()} y se vuelven a dibujar al cambiar
- * algo, sin reiniciar. Lo actualiza el Navegador desde ConfiguracionService.
- */
 public final class Apariencia {
 
-    /** Lleva esta clase el contenedor cuyas fórmulas y textos crecen con el tamaño de letra. */
     public static final String CLASE_ESCALABLE = "escala-letra";
 
-    /** La tinta de las fórmulas en el tema oscuro: el mismo gris claro del texto. */
     static final Color TINTA_OSCURA = new Color(0xe2, 0xe8, 0xf0);
 
     private static final DoubleProperty ESCALA = new SimpleDoubleProperty(1);
@@ -37,7 +29,6 @@ public final class Apariencia {
     private Apariencia() {
     }
 
-    /** 1; 1,2 o 1,4 con letra grande o muy grande. */
     public static DoubleProperty escala() {
         return ESCALA;
     }
@@ -46,7 +37,6 @@ public final class Apariencia {
         return OSCURO;
     }
 
-    /** Cambia cada vez que cambia algo: quien dibuja fórmulas lo escucha. */
     public static ReadOnlyIntegerProperty version() {
         return VERSION.getReadOnlyProperty();
     }
@@ -55,7 +45,6 @@ public final class Apariencia {
         return OSCURO.get() ? TINTA_OSCURA : Color.BLACK;
     }
 
-    /** El factor de la letra para un nodo: la escala si está dentro de un contenedor escalable; si no, 1. */
     public static double factor(Node n) {
         for (Parent p = n == null ? null : n.getParent(); p != null; p = p.getParent()) {
             if (p.getStyleClass().contains(CLASE_ESCALABLE)) {

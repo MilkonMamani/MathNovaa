@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** Qué se ve en la Pizarra: notas ocultas por defecto, el interruptor y el modo paso a paso. */
 class EstadoPizarraTest {
 
     @Test
@@ -44,7 +43,7 @@ class EstadoPizarraTest {
             assertFalse(e.ocultarVisible(i), "con el interruptor no hay \"Ocultar\"");
             assertFalse(e.botonNotaVisible(i));
         }
-        e.alternarNota(1); // no hace nada con el interruptor encendido
+        e.alternarNota(1);
         e.setExplicaciones(false);
         for (int i = 1; i <= 4; i++) {
             assertFalse(e.notaVisible(i), "la 3, abierta antes del interruptor, también se cierra");

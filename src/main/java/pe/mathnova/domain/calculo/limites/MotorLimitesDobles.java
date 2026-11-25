@@ -30,19 +30,6 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * HU29 (RF54): lim((x, y) → (a, b), f) con los métodos en este orden.
- * <ol>
- *   <li>L01, evaluación directa: si f(a, b) es un número, ese es el límite.</li>
- *   <li>V05, trayectorias: y = b, x = a, y − b = m(x − a) y, si el numerador o el denominador tiene términos
- *       que se igualan con otra potencia, y − b = (x − a)ⁿ (o x − a = (y − b)ⁿ). Si dos dan valores distintos, o
- *       si la recta da un valor que depende de m, el límite no existe (RN38).</li>
- *   <li>V06, polares: x = a + r cos θ, y = b + r sen θ. Si f queda como r^k·g(θ) con k &gt; 0 y g acotada, el
- *       límite es 0 por el teorema del sándwich: |r^k·g(θ)| ≤ r^k·M → 0.</li>
- * </ol>
- * Nunca se declara que existe solo porque varias trayectorias coinciden (RN38): si las polares no deciden, se
- * dice que no se pudo decidir. Trayectorias y polares se hacen con f racional; lo demás solo se evalúa.
- */
 public final class MotorLimitesDobles {
 
     public static final String DIRECTA = "L01";
@@ -114,7 +101,6 @@ public final class MotorLimitesDobles {
         pasos.add(new PasoLimite(DIRECTA, "Evaluación directa", "Se reemplaza " + asignacion + ": queda 0/0, una "
                 + "indeterminación", f, null, new TrabajoIntermedio.Agrupacion(List.of("f" + punto + " = 0/0"))));
 
-        // El punto se lleva al origen: P(x, y) = N(x + a, y + b).
         boolean origen = a.esCero() && b.esCero();
         Polinomio pn = trasladar(num, x, y, a, b);
         Polinomio pd = trasladar(den, x, y, a, b);
@@ -165,8 +151,6 @@ public final class MotorLimitesDobles {
                 && !Trigonometricas.esAuxiliar(x) && !Trigonometricas.esAuxiliar(y);
     }
 
-    // ================================================================== L01
-
     private static Racional racional(Expresion e) {
         try {
             Polinomio q = Polinomio.desde(e);
@@ -184,7 +168,6 @@ public final class MotorLimitesDobles {
                         crudo.equals(v) ? v : crudo + " = " + v)));
     }
 
-    /** Fuera de las fracciones de polinomios: el valor si el punto está en el dominio de f. */
     private static Optional<Expresion> evaluarDirecto(Expresion f, Expresion sustituida) {
         try {
             if (sustituida instanceof Cociente c) {
@@ -204,14 +187,11 @@ public final class MotorLimitesDobles {
         }
     }
 
-    // ================================================================== V05
-
     private static Polinomio trasladar(Polinomio q, char x, char y, Racional a, Racional b) {
         Polinomio r = Polinomios.sustituir(q, x, Polinomio.variable(x).sumar(Polinomio.constante(a)));
         return Polinomios.sustituir(r, y, Polinomio.variable(y).sumar(Polinomio.constante(b)));
     }
 
-    /** Lo que da p(t)/q(t) cuando t → 0, con los coeficientes en m. */
     private record Limite1(boolean enDominio, Expresion valor, boolean dependeDeM, String cancelacion) {
     }
 
@@ -245,7 +225,6 @@ public final class MotorLimitesDobles {
         return new Limite1(true, cociente(cp, cq), true, cancela);
     }
 
-    /** k con cp = k·cq, si existe. */
     private static Optional<Racional> proporcion(Polinomio cp, Polinomio cq) {
         Map.Entry<Monomio, Racional> lp = cp.terminos().entrySet().iterator().next();
         Racional cqm = cq.coeficiente(lp.getKey());
@@ -256,7 +235,6 @@ public final class MotorLimitesDobles {
         return cp.equals(cq.multiplicar(k)) ? Optional.of(k) : Optional.empty();
     }
 
-    /** m/(1 + m²): el denominador con el término constante primero, como se escribe a mano. */
     private static Expresion cociente(Polinomio cp, Polinomio cq) {
         return Simplificador.simplificar(new Cociente(ascendente(cp), ascendente(cq)));
     }
@@ -297,20 +275,16 @@ public final class MotorLimitesDobles {
         char m = parametro(x, y);
         String xa = origen || a.esCero() ? String.valueOf(x) : "(" + x + " − " + n(a) + ")";
         String yb = origen || b.esCero() ? String.valueOf(y) : y + " − " + n(b);
-        // y = b
         agregar(r, y + " = " + n(b), Camino.HORIZONTAL, 1, (char) 0,
                 Polinomios.sustituir(pn, y, Racional.CERO), Polinomios.sustituir(pd, y, Racional.CERO), x,
                 origen ? "f(" + x + ", 0)" : "f(" + n(a) + " + t, " + n(b) + ")", origen ? x : 't');
-        // x = a
         agregar(r, x + " = " + n(a), Camino.VERTICAL, 1, (char) 0,
                 Polinomios.sustituir(pn, x, Racional.CERO), Polinomios.sustituir(pd, x, Racional.CERO), y,
                 origen ? "f(0, " + y + ")" : "f(" + n(a) + ", " + n(b) + " + t)", origen ? y : 't');
-        // y − b = m(x − a)
         Polinomio mx = Polinomio.variable(m).multiplicar(Polinomio.variable(x));
         agregar(r, yb + " = " + m + xa, Camino.RECTA, 1, m, Polinomios.sustituir(pn, y, mx),
                 Polinomios.sustituir(pd, y, mx), x, origen ? "f(" + x + ", " + m + x + ")"
                         : "f(" + n(a) + " + t, " + n(b) + " + " + m + "t)", origen ? x : 't');
-        // potencias que igualan grados
         for (int k : potencias(pn, pd, x, y)) {
             Polinomio xn = Polinomio.variable(x).potencia(k);
             agregar(r, yb + " = " + xa + superindice(k), Camino.POTENCIA_EN_X, k, (char) 0,
@@ -330,10 +304,6 @@ public final class MotorLimitesDobles {
         return r;
     }
 
-    /**
-     * Los n ≥ 2 con que y = xⁿ iguala el grado de dos términos del numerador o del denominador: en x⁴ + y², con
-     * y = x² los dos quedan de grado 4.
-     */
     private static List<Integer> potencias(Polinomio pn, Polinomio pd, char x, char y) {
         LinkedHashSet<Integer> r = new LinkedHashSet<>();
         for (Polinomio q : List.of(pd, pn)) {
@@ -379,7 +349,6 @@ public final class MotorLimitesDobles {
         r.add(new Trayectoria(nombre, camino, k, m, l.valor(), l.dependeDeM(), detalle));
     }
 
-    /** El primer motivo por el que el límite no existe, o null si todas coinciden. */
     private static String contradiccion(List<Trayectoria> ts) {
         Trayectoria primera = null;
         for (Trayectoria t : ts) {
@@ -408,8 +377,6 @@ public final class MotorLimitesDobles {
                 .equals(Constante.de(0));
     }
 
-    // ================================================================== V06
-
     private record Decision(Estado estado, Expresion valor, Polar polar, PasoLimite paso, String motivo) {
     }
 
@@ -418,10 +385,6 @@ public final class MotorLimitesDobles {
         return Polinomios.sustituir(r, y, Polinomio.variable(Trigonometricas.SEN_T));
     }
 
-    /**
-     * Una cota inferior m &gt; 0 de D(cos θ, sen θ): exacta si D queda constante con sen² + cos² = 1, o
-     * min(a, b)·2^(1 − d/2) si D = a·x^d + b·y^d + (términos con exponentes pares y coeficientes positivos).
-     */
     private static Optional<Racional> cotaInferior(Polinomio dAng, Polinomio d, int grado, char x, char y) {
         if (dAng.esConstante() && dAng.constante().signo() > 0) {
             return Optional.of(dAng.constante());
@@ -462,7 +425,6 @@ public final class MotorLimitesDobles {
         String sy = origen ? "" : p(l.b()) + " + ";
         String cambio = x + " = " + sx + "r cos θ, " + y + " = " + sy + "r sen θ";
 
-        // f = Σ r^(k − d)·Nₖ(θ) / D(θ)
         Polinomio arriba = Polinomio.CERO;
         Racional sumaM = Racional.CERO;
         for (Map.Entry<Integer, Polinomio> e : hn.entrySet()) {

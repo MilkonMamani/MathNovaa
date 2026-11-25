@@ -16,14 +16,8 @@ import pe.mathnova.domain.expresion.Producto;
 import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * Una función racional N/D con polinomios exactos (Sprint 6). La usan el análisis de una derivada
- * (puntos críticos, signos de f′ y f″), las fracciones parciales y la verificación exacta de una
- * integral: dos funciones racionales son iguales si N₁·D₂ = N₂·D₁.
- */
 public record FuncionRacional(Polinomio numerador, Polinomio denominador) {
 
-    /** Grado máximo con que se trabaja; más arriba se dice que no es racional. */
     private static final int GRADO_MAXIMO = 60;
 
     public FuncionRacional {
@@ -38,7 +32,6 @@ public record FuncionRacional(Polinomio numerador, Polinomio denominador) {
         return new FuncionRacional(p, Polinomio.UNO);
     }
 
-    /** Vacío si e no es una fracción de polinomios (lleva funciones, raíces o exponentes no enteros). */
     public static Optional<FuncionRacional> de(Expresion e) {
         try {
             return Optional.ofNullable(convertir(e));
@@ -131,7 +124,6 @@ public record FuncionRacional(Polinomio numerador, Polinomio denominador) {
         return multiplicar(new FuncionRacional(o.denominador, o.numerador));
     }
 
-    /** N₁·D₂ = N₂·D₁. */
     public boolean igual(FuncionRacional o) {
         return numerador.multiplicar(o.denominador).equals(o.numerador.multiplicar(denominador));
     }
@@ -140,7 +132,6 @@ public record FuncionRacional(Polinomio numerador, Polinomio denominador) {
         return denominador.esConstante();
     }
 
-    /** f(v); vacío si el denominador se anula. */
     public Optional<Racional> evaluar(char x, Racional v) {
         Racional d = denominador.evaluar(Map.of(x, v));
         if (d.esCero()) {
@@ -149,7 +140,6 @@ public record FuncionRacional(Polinomio numerador, Polinomio denominador) {
         return Optional.of(numerador.evaluar(Map.of(x, v)).dividir(d));
     }
 
-    /** N/D como árbol simplificado. */
     public Expresion aExpresion() {
         return Simplificador.simplificar(new Cociente(numerador.aExpresion(), denominador.aExpresion()));
     }

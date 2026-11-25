@@ -33,28 +33,10 @@ import pe.mathnova.domain.factorizacion.Tecnicas;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * El motor de límites (HU11, HU24; RF23–RF25, RF47). El orden de los métodos es el de RN21 y RN35:
- * <ol>
- *   <li>L01 evaluación directa: si da un número, se termina; si da k/0, se pasa a los laterales.</li>
- *   <li>Se clasifica la indeterminación (0/0, ∞/∞, ∞ − ∞, 0·∞, 1^∞, 0⁰, ∞⁰).</li>
- *   <li>0/0 en una fracción de polinomios: L02, factorizar con el orquestador y cancelar.</li>
- *   <li>0/0 con raíces: L03, multiplicar por el conjugado.</li>
- *   <li>∞/∞ algebraico: L04, comparar grados (dividir entre la mayor potencia).</li>
- *   <li>∞ − ∞: término principal, conjugado o común denominador, y se vuelve a clasificar.</li>
- *   <li>L06 límites notables, antes que L'Hôpital.</li>
- *   <li>L07 L'Hôpital solo con 0/0 o ∞/∞, verificado antes de cada aplicación, como mucho 5 veces;
- *       0·∞ pasa antes a cociente y 1^∞, 0⁰, ∞⁰ a logaritmo.</li>
- *   <li>L05 laterales: con k/0 se estudia el signo del denominador a cada lado.</li>
- * </ol>
- * Si ningún método funciona se dice "No se pudo calcular con los métodos disponibles": nunca se
- * inventa un valor.
- */
 public final class MotorLimites {
 
     public static final int MAXIMO_LHOPITAL = 5;
     private static final int PROFUNDIDAD_MAXIMA = 30;
-    /** Derivadas que se prueban para el signo del denominador cerca del punto (L05). */
     private static final int ORDEN_MAXIMO = 6;
 
     private final OrquestadorFactorizacion factorizador;
@@ -67,11 +49,6 @@ public final class MotorLimites {
         return resolver(limite, null);
     }
 
-    /**
-     * Igual, pero ante la primera indeterminación se prueba antes {@code forzado} ("L02", "L03",
-     * "L04", "L06" o "L07"; "Probar" en Exploración). Si no aplica, sigue la cascada normal: para saber
-     * si se usó, se mira si sus pasos tienen ese código.
-     */
     public ResolucionLimite resolver(Limite limite, String forzado) {
         Calculo c = new Calculo(limite);
         c.forzado = forzado;
@@ -83,14 +60,6 @@ public final class MotorLimites {
         return new ResolucionLimite(limite, r, c.pasos, c.indeterminacion, c.metodo);
     }
 
-    /**
-     * Práctica (Sprint 9, parte D): por qué la técnica {@code codigo} no es el paso que toca con {@code f} en este
-     * límite. Usa las mismas condiciones que la cascada y que forzar un método ("Probar"): vacío si sí aplica, así
-     * una técnica que también funciona (L'Hôpital con 0/0) nunca se presenta como un error.
-     *
-     * @param f          la expresión a la que se le aplica el paso
-     * @param primerPaso true si todavía no se evaluó nada: entonces solo vale evaluar
-     */
     public Optional<String> noAplica(Limite limite, Expresion f, String codigo, boolean primerPaso) {
         return new Calculo(limite).noAplica(f, codigo, primerPaso);
     }
@@ -99,7 +68,6 @@ public final class MotorLimites {
         return ImpresoraTexto.imprimir(e);
     }
 
-    /** Entre paréntesis solo si es una suma o lleva signo. */
     private static String par(Expresion e) {
         return e instanceof Suma || e instanceof Negacion ? "(" + texto(e) + ")" : texto(e);
     }
@@ -114,7 +82,6 @@ public final class MotorLimites {
         };
     }
 
-    /** Un cálculo: guarda los pasos, la primera indeterminación y el último método que decidió. */
     private final class Calculo {
 
         private final Limite limite;
@@ -126,7 +93,6 @@ public final class MotorLimites {
         private String metodo;
         private int profundidad;
         private int lhopital;
-        /** El método que se prueba primero ante la primera indeterminación; null en automático. */
         private String forzado;
 
         Calculo(Limite limite) {
@@ -176,7 +142,6 @@ public final class MotorLimites {
             return Evaluador.evaluar(f, x, punto);
         }
 
-        /** Ver {@link MotorLimites#noAplica}. */
         Optional<String> noAplica(Expresion f, String codigo, boolean primerPaso) {
             if (limite.punto() instanceof Limite.Infinito inf) {
                 punto = new Valor.Infinito(inf.positivo() ? 1 : -1);
@@ -244,8 +209,6 @@ public final class MotorLimites {
             };
         }
 
-        // -------------------------------------------------------------- cascada
-
         ResultadoLimite calcular(Expresion f) {
             if (++profundidad > PROFUNDIDAD_MAXIMA) {
                 return new ResultadoLimite.NoCalculado(ResultadoLimite.NO_CALCULADO);
@@ -272,7 +235,6 @@ public final class MotorLimites {
             };
         }
 
-        /** El primer método es L01; después cuenta el último que se aplicó. */
         private void elegir(String codigo) {
             if (metodo == null) {
                 metodo = codigo;
@@ -283,7 +245,6 @@ public final class MotorLimites {
             metodo = codigo;
         }
 
-        /** L01: reemplaza x por el punto y dice qué sale. */
         private Valor evaluacionDirecta(Expresion f) {
             Valor v = evaluar(f);
             List<String> lineas = new ArrayList<>();
@@ -318,7 +279,7 @@ public final class MotorLimites {
             }
             if (forzado != null) {
                 String metodo = forzado;
-                forzado = null; // solo la primera vez
+                forzado = null;
                 Optional<ResultadoLimite> r = probarPrimero(metodo, f, t);
                 if (r.isPresent()) {
                     return r.get();
@@ -388,7 +349,6 @@ public final class MotorLimites {
             }
         }
 
-        /** El método forzado, solo si sus condiciones se cumplen; vacío si no aplica. */
         private Optional<ResultadoLimite> probarPrimero(String metodo, Expresion f, Indeterminacion t) {
             boolean ceroSobreCero = t == Indeterminacion.CERO_SOBRE_CERO;
             switch (metodo) {
@@ -422,7 +382,6 @@ public final class MotorLimites {
                     }
                 }
                 default -> {
-                    // L01 y L05 no se fuerzan: dependen de lo que da la evaluación.
                 }
             }
             return Optional.empty();
@@ -436,10 +395,7 @@ public final class MotorLimites {
             };
         }
 
-        // -------------------------------------------------------------- L02
-
         private Optional<ResultadoLimite> factorizarYCancelar(Expresion f) {
-            // La misma factorización y cancelación que usan las derivadas y las integrales (FactorComun)
             Optional<Simplificacion> hay = FactorComun.buscar(f, factorizador);
             if (hay.isEmpty()) {
                 return Optional.empty();
@@ -457,9 +413,6 @@ public final class MotorLimites {
             return Optional.of(calcular(g));
         }
 
-        // -------------------------------------------------------------- L03
-
-        /** (√u ± b)/D: se multiplica arriba y abajo por el conjugado. */
         private Optional<Expresion> racionalizar(Cociente c) {
             boolean arriba = tieneRaiz(c.numerador());
             Expresion conRaiz = arriba ? c.numerador() : c.denominador();
@@ -487,7 +440,6 @@ public final class MotorLimites {
             return Optional.of(g);
         }
 
-        /** ∞ − ∞ con una raíz: f = (a + b)·(a − b)/(a − b) = (a² − b²)/(a − b). */
         private Optional<Expresion> conjugadoDeSuma(Suma s) {
             Optional<Expresion[]> partes = partir(s);
             if (partes.isEmpty()) {
@@ -505,7 +457,6 @@ public final class MotorLimites {
             return Optional.of(g);
         }
 
-        /** [a, b] con a el término con raíz y b la suma del resto. */
         private Optional<Expresion[]> partir(Expresion e) {
             if (!(e instanceof Suma s)) {
                 return Optional.empty();
@@ -519,7 +470,6 @@ public final class MotorLimites {
             return Optional.of(new Expresion[] {conRaiz.getFirst(), b});
         }
 
-        /** a² − b², como polinomio si se puede. */
         private Expresion diferenciaDeCuadrados(Expresion a, Expresion b) {
             Constante dos = Constante.de(2);
             Expresion d = Simplificador.simplificar(Simplificador.suma(List.of(Simplificador.potencia(a, dos),
@@ -535,7 +485,6 @@ public final class MotorLimites {
             }
         }
 
-        /** a/b simplificada si las dos son polinomios (factorizando); si no, como sale. */
         private Expresion fraccion(Expresion a, Expresion b) {
             Expresion q = new Cociente(a, b);
             if (SimplificadorFracciones.esFraccion(q)) {
@@ -544,9 +493,6 @@ public final class MotorLimites {
             return Simplificador.simplificar(q);
         }
 
-        // -------------------------------------------------------------- L04
-
-        /** ∞/∞ o ∞ − ∞ algebraicos al infinito: el término principal decide. */
         private Optional<ResultadoLimite> grados(Expresion f) {
             if (!(punto instanceof Valor.Infinito inf)) {
                 return Optional.empty();
@@ -618,8 +564,6 @@ public final class MotorLimites {
             return p.toString();
         }
 
-        // -------------------------------------------------------------- L06
-
         private Optional<ResultadoLimite> notable(Expresion f) {
             boolean masInfinito = punto instanceof Valor.Infinito i && i.signo() > 0;
             Optional<LimitesNotables.Notable> n = LimitesNotables.buscar(f, x, enCero(), masInfinito);
@@ -634,10 +578,7 @@ public final class MotorLimites {
             return Optional.of(r);
         }
 
-        // -------------------------------------------------------------- L07
-
         private ResultadoLimite lhopital(Expresion f) {
-            // Un cociente se deriva tal como está: simplificado, ln x/(1/x) pasaría a ser un producto.
             Expresion actual = f instanceof Cociente ? f : Simplificador.simplificar(f);
             while (true) {
                 if (!(actual instanceof Cociente c)) {
@@ -648,7 +589,6 @@ public final class MotorLimites {
                 Indeterminacion tipo = esCero(vn) && esCero(vd) ? Indeterminacion.CERO_SOBRE_CERO
                         : esInfinito(vn) && esInfinito(vd) ? Indeterminacion.INFINITO_SOBRE_INFINITO : null;
                 if (tipo == null) {
-                    // RN35: se verifica antes de cada aplicación.
                     return new ResultadoLimite.NoCalculado(ResultadoLimite.NO_CALCULADO);
                 }
                 if (lhopital >= MAXIMO_LHOPITAL) {
@@ -698,7 +638,6 @@ public final class MotorLimites {
             return v instanceof Valor.Infinito || v instanceof Valor.SobreCero;
         }
 
-        /** 0·∞: f·g = g/(1/f), con f el factor que tiende a 0, para usar L'Hôpital. */
         private Optional<Expresion> aCociente(Producto p) {
             List<Expresion> aCero = new ArrayList<>();
             List<Expresion> otros = new ArrayList<>();
@@ -717,7 +656,6 @@ public final class MotorLimites {
             return Optional.of(g);
         }
 
-        /** 1^∞, 0⁰, ∞⁰: y = uᵛ, ln y = v·ln u; se calcula ese límite y al final y = e^(límite). */
         private ResultadoLimite logaritmo(Potencia p, Indeterminacion t) {
             Expresion g = Simplificador.producto(List.of(p.exponente(), new Funcion(TipoFuncion.LN, p.base())));
             pasos.add(new PasoLimite("L07", "Tomar logaritmo", "Hay " + t.texto() + ": se toma logaritmo. Si y = "
@@ -737,8 +675,6 @@ public final class MotorLimites {
             }
             return r;
         }
-
-        // -------------------------------------------------------------- ∞ − ∞ con fracciones
 
         private Expresion comunDenominador(Suma s) {
             Expresion num = Constante.de(0);
@@ -764,8 +700,6 @@ public final class MotorLimites {
             }
             return new Expresion[] {t, Constante.de(1)};
         }
-
-        // -------------------------------------------------------------- L05
 
         private ResultadoLimite laterales(Expresion f, NumeroAlgebraico k) {
             if (!(punto instanceof Valor.Numero a)) {
@@ -824,12 +758,6 @@ public final class MotorLimites {
                     + " → " + inf;
         }
 
-        /**
-         * El signo de f a un lado del punto, cuando |f| → ∞. Si f es un cociente, sale del signo del
-         * numerador y del primer término no nulo de Taylor del denominador: si D⁽ᵐ⁾(a) ≠ 0, D tiene el
-         * signo de D⁽ᵐ⁾(a) a la derecha y ese signo por (−1)ᵐ a la izquierda. Si no, se evalúa f de forma
-         * exacta en a ± 10⁻⁶ y a ± 10⁻¹⁰. 0 si no se pudo decidir.
-         */
         private int signoCerca(Expresion f, NumeroAlgebraico a, int lado) {
             if (f instanceof Cociente c && evaluar(c.numerador()) instanceof Valor.Numero n && !n.esCero()) {
                 Expresion d = c.denominador();
@@ -865,8 +793,6 @@ public final class MotorLimites {
             return signo;
         }
     }
-
-    // ------------------------------------------------------------------ consultas
 
     static boolean tieneRaiz(Expresion e) {
         return switch (e) {

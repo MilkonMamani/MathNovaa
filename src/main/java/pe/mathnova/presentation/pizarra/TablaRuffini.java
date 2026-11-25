@@ -20,23 +20,10 @@ import javafx.scene.shape.Polygon;
 
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * F16 y F17: la tabla de Ruffini como en el cuaderno.
- * <pre>
- *       |  2   -3   -3    2
- *   x=2 |       4    2   -2
- *       |-------------------
- *       |  2    1   -1  | 0
- * </pre>
- * Encima, las fichas de los candidatos p/q (las que fallaron, plegadas). Las tablas se apilan: el
- * cociente de una es la fila de arriba de la siguiente. Al pasar el mouse por un número de la fila
- * del medio, una flecha muestra de dónde sale (resultado anterior × raíz).
- */
 public final class TablaRuffini extends VBox {
 
     private static final PseudoClass CERO = PseudoClass.getPseudoClass("cero");
     private static final PseudoClass RELLENO = PseudoClass.getPseudoClass("relleno");
-    /** Columnas de la grilla: 0 raíz, 1 línea vertical, 2… números. */
     private static final int PRIMERA = 2;
 
     private final ModeloRuffini modelo;
@@ -56,10 +43,6 @@ public final class TablaRuffini extends VBox {
         return modelo;
     }
 
-    /**
-     * Solo la tabla, sin las fichas de los candidatos: así va dentro del desarrollo de una factorización auxiliar
-     * (el numerador de un límite), donde basta la división que funcionó.
-     */
     public TablaRuffini sinCandidatos() {
         Node fichas = getChildren().getFirst();
         fichas.setVisible(false);
@@ -137,17 +120,14 @@ public final class TablaRuffini extends VBox {
             residuo.getStyleClass().add("ruffini-residuo");
             residuo.pseudoClassStateChanged(CERO, t.residuoCero());
             g.add(residuo, PRIMERA + t.abajo().size(), filaAbajo);
-            // El residuo y lo que significa: "Residuo 0 → (x − 1) es factor".
             if (t.residuoCero() && t.factor() != null) {
                 Label vinculo = new Label("Residuo 0 → " + t.factor() + " es factor");
                 vinculo.getStyleClass().add("ruffini-vinculo");
                 vinculo.setWrapText(true);
                 vinculo.setMinWidth(96);
-                // Todas en la misma columna, después de la última de la tabla de arriba.
                 g.add(vinculo, PRIMERA + columnas, filaAbajo);
             }
 
-            // Flecha: el producto sale del resultado anterior × raíz.
             for (int i = 1; i < medio.length; i++) {
                 Label destino = medio[i];
                 Label fuente = i - 1 < abajo.length ? abajo[i - 1] : residuo;
@@ -189,7 +169,6 @@ public final class TablaRuffini extends VBox {
         if (a == null || b == null) {
             return;
         }
-        // De la celda de abajo (columna anterior) a la del medio: diagonal hacia arriba a la derecha.
         flecha.setStartX(a.getX());
         flecha.setStartY(a.getY() - 8);
         flecha.setEndX(b.getX() - 6);

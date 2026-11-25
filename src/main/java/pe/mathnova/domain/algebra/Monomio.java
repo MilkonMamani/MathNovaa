@@ -10,16 +10,6 @@ import java.util.TreeSet;
 
 import pe.mathnova.domain.expresion.Letras;
 
-/**
- * Parte literal a^p·b^q·…·x^r·…·α^s, sin coeficiente, en cualquier letra que pueda ser variable
- * (RF57, RN44). Solo guarda los exponentes mayores que cero, así que equals compara por contenido.
- *
- * <p>El orden natural es por grado total y luego lexicográfico, con las letras en orden alfabético
- * (a > b > … > x > y > z > α > … > ω): de dos monomios del mismo grado es mayor el que tiene más
- * exponente en la primera letra donde difieren. Para x, y, z es el mismo orden x > y > z de antes.
- *
- * @param exponentes letra → exponente, sin ceros; inmutable
- */
 public record Monomio(SortedMap<Character, Integer> exponentes) implements Comparable<Monomio> {
 
     public static final Monomio UNO = new Monomio(new TreeMap<>());
@@ -38,7 +28,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         exponentes = Collections.unmodifiableSortedMap(copia);
     }
 
-    /** variable^exponente. */
     public static Monomio de(char variable, int exponente) {
         validar(variable);
         return new Monomio(new TreeMap<>(Map.of(variable, exponente)));
@@ -50,13 +39,11 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         }
     }
 
-    /** Exponente de la letra; 0 si no aparece. */
     public int exponente(char variable) {
         validar(variable);
         return exponentes.getOrDefault(variable, 0);
     }
 
-    /** Letras con exponente mayor que cero, en orden alfabético. */
     public SortedSet<Character> variables() {
         return Collections.unmodifiableSortedSet(new TreeSet<>(exponentes.keySet()));
     }
@@ -71,7 +58,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         return new Monomio(suma);
     }
 
-    /** this^n, con n ≥ 0. */
     public Monomio potencia(int n) {
         if (n < 0) {
             throw new IllegalArgumentException("Exponente negativo: " + n);
@@ -81,7 +67,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         return new Monomio(r);
     }
 
-    /** Raíz n-ésima exacta: existe solo si todos los exponentes son múltiplos de n. */
     public Optional<Monomio> raiz(int n) {
         TreeMap<Character, Integer> r = new TreeMap<>();
         for (Map.Entry<Character, Integer> e : exponentes.entrySet()) {
@@ -93,7 +78,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         return Optional.of(new Monomio(r));
     }
 
-    /** Máximo común divisor: cada letra con su menor exponente. */
     public Monomio mcd(Monomio o) {
         TreeMap<Character, Integer> r = new TreeMap<>();
         exponentes.forEach((letra, exponente) -> {
@@ -105,7 +89,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         return new Monomio(r);
     }
 
-    /** this / o, que debe ser exacta (cada exponente de o es menor o igual). */
     public Monomio dividir(Monomio o) {
         TreeMap<Character, Integer> r = new TreeMap<>(exponentes);
         o.exponentes.forEach((letra, exponente) -> {
@@ -135,7 +118,6 @@ public record Monomio(SortedMap<Character, Integer> exponentes) implements Compa
         return 0;
     }
 
-    /** "x^2y", "a^2b", "z", "" para UNO. */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

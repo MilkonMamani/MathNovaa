@@ -30,16 +30,11 @@ import pe.mathnova.application.pdf.DocumentoPdf;
 import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.infrastructure.pdf.ExportadorPdfBox;
 
-/**
- * Sprint 9, parte C: el PDF de una resolución real, de Resolver y del Historial, escrito con el exportador de
- * PDFBox (el puerto con su implementación de infraestructura). Base de prueba de target/; se deshace al terminar.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class ExportacionPdfServiceTest {
 
     private static final LocalDate HOY = LocalDate.of(2026, 11, 24);
-    /** "2.1 → Diferencia de cuadrados": el encabezado de un paso en el texto del PDF. */
     private static final Pattern ENCABEZADO = Pattern.compile("(?<![\\d.])\\d+(\\.\\d+)* → ");
 
     @Autowired
@@ -124,7 +119,6 @@ class ExportacionPdfServiceTest {
                     enPagina++;
                 }
                 int deFormula = formulas(doc.getPage(i - 1)).getOrDefault("paso", 0);
-                // Cada fórmula está en la página de su encabezado
                 assertEquals(enPagina, deFormula, "página " + i);
                 encabezados += enPagina;
                 formulasPaso += deFormula;

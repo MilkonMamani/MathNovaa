@@ -36,12 +36,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.ResolucionFunciones;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * De extremo a extremo: se teclea el texto en el editor (MathLive en el WebView, con KeyEvents de
- * JavaFX como el teclado físico), el traductor lo pasa al texto del parser y el orquestador lo
- * factoriza. Los nombres de función tecleados deben volverse funciones (RN45: "sen" gana sobre s·e·n).
- * La ventana es propia de la prueba; no se abre la aplicación.
- */
 class EscrituraFuncionesTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -78,8 +72,6 @@ class EscrituraFuncionesTest {
             assertTrue(System.nanoTime() < limite, "El editor no cargó");
             Thread.sleep(100);
         }
-        // Las primeras teclas, mientras la ventana todavía toma el foco, se pierden: se teclea "x"
-        // hasta que aparezca.
         while (!"x".equals(teclearLatex("x"))) {
             assertTrue(System.nanoTime() < limite, "El editor no recibe las teclas");
             Thread.sleep(200);
@@ -95,8 +87,6 @@ class EscrituraFuncionesTest {
             });
         }
     }
-
-    // ------------------------------------------------------------------ casos
 
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
@@ -114,11 +104,9 @@ class EscrituraFuncionesTest {
         assertEquals(Polinomios.mismosFactores(esperado), Polinomios.mismosFactores(r.formula()),
                 () -> texto + " dio " + r.formula());
         assertEquals(restriccion == null ? List.of() : List.of(restriccion), r.restricciones());
-        // RN27: con R o C elegidos, las funciones se factorizan igual, primero en Q.
         for (Campo campo : Campo.values()) {
             assertEquals(Optional.of("= " + r.formula()), RESOLVER.enVivo(texto, campo), campo::name);
         }
-        // "Qué más puedes hacer" también aparece después de una función.
         assertFalse(FACTORIZACION.sugerencias(r).isEmpty(), texto);
     }
 
@@ -134,7 +122,6 @@ class EscrituraFuncionesTest {
 
     @Test
     void conEspaciosSonLetrasSueltas() throws Exception {
-        // RN45: "s e n" con espacios sigue siendo el producto s·e·n.
         assertEquals("senx", teclearLatex("s e n x"));
         assertEquals(Parser.parse("s·e·n·x"), Parser.parse(TraductorLatex.traducir("senx")));
         assertEquals("lnx", teclearLatex("l n x"));
@@ -153,22 +140,16 @@ class EscrituraFuncionesTest {
     @Test
     void funcionesEnLetraRectaYExponenteSobreElNombre() throws Exception {
         assertEquals("\\operatorname{\\mathrm{sen}}x+\\cos x", teclearLatex("sen x + cos x"));
-        // La cifra del exponente de una función no se lleva la x: sen^2x es (sen x)^2.
         assertEquals("\\operatorname{\\mathrm{sen}}^2x", teclearLatex("sen^2x"));
         assertEquals(Parser.parse("sen^2(x)"), Parser.parse(teclear("sen^2 x")));
         assertEquals(Parser.parse("(sen(x))^2"), Parser.parse(teclear("sen^2x")));
-        // Sin paréntesis el argumento es lo que sigue, como en la gramática.
         assertEquals(Parser.parse("sen(x)"), Parser.parse(teclear("senx")));
     }
 
-    // ------------------------------------------------------------------ teclado
-
-    /** Limpia el editor, teclea letra por letra y devuelve el texto para el parser. */
     private static String teclear(String s) throws Exception {
         return TraductorLatex.traducir(teclearLatex(s));
     }
 
-    /** Limpia el editor, teclea letra por letra y devuelve el LaTeX de MathLive. */
     private static String teclearLatex(String s) throws Exception {
         long limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
         while (!enFx(() -> {
@@ -229,7 +210,6 @@ class EscrituraFuncionesTest {
         return tarea.get(30, TimeUnit.SECONDS);
     }
 
-    /** Compara factorizaciones sin importar el orden de los factores. */
     private static final class Polinomios {
         static java.util.Set<String> mismosFactores(String formula) {
             String sinPuntos = formula.replace("·", "");

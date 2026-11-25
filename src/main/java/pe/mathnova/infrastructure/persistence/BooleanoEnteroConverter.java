@@ -3,7 +3,6 @@ package pe.mathnova.infrastructure.persistence;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-/** Boolean ↔ INTEGER 0/1, como pide V1. */
 @Converter
 public class BooleanoEnteroConverter implements AttributeConverter<Boolean, Integer> {
 

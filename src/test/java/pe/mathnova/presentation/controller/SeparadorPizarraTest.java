@@ -40,10 +40,6 @@ import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.editor.EditorMatematico;
 
-/**
- * El separador entre el panel de herramientas y la Pizarra: uno solo para las cinco pestañas, 40 / 60 al
- * abrir, se arrastra con el mouse y Resolver no lo mueve.
- */
 class SeparadorPizarraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -121,10 +117,8 @@ class SeparadorPizarraTest {
         enFx(() -> ventana.close());
     }
 
-    /** La prueba principal de aceptación, paso a paso. */
     @Test
     void elSeparadorSeArrastraNoLoMuevenLasPestanasNiResolverYConservaElPaso() throws Exception {
-        // Al abrir, con la pizarra vacía: 40 % para las herramientas.
         enFx(() -> {
             assertEquals(ResolucionController.PROPORCION_HERRAMIENTAS, controlador.posicionSeparador(), 0.01);
             double util = herramientas.getWidth() + pizarra.getWidth();
@@ -132,7 +126,6 @@ class SeparadorPizarraTest {
             assertTrue(raiz.lookup("#sinPasos").isVisible(), "la pizarra empieza vacía");
         });
 
-        // Arrastre hacia la derecha: los dos paneles responden durante el arrastre.
         double[] antes = anchos();
         Node divisor = enFx(() -> division.lookup(".split-pane-divider"));
         Point2D inicio = enFx(() -> divisor.localToScene(divisor.getLayoutBounds().getWidth() / 2, 10));
@@ -152,7 +145,6 @@ class SeparadorPizarraTest {
         assertEquals(antes[0] + 160, elegido[0], 2);
         double posicion = enFx(controlador::posicionSeparador);
 
-        // Las cinco pestañas usan el mismo ancho; terminamos en Teclado.
         List<String> recorrido = new ArrayList<>(PESTANAS.subList(1, PESTANAS.size()));
         recorrido.add(PESTANAS.get(0));
         for (String id : recorrido) {
@@ -162,14 +154,11 @@ class SeparadorPizarraTest {
             assertEquals(elegido[0], anchos()[0], 0.5, id + " cambió el ancho del panel");
         }
 
-        // Resolver no mueve el separador; la pizarra muestra la solución y el teclado sigue ahí, con el ancho
-        // elegido (Resolver abre Gráfica con la tarjeta Solución, como antes).
         Node teclado = enFx(() -> raiz.lookup(".teclado-mn"));
         enFx(() -> controlador.resolver("x^3 - 2x^2 - x + 2"));
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió");
         acomodar();
         enFx(() -> {
-            // Al resolver puede aparecer la barra de desplazamiento vertical: ese ancho lo cede la Pizarra.
             assertEquals(elegido[0], herramientas.getWidth(), 0.5, "Resolver movió el separador");
             assertFalse(raiz.lookupAll(".pizarra-paso").isEmpty(), "la pizarra muestra la solución");
             Node primerPaso = raiz.lookup(".pizarra-paso");
@@ -184,7 +173,6 @@ class SeparadorPizarraTest {
             assertEquals(elegido[0], herramientas.getWidth(), 0.5);
         });
 
-        // Paso a paso, en el paso 2; luego se arrastra a la izquierda.
         enFx(() -> {
             boton("Paso a paso").fire();
             raiz.lookupAll(".pizarra-flecha-nav").stream().map(n -> (Button) n).reduce((a, b) -> b).orElseThrow().fire();
@@ -206,7 +194,6 @@ class SeparadorPizarraTest {
         assertEquals(EstadoResolucion.RESUELTO, enFx(controlador::estado));
     }
 
-    /** En una ventana angosta el separador topa en los límites, y en el mínimo no se corta ninguna tecla. */
     @Test
     void enVentanaAngostaLosLimitesSeRespetanYElTecladoNoSeCorta() throws Exception {
         enFx(() -> ventana.setWidth(860));
@@ -216,7 +203,6 @@ class SeparadorPizarraTest {
         enFx(() -> Fx.trazo(divisor, new double[] {4, 10}, new double[] {-2000, 10}));
         acomodar();
         assertEquals(ResolucionController.ANCHO_HERRAMIENTAS_MIN, anchos()[0], 1, "mínimo de las herramientas");
-        // Todas las pestañas del teclado, en el ancho mínimo: ninguna tecla con "…".
         List<Node> pildoras = enFx(() -> new ArrayList<>(raiz.lookupAll(".teclado-pildora")));
         assertFalse(pildoras.isEmpty());
         for (Node p : pildoras) {
@@ -238,7 +224,6 @@ class SeparadorPizarraTest {
             assertTrue(t.getBoundsInParent().getMaxX() <= ((Region) t.getParent()).getWidth() + 1, "el teclado se sale");
         });
 
-        // La gráfica se adapta al ancho que queda.
         enFx(() -> controlador.resolver("x^2 - 1"));
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió");
         enFx(() -> ((ToggleButton) raiz.lookup("#pestanaGrafica")).fire());
@@ -254,13 +239,11 @@ class SeparadorPizarraTest {
         enFx(() -> Fx.trazo(divisor, new double[] {4, 10}, new double[] {4000, 10}));
         acomodar();
         assertEquals(ResolucionController.ANCHO_PIZARRA_MIN, anchos()[1], 1, "mínimo de la pizarra");
-        // La cabecera de la Pizarra pasa sus controles a otra línea: nada se corta ni se sale.
         enFx(() -> {
             Region cabecera = (Region) raiz.lookup(".pizarra-cabecera");
             List<Labeled> textos = new ArrayList<>();
             juntar(cabecera, textos);
             assertTrue(textos.size() >= 4, "faltan textos en la cabecera");
-            // La tarjeta empieza arriba de su panel y cabe a lo alto: no sobresale ni se recorta.
             Region tarjeta = (Region) raiz.lookup("#tarjetaProcedimiento");
             var enPanel = pizarra.sceneToLocal(tarjeta.localToScene(tarjeta.getLayoutBounds()));
             assertTrue(enPanel.getMinY() >= 0, "la Pizarra sobresale por arriba: " + enPanel);
@@ -279,8 +262,6 @@ class SeparadorPizarraTest {
             assertTrue(zona.getWidth() <= tarjeta.getWidth());
         });
     }
-
-    // ------------------------------------------------------------------ ayudas
 
     private static void sinCortar(Labeled l) {
         Text t = (Text) l.lookup(".text");
@@ -325,7 +306,6 @@ class SeparadorPizarraTest {
         return true;
     }
 
-    /** Un evento del mouse sobre el divisor, {@code dx} px a la derecha de donde se pulsó. */
     private static void raton(Node n, javafx.event.EventType<MouseEvent> tipo, Point2D inicio, double dx) {
         Point2D p = new Point2D(inicio.getX() + dx, inicio.getY());
         Event.fireEvent(n, new MouseEvent(tipo, p.getX(), p.getY(), p.getX(), p.getY(), MouseButton.PRIMARY, 1,

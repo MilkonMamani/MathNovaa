@@ -11,11 +11,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Las formas de LaTeX que MathLive puede dejar para cada construcción del guion de demostración (raíz,
- * integral, e, operadores con nombre, integrales múltiples), aunque el teclado arme solo una de ellas.
- * Cada texto debe además leerse con el parser.
- */
 class TraductorLatexGuionTest {
 
     @ParameterizedTest(name = "{0} → {1}")
@@ -66,7 +61,6 @@ class TraductorLatexGuionTest {
         Parser.parse(obtenido);
     }
 
-    /** RN48: con un solo límite lleno se pide el otro; con los dos vacíos la integral es indefinida. */
     @Test
     void unSoloLimiteLlenoPideElOtro() {
         Optional<TraductorLatex.CasillaVacia> falta = TraductorLatex.casillaVacia("\\int_{1}^{\\placeholder{}}x\\,dx");
@@ -77,7 +71,6 @@ class TraductorLatexGuionTest {
         assertTrue(TraductorLatex.completo("\\int_{\\placeholder{}}^{\\placeholder{}}x\\,dx"));
     }
 
-    /** En la ∬ iterada los cuatro límites son obligatorios, y el integrando también. */
     @Test
     void enLaIntegralDobleLosLimitesSonObligatorios() {
         String plantilla = "\\int_{\\placeholder{}}^{\\placeholder{}}\\int_{\\placeholder{}}^{\\placeholder{}}"

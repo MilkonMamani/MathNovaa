@@ -3,11 +3,6 @@ package pe.mathnova.domain.expresion;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Derivada direccional D_u f(P) (HU28, RF53):
- * {@code <direccional> ::= "Du" "(" <expresion> "," <vector> "," <punto> ")"}. Si el vector no es unitario
- * se normaliza al resolver.
- */
 public record Direccional(Expresion cuerpo, List<Expresion> vector, List<Expresion> punto) implements Expresion {
 
     public Direccional {

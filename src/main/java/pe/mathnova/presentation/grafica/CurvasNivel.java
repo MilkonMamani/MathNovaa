@@ -19,12 +19,6 @@ import pe.mathnova.presentation.grafica.DatosCurvasNivel.Curva;
 import pe.mathnova.presentation.grafica.DatosCurvasNivel.Flecha;
 import pe.mathnova.presentation.grafica.DatosCurvasNivel.Marca;
 
-/**
- * Curvas de nivel de f(x, y) (Sprint 8): f = c para 9 valores de c repartidos entre el mínimo y el máximo de la
- * ventana, de azul a naranja, con su leyenda; encima, las curvas, los puntos, las flechas y la región que traiga
- * {@link DatosCurvasNivel}. La rueda acerca y aleja alrededor del cursor, arrastrar mueve y el doble clic vuelve a la
- * vista inicial, como en {@link GraficaFuncion}. Las cuentas son con double: solo sirven para dibujar.
- */
 public final class CurvasNivel extends Region {
 
     public static final int NIVELES = 9;
@@ -47,7 +41,6 @@ public final class CurvasNivel extends Region {
     private final DatosCurvasNivel datos;
     private final Canvas lienzo = new Canvas();
     private VentanaGrafica ventana;
-    /** Los rectángulos ya ocupados por la leyenda y los rótulos, para que no se tapen entre sí. */
     private final List<double[]> ocupados = new ArrayList<>();
     private double[] cajaLeyenda;
     private double arrastreX;
@@ -69,12 +62,10 @@ public final class CurvasNivel extends Region {
         return ventana;
     }
 
-    /** Lo que se dibuja: las curvas de nivel, las trayectorias, las marcas. */
     public DatosCurvasNivel datos() {
         return datos;
     }
 
-    /** Vuelve a la vista inicial (también con doble clic). */
     public void restablecer() {
         ventana = datos.ventana();
         dibujar();
@@ -87,7 +78,6 @@ public final class CurvasNivel extends Region {
         dibujar();
     }
 
-    /** La ventana con la misma escala en los dos ejes (un círculo se ve redondo). */
     private VentanaGrafica proporcionada() {
         double w = lienzo.getWidth();
         double h = lienzo.getHeight();
@@ -96,8 +86,6 @@ public final class CurvasNivel extends Region {
         double cy = (ventana.yMin() + ventana.yMax()) / 2;
         return new VentanaGrafica(cx - porPx * w / 2, cx + porPx * w / 2, cy - porPx * h / 2, cy + porPx * h / 2);
     }
-
-    // ------------------------------------------------------------------ coordenadas
 
     private VentanaGrafica vista;
 
@@ -148,8 +136,6 @@ public final class CurvasNivel extends Region {
             }
         });
     }
-
-    // ------------------------------------------------------------------ dibujo
 
     private void dibujar() {
         double w = lienzo.getWidth();
@@ -238,7 +224,6 @@ public final class CurvasNivel extends Region {
         return s.startsWith("-") ? FormateadorTexto.MENOS + s.substring(1) : s;
     }
 
-    /** "0.25", "−1.3": dos cifras decimales a lo más. */
     static String valor(double v) {
         String s = String.format(Locale.ROOT, "%.2f", v).replaceAll("0+$", "").replaceAll("\\.$", "");
         if (s.equals("-0")) {
@@ -247,12 +232,10 @@ public final class CurvasNivel extends Region {
         return s.startsWith("-") ? FormateadorTexto.MENOS + s.substring(1) : s;
     }
 
-    /** Azul en t = 0, naranja en t = 1. */
     static Color color(double t) {
         return AZUL.interpolate(NARANJA, Math.max(0, Math.min(1, t)));
     }
 
-    /** Las 9 curvas de nivel; devuelve los valores de c (vacío si no hay f). */
     private double[] niveles(GraphicsContext g) {
         if (datos.funcion() == null) {
             return new double[0];
@@ -273,7 +256,6 @@ public final class CurvasNivel extends Region {
         return cs;
     }
 
-    /** La esquina de la leyenda: la que tapa menos puntos marcados (arriba a la derecha si da igual). */
     private double[] cajaLeyenda(double w, double h) {
         double ancho = 92;
         double alto = 22 + NIVELES * 15;
@@ -329,8 +311,6 @@ public final class CurvasNivel extends Region {
         }
     }
 
-    // ------------------------------------------------------------------ región
-
     private void region(GraphicsContext g, double w, double h) {
         if (datos.region() == null) {
             return;
@@ -373,8 +353,6 @@ public final class CurvasNivel extends Region {
             }
         };
     }
-
-    // ------------------------------------------------------------------ curvas de encima
 
     private void estilo(GraphicsContext g, DatosCurvasNivel.Estilo e) {
         g.setLineDashes((double[]) null);
@@ -454,7 +432,6 @@ public final class CurvasNivel extends Region {
         rotulo(g, c, puntos);
     }
 
-    /** El rótulo junto al último punto visible de la curva. */
     private void rotulo(GraphicsContext g, Curva c, List<double[]> puntos) {
         if (c.rotulo() == null) {
             return;
@@ -471,7 +448,6 @@ public final class CurvasNivel extends Region {
         double ancho = c.rotulo().length() * 6.4 + 6;
         double w = lienzo.getWidth();
         double h = lienzo.getHeight();
-        // del final hacia atrás, el primer lugar donde el rótulo no tapa la leyenda ni otro rótulo
         int salto = Math.max(1, visibles.size() / 16);
         double sx = 0;
         double sy = 0;

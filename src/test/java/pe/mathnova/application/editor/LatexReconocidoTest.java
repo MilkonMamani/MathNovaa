@@ -5,15 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/**
- * Lo que leyó UniMERNet Small (cadenas copiadas de ejecuciones reales, target/reconocimiento/lecturas.tsv)
- * pasa por el adaptador y por {@link TraductorLatex}, el mismo traductor que usa el teclado.
- */
 class LatexReconocidoTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource(delimiter = '|', value = {
-            // lectura real del modelo                         | LaTeX para el editor            | texto del parser
             "3 x ^ { 2 } + 2 x - 1                             | 3x^{2}+2x-1                     | 3x^2 + 2x - 1",
             "3 \\times ^ { 2 } + 2 x - 1                       | 3x^{2}+2x-1                     | 3x^2 + 2x - 1",
             "\\int 2 x \\, d x                                 | \\int 2xdx                      | ∫(2x, x)",

@@ -19,19 +19,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.numeros.Radical;
 
-/**
- * Simplificación mínima de un árbol (Sprint 5), la que necesitan el derivador y el motor de límites:
- * <ul>
- *   <li>sumas: se aplanan, se reúnen los términos semejantes (3x + 2x = 5x) y se quitan los ceros</li>
- *   <li>productos: se aplanan, se multiplican las constantes, 0·f = 0, 1·f = f, y las potencias de
- *       una misma base se juntan (x·x² = x³); si hay fracciones, todo queda como una sola fracción</li>
- *   <li>fracciones: se simplifican las constantes y se cancelan las bases iguales arriba y abajo</li>
- *   <li>potencias: x¹ = x, x⁰ = 1, 1ⁿ = 1, (xᵐ)ⁿ = xᵐⁿ, (√u)² = u</li>
- * </ul>
- * La forma es canónica en un sentido débil: el signo menos va siempre afuera (−2x es Negacion(2x)),
- * las constantes van primero en un producto, y un coeficiente fraccionario se escribe como
- * fracción (x/2, no ½x). Así dos expresiones iguales escritas de la misma manera quedan iguales.
- */
 public final class Simplificador {
 
     private static final Constante CERO = Constante.de(0);
@@ -66,9 +53,6 @@ public final class Simplificador {
         };
     }
 
-    // ------------------------------------------------------------------ constructores ya simplificados
-
-    /** −e con el signo afuera: −(−x) = x, −(3) = −3. */
     public static Expresion negar(Expresion e) {
         return switch (e) {
             case Constante c -> new Constante(c.valor().negar());
@@ -82,7 +66,6 @@ public final class Simplificador {
         for (Expresion t : terminos) {
             aplanarSuma(t, false, planos);
         }
-        // Términos semejantes: resto → coeficiente, en el orden en que aparecen. La clave CERO es la constante.
         Map<Expresion, Racional> grupos = new LinkedHashMap<>();
         for (Expresion t : planos) {
             Termino d = descomponer(t);
@@ -110,7 +93,6 @@ public final class Simplificador {
         }
     }
 
-    /** Un término como coeficiente × resto; resto null es una constante. */
     private record Termino(Racional coeficiente, Expresion resto) {
     }
 
@@ -152,7 +134,6 @@ public final class Simplificador {
         for (Expresion f : factores) {
             aplanarProducto(f, negativo, planos);
         }
-        // Si hay fracciones, todo el producto queda como una sola fracción.
         if (planos.stream().anyMatch(f -> f instanceof Cociente)) {
             List<Expresion> arriba = new ArrayList<>();
             List<Expresion> abajo = new ArrayList<>();
@@ -176,7 +157,6 @@ public final class Simplificador {
         return conCoeficiente(coeficiente, f.lista());
     }
 
-    /** c × factores, con el signo afuera y un coeficiente fraccionario como fracción. */
     private static Expresion conCoeficiente(Racional c, List<Expresion> factores) {
         if (c.signo() < 0) {
             return negar(conCoeficiente(c.negar(), factores));
@@ -243,7 +223,6 @@ public final class Simplificador {
         if (denominador instanceof Cociente b) {
             return cociente(producto(List.of(numerador, b.denominador())), b.numerador());
         }
-        // Constantes y bases iguales arriba y abajo.
         Factores arriba = factores(numerador);
         Factores abajo = factores(denominador);
         Racional c = arriba.coeficiente.dividir(abajo.coeficiente);
@@ -272,10 +251,6 @@ public final class Simplificador {
         return negativo ? negar(r) : r;
     }
 
-    /**
-     * Un producto como coeficiente × Π baseᵏ (k racional constante), en el orden en que aparecen las
-     * bases. Una potencia con exponente variable (eˣ) cuenta como base con exponente 1.
-     */
     private static final class Factores {
         Racional coeficiente = Racional.UNO;
         final Map<Expresion, Racional> potencias = new LinkedHashMap<>();
@@ -347,10 +322,6 @@ public final class Simplificador {
         return new Potencia(base, exponente);
     }
 
-    /**
-     * Los valores exactos que necesita la regla de Barrow (Sprint 6): ln 1 = 0, ln e = 1, ln eᵏ = k,
-     * |c| con c constante, sen 0 = 0, cos 0 = 1, tan 0 = 0, arctan 0 = 0 y arctan 1 = π/4.
-     */
     public static Expresion funcion(TipoFuncion tipo, Expresion u, int base) {
         boolean cero = u instanceof Constante c && c.valor().esCero();
         boolean uno = u instanceof Constante c && c.valor().equals(Racional.UNO);
@@ -386,10 +357,9 @@ public final class Simplificador {
                 Racional k = multiploDePi(u);
                 if (k != null && tipo != TipoFuncion.ARCSEN) {
                     if (k.esEntero()) {
-                        return CERO; // sen nπ = tan nπ = 0
+                        return CERO;
                     }
                     if (tipo == TipoFuncion.SEN && k.den().intValue() == 2) {
-                        // sen(π/2 + nπ) = (−1)ⁿ
                         int n = k.restar(Racional.de(1, 2)).num().intValue();
                         return Math.floorMod(n, 2) == 0 ? UNO : Constante.de(-1);
                     }
@@ -401,7 +371,7 @@ public final class Simplificador {
                 }
                 Racional k = multiploDePi(u);
                 if (k != null && k.esEntero()) {
-                    return k.num().testBit(0) ? Constante.de(-1) : UNO; // cos nπ = (−1)ⁿ
+                    return k.num().testBit(0) ? Constante.de(-1) : UNO;
                 }
                 if (k != null && k.den().intValue() == 2) {
                     return CERO;
@@ -426,7 +396,6 @@ public final class Simplificador {
         return new Funcion(tipo, u, base);
     }
 
-    /** k si u es k·π (π, 2π, π/2, −π…); null si no. */
     private static Racional multiploDePi(Expresion u) {
         if (u instanceof ConstanteEspecial e && e.tipo() == ConstanteEspecial.Tipo.PI) {
             return Racional.UNO;

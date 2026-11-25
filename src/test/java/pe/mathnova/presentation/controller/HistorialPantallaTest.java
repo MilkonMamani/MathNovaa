@@ -38,10 +38,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.Navegador;
 
-/**
- * HU15: la pantalla Historial sobre la base de prueba de target/. La pantalla escribe en su propio hilo
- * (sin la transacción de la prueba), así que cada prueba vacía el historial antes y después.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class HistorialPantallaTest {
 
@@ -54,7 +50,6 @@ class HistorialPantallaTest {
     @Autowired
     private JdbcTemplate jdbc;
 
-    /** Navegador de prueba: anota "Abrir en Resolver". */
     private static final class NavegadorPrueba extends Navegador {
         final List<String> abiertos = new ArrayList<>();
 
@@ -93,7 +88,6 @@ class HistorialPantallaTest {
             }
             raiz = loader.getRoot();
             controlador = loader.getController();
-            // la hoja se carga en el mismo hilo: la prueba no tiene que esperar otro
             controlador.setEjecutor(javafx.concurrent.Task::run);
             ventana = Fx.ventana(raiz, 1280, 800);
             raiz.applyCss();
@@ -147,7 +141,6 @@ class HistorialPantallaTest {
                     ((ComboBox<?>) buscar("#selectorCurso")).getItems());
             assertEquals("Cualquier fecha", ((ComboBox<HistorialService.Periodo>) buscar("#selectorFecha"))
                     .getConverter().toString(HistorialService.Periodo.CUALQUIERA));
-            // botones de 44 px como mínimo
             for (Node n : raiz.lookupAll(".boton-icono-historial")) {
                 assertTrue(((Button) n).getHeight() >= 44, "alto del botón de ícono");
             }
@@ -192,7 +185,7 @@ class HistorialPantallaTest {
     @Test
     void elOjoAbreLaHojaConLosPasosYElResultado() throws Exception {
         Fx.enFx(() -> {
-            botones("Ver la hoja con todos los pasos").getLast().fire(); // la factorización
+            botones("Ver la hoja con todos los pasos").getLast().fire();
             assertTrue(controlador.hojaVisible());
             assertTrue(buscar("#velo").isVisible());
         });

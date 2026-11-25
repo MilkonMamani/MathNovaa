@@ -6,11 +6,6 @@ import pe.mathnova.domain.calculo.parciales.MotorParciales;
 import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.expresion.ImpresoraTexto;
 
-/**
- * RN41 (Sprint 7): una expresión con dos o más variables sugiere sus derivadas parciales y su gradiente. Desde el
- * Sprint 8, con dos variables también los puntos críticos y extremos (el Hessiano) y la integral doble sobre
- * [0, 1] × [0, 1]; con tres, los extremos quedan desactivados (el criterio del Hessiano es para dos variables).
- */
 final class ParcialesDeVariasVariables implements ReglaSugerencia {
 
     static final String CODIGO = "RN41";
@@ -30,7 +25,6 @@ final class ParcialesDeVariasVariables implements ReglaSugerencia {
         return de(r.entrada());
     }
 
-    /** Las cuatro tarjetas para f; vacío si f tiene menos de dos letras. */
     static List<Sugerencia> de(Expresion f) {
         List<Character> letras = MotorParciales.variables(f, 0);
         if (letras.size() < 2) {

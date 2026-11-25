@@ -5,14 +5,12 @@ import java.util.Optional;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/** F07: a² ± 2ab + b² = (a ± b)². El término central debe ser ±2·√A·√C. */
 public final class TrinomioCuadradoPerfecto extends MetodoBase {
 
     public TrinomioCuadradoPerfecto() {
         super("F07");
     }
 
-    /** Si p es un trinomio cuadrado perfecto, el binomio r con r² = p. Lo usa F04 (3+1 y 1+3). */
     static Optional<Polinomio> raizDe(Polinomio p) {
         try {
             return Optional.of(analizar(p).binomio());
@@ -54,7 +52,6 @@ public final class TrinomioCuadradoPerfecto extends MetodoBase {
         return new Analisis(a, c, t2, menos, binomio);
     }
 
-    /** Solo con 3 términos. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() == 3;
@@ -74,7 +71,6 @@ public final class TrinomioCuadradoPerfecto extends MetodoBase {
         return resultado(justificacion, p, List.of(new Factor(an.binomio(), 2)), trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "¿Los extremos son cuadrados y el término del medio es el doble del producto de sus raíces?";

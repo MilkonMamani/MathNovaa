@@ -14,40 +14,17 @@ import pe.mathnova.domain.factorizacion.MetodoFactorizacion.ResultadoMetodo;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio.TablaRuffini;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Motor de factorización en Q, R y C (Chain of Responsibility). Sobre cada factor, de forma recursiva:
- * <ol>
- *   <li>Preprocesamiento: la entrada pasa a Polinomio (reducido y ordenado).</li>
- *   <li>F03, solo si la entrada ya viene agrupada como x²(x − 3) + 5(x − 3): se mira el árbol antes de expandir.</li>
- *   <li>F01 (con el signo, RN05 y RN06) o F02 si hay coeficientes fraccionarios.</li>
- *   <li>Según el número de términos: 2 → F05, F08/F09, F11 (grado ≥ 5); 3 → F07 y luego F12 o F13 si es
- *       de grado 2; 4 → F10 y F04; 5 o más → F04.</li>
- *   <li>En una sola letra y desde grado 3: F14, F15, F18, F16 (seguido de F17 si la raíz se repite),
- *       F19, F20 y, al final, A4 (Kronecker), que encuentra un factor si existe.</li>
- * </ol>
- * Con dos o más letras (HU27, sección 2.13) la cadena es otra: M01 factor común, M03 productos notables,
- * M04 aspa simple homogénea, M05 aspa doble, M06 homogéneo con t = x/y, M02 agrupación, M07 Ruffini
- * respecto de una letra y M08 coeficientes indeterminados de respaldo. En un homogéneo de grado ≥ 3 cuyo
- * polinomio en t tiene una raíz repetida, M07 va antes que M02 porque deja ver la multiplicidad.
- * Los factores finales en varias letras se certifican con A6 (reducción de Kronecker).
- * Lo que ningún método parte queda como factor final, con su análisis de irreducibilidad (HU07).
- * Con un método forzado (HU08), ese método se aplica a la entrada y el resto sigue en automático.
- */
 public final class OrquestadorFactorizacion implements Factorizador {
 
     private static final int PROFUNDIDAD_MAXIMA = 64;
-    /** Orden de los métodos de grado ≥ 3 en una letra (después de los del número de términos). */
     private static final List<String> AVANZADOS = List.of("F14", "F15", "F18", "F16", "F19", "F20", "A4");
-    /** No se ofrecen como "también se puede resolver con" ni en el menú de forzar. */
     private static final List<String> NO_FORZABLES = List.of("A4");
 
     private final Map<String, MetodoFactorizacion> metodos = new LinkedHashMap<>();
     private final FactorComunPolinomio f03;
     private final RuffiniRepetido f17;
-    /** Los métodos de varias variables por código (M01…M08); vacío en los orquestadores de prueba. */
     private final Map<String, MetodoFactorizacion> varias = new LinkedHashMap<>();
 
-    /** Con todos los métodos de Q. */
     public OrquestadorFactorizacion() {
         this(List.of(FactorComun.monomio(), FactorComun.fraccionario(), new DiferenciaDeCuadrados(),
                 new TrinomioCuadradoPerfecto(), new TrinomioSimple(), new TrinomioAspa(),
@@ -67,17 +44,12 @@ public final class OrquestadorFactorizacion implements Factorizador {
         varias.put("M08", new CoeficientesIndeterminadosVariables());
     }
 
-    /** Solo con los métodos dados; f03 puede ser null. */
     OrquestadorFactorizacion(List<MetodoFactorizacion> lista, FactorComunPolinomio f03) {
         lista.forEach(m -> metodos.put(m.codigo(), m));
         this.f03 = f03;
         this.f17 = metodos.get("F17") instanceof RuffiniRepetido r ? r : null;
     }
 
-    /**
-     * Texto en el formato del banco. Una fracción de polinomios se simplifica (P01):
-     * "(x + 2)/(x + 3); x ≠ -3, x ≠ 2".
-     */
     @Override
     public String factorizar(String entrada, Campo campo) {
         Expresion e = Parser.parse(entrada);
@@ -90,10 +62,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return resolver(e, campo).texto();
     }
 
-    /**
-     * Práctica (Sprint 9, parte D): el método de un código (F05, M04…); vacío si es un paso sin método propio
-     * (F03, PR…).
-     */
     public Optional<MetodoFactorizacion> metodo(String codigo) {
         MetodoFactorizacion m = metodos.get(codigo);
         if (m != null) {
@@ -102,13 +70,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return varias.values().stream().filter(v -> v.codigo().equals(codigo)).findFirst();
     }
 
-    /**
-     * Práctica: los métodos de la misma categoría que no aplican a {@code p} en Q, con el motivo que da cada uno
-     * (su {@code puedeAplicarse}). Si {@code p} tiene varias letras, los de varias variables; si no, los de Q. No
-     * entra A4 (no es un método que se elija) ni los que sí aplican.
-     *
-     * @return código → motivo, en el orden del orquestador
-     */
     public Map<String, String> noAplican(Polinomio p) {
         boolean enVarias = !varias.isEmpty() && p.variables().size() >= 2;
         Map<String, String> r = new LinkedHashMap<>();
@@ -122,13 +83,11 @@ public final class OrquestadorFactorizacion implements Factorizador {
                     r.put(m.codigo(), a.motivo());
                 }
             } catch (RuntimeException e) {
-                // un método que no sabe qué decir de este polinomio no sirve de distractor
             }
         }
         return r;
     }
 
-    /** Códigos de los métodos que se pueden forzar (HU08), en orden. */
     public List<String> metodosForzables() {
         List<String> codigos = new ArrayList<>();
         if (f03 != null) {
@@ -143,13 +102,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return resolver(entrada, campo, null);
     }
 
-    /**
-     * @param forzado código del método que se aplica primero (HU08), o null en automático
-     * En R o C primero se factoriza en Q y luego se parten los factores irreducibles (RN27).
-     *
-     * @throws pe.mathnova.domain.algebra.NoEsPolinomioException si la entrada no es un polinomio
-     * @throws MetodoNoAplicable si el método forzado no aplica, con el motivo
-     */
     public Resolucion resolver(Expresion entrada, Campo campo, String forzado) {
         Polinomio p = Polinomio.desde(entrada);
         Proceso proceso = new Proceso();
@@ -171,8 +123,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         String primero = proceso.pasos.isEmpty() ? null : proceso.pasos.getFirst().codigoTecnica();
         Resolucion enQ = new Resolucion(entrada, proceso.pasos, proceso.descartados, resultado, irreducibles,
                 alternativas(entrada, p, primero), forzado);
-        // Los métodos de R y C (F21–F30, A5) son de una letra. Un factor en varias letras que quedó de Q
-        // ya no lo parte ninguno: en un factor lineal, como x + 2y + 3 tras el aspa doble, es irreducible.
         boolean variasLetras = resultado.factores().stream().anyMatch(f -> f.polinomio().variables().size() > 1);
         if (campo == Campo.Q || variasLetras) {
             return enQ;
@@ -196,7 +146,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return m.aplicar(p, Campo.Q);
     }
 
-    /** Otros métodos que también aplican a la entrada, sin contar el primero que se usó. */
     private List<String> alternativas(Expresion entrada, Polinomio p, String usado) {
         if (usado == null || p.terminos().size() < 2) {
             return List.of();
@@ -216,7 +165,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
                         r.add(c);
                     }
                 } catch (RuntimeException e) {
-                    // no aplica
                 }
             }
             return r;
@@ -262,7 +210,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return codigos.stream().map(metodos::get).filter(m -> m != null).toList();
     }
 
-    /** La cadena de varias variables (sección 2.13), en orden. */
     private List<MetodoFactorizacion> candidatosVarias(Polinomio p) {
         List<String> codigos = new ArrayList<>();
         List<Termino> ts = Termino.de(p);
@@ -294,7 +241,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         return codigos.stream().map(varias::get).filter(m -> m != null).toList();
     }
 
-    /** Estado de una factorización. */
     private final class Proceso {
 
         private Racional constante = Racional.UNO;
@@ -302,10 +248,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
         private final List<Paso> pasos = new ArrayList<>();
         private final List<Paso> descartados = new ArrayList<>();
 
-        /**
-         * @param raiz true para la entrada y para los factores de F03: solo en ellos se anota F01
-         *             como descartado (los factores que salen de otros métodos ya son primitivos)
-         */
         void factorizar(Polinomio p, int multiplicidad, boolean raiz, int profundidad) {
             if (p.esConstante()) {
                 constante = constante.multiplicar(p.constante().potencia(multiplicidad));
@@ -334,7 +276,7 @@ public final class OrquestadorFactorizacion implements Factorizador {
             }
             for (MetodoFactorizacion m : enVarias ? candidatosVarias(p) : candidatos(p)) {
                 if (!m.esCandidato(p)) {
-                    continue; // por su forma no tiene sentido probarlo: ni se prueba ni se lista
+                    continue;
                 }
                 Aplicabilidad a = m.puedeAplicarse(p, Campo.Q);
                 if (a.aplica()) {
@@ -348,7 +290,6 @@ public final class OrquestadorFactorizacion implements Factorizador {
 
         void registrar(ResultadoMetodo r, int multiplicidad, boolean factoresRaiz, int profundidad) {
             pasos.add(r.paso().conOrden(pasos.size() + 1));
-            // F16 → F17: si la raíz vuelve a anular el cociente, se sigue con la misma raíz.
             TablaRuffini tabla = r.paso().codigoTecnica().equals("F16")
                     && r.paso().trabajo() instanceof TablaRuffini t ? t : null;
             for (int i = 0; i < r.factores().size(); i++) {

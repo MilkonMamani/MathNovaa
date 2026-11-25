@@ -6,11 +6,6 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.factorizacion.ComprobacionBanco;
 
-/**
- * Los 300 casos del banco, leídos directo del CSV. Desde el Sprint 7 el banco pasa completo y esta prueba
- * corre con "mvn test" (ya no lleva @Tag("banco")). No compara el texto letra por letra: el orden de los
- * factores en R y C, los mensajes de A4 y las funciones (T01–T05) se comprueban como en BancoCompletoTest.
- */
 class BancoFactorizacionTest {
 
     @ParameterizedTest(name = "{0} {1} [{3}]: {6}")

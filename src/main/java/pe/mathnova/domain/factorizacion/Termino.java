@@ -9,10 +9,8 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/** Un término coeficiente·monomio, como −12x o 4x². */
 record Termino(Racional coeficiente, Monomio monomio) {
 
-    /** Términos de p, de mayor a menor monomio. */
     static List<Termino> de(Polinomio p) {
         List<Termino> lista = new ArrayList<>();
         p.terminos().forEach((m, c) -> lista.add(new Termino(c, m)));
@@ -55,10 +53,6 @@ record Termino(Racional coeficiente, Monomio monomio) {
         return new Termino(coeficiente.potencia(n), monomio.potencia(n));
     }
 
-    /**
-     * Raíz n-ésima exacta: un término r con r^n = this. Para n par solo existe si el coeficiente es
-     * positivo; para n impar conserva el signo.
-     */
     Optional<Termino> raiz(int n) {
         Optional<Monomio> m = monomio.raiz(n);
         Optional<Racional> c = raiz(coeficiente, n);
@@ -68,7 +62,6 @@ record Termino(Racional coeficiente, Monomio monomio) {
         return Optional.of(new Termino(c.get(), m.get()));
     }
 
-    /** Raíz n-ésima exacta de un racional; vacía si no es exacta (o si es negativo y n es par). */
     static Optional<Racional> raiz(Racional r, int n) {
         if (r.signo() < 0) {
             if (n % 2 == 0) {
@@ -84,7 +77,6 @@ record Termino(Racional coeficiente, Monomio monomio) {
         return Optional.of(new Racional(num.get(), den.get()));
     }
 
-    /** Raíz n-ésima entera exacta de a ≥ 0, por bisección. */
     static Optional<BigInteger> raizEntera(BigInteger a, int n) {
         if (a.signum() == 0 || a.equals(BigInteger.ONE)) {
             return Optional.of(a);

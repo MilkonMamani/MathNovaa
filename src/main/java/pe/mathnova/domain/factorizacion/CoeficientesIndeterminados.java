@@ -8,14 +8,6 @@ import java.util.Optional;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F20: coeficientes indeterminados, para polinomios de grado 4 o más sin raíces racionales. Se
- * plantea (x² + ax + b)·(cofactor de grado n − 2) —o un factor cúbico en grado 6— y se buscan
- * enteros que cumplan el sistema "coeficiente de xᵏ = …".
- *
- * <p>Para acotar la búsqueda: b divide al término independiente y, como P(1) = A(1)·B(1) y
- * P(−1) = A(−1)·B(−1), A(1) y A(−1) dividen a P(1) y P(−1).
- */
 public final class CoeficientesIndeterminados extends MetodoBase {
 
     private static final String LETRAS_A = "ab";
@@ -25,7 +17,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         super("F20");
     }
 
-    /** Solo desde grado 4, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 4;
@@ -60,7 +51,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
                 + " ecuaciones no tiene solución entera: no hay un factor de grado 2" + (n == 6 ? " ni 3" : "")));
     }
 
-    /** Busca un factor de grado k (2 o 3) con coeficientes enteros que divida a u. */
     private Optional<ResultadoMetodo> buscar(Polinomio p, Univariado u, int k) {
         char x = u.variable();
         long an = u.principal().num().longValueExact();
@@ -86,19 +76,14 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         return Optional.empty();
     }
 
-    /**
-     * El factor A con A(1) = d1 y A(−1) = d2. Grado 2: l·x² + a·x + b0. Grado 3: l·x³ + a·x² + b·x + b0.
-     */
     private static Optional<Univariado> candidato(char x, int k, long l, long b0, long d1, long d2) {
         if (k == 2) {
-            // A(1) = l + a + b0 y A(−1) = l − a + b0
             long a = d1 - l - b0;
             if (l - a + b0 != d2) {
                 return Optional.empty();
             }
             return Optional.of(Univariado.de(x, List.of(Racional.de(b0), Racional.de(a), Racional.de(l))));
         }
-        // A(1) = l + a + b + b0, A(−1) = −l + a − b + b0
         long suma = d1 - l - b0;
         long resta = d2 + l - b0;
         if ((suma + resta) % 2 != 0) {
@@ -113,7 +98,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         char x = u.variable();
         int k = factor.grado();
         int m = cofactor.grado();
-        // Letras: las del factor (a, b[, c]) y luego las del cofactor, sin el coeficiente principal.
         String letrasA = k == 2 ? LETRAS_A : LETRAS_A3;
         List<String> nombresA = new ArrayList<>();
         for (int i = 0; i < k; i++) {
@@ -124,7 +108,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         for (int i = 0; i < m; i++) {
             nombresB.add(String.valueOf((char) (siguiente + (m - 1 - i))));
         }
-        // nombresA.get(i) es el coeficiente de x^i (i < k); el principal es numérico.
         List<Simbolo> sa = new ArrayList<>();
         for (int i = 0; i < k; i++) {
             sa.add(new Simbolo(nombresA.get(i), factor.coef(i)));
@@ -172,11 +155,9 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         return resultado(justificacion, p, List.of(Factor.de(fa), Factor.de(fb)), trabajo);
     }
 
-    /** Un coeficiente del planteo: con nombre (incógnita) o solo número (el principal). */
     private record Simbolo(String nombre, Racional valor) {
     }
 
-    /** "(x² + ax + b)" con las letras; el principal con su número si no es 1. */
     private static String forma(char x, List<Simbolo> s) {
         StringBuilder sb = new StringBuilder("(");
         for (int i = s.size() - 1; i >= 0; i--) {
@@ -192,7 +173,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         return sb.append(")").toString();
     }
 
-    /** "ac", "c" (1·c), "2d", "a". */
     private static String producto(Simbolo a, Simbolo b) {
         if (a.nombre() == null && b.nombre() == null) {
             return Formato.numero(a.valor().multiplicar(b.valor()));
@@ -216,7 +196,6 @@ public final class CoeficientesIndeterminados extends MetodoBase {
         return Formato.numero(v);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Supón que se parte en dos factores con coeficientes que aún no conoces, multiplícalos e iguala término a término.";

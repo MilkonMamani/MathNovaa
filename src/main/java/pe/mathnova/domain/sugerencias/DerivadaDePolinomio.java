@@ -2,7 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/** RN18: un polinomio se deriva sin factorizar; f′ = 0 da los puntos críticos. */
 final class DerivadaDePolinomio implements ReglaSugerencia {
 
     @Override

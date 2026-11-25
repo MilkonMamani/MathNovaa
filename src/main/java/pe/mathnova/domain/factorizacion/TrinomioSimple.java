@@ -7,17 +7,14 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/** F12: x² + bx + c = (x + m)(x + n) con enteros m + n = b y m·n = c. */
 public final class TrinomioSimple extends MetodoBase {
 
-    /** Más allá de esto no se buscan divisores (el banco no pasa de tres cifras). */
     private static final BigInteger LIMITE = BigInteger.valueOf(1_000_000_000_000L);
 
     public TrinomioSimple() {
         super("F12");
     }
 
-    /** Solo trinomios de grado 2 en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() == 2 && p.terminos().size() == 3;
@@ -66,7 +63,6 @@ public final class TrinomioSimple extends MetodoBase {
         List<Factor> factores = List.of(
                 Factor.de(q.lineal(Racional.UNO, rm)),
                 Factor.de(q.lineal(Racional.UNO, rn)));
-        // Aspa: (x | m) y (x | n); los productos cruzados x·n + x·m dan bx.
         String x = String.valueOf(q.variable());
         String verificacion = x + "·" + Formato.numeroEnParentesis(rn) + " + " + x + "·"
                 + Formato.numeroEnParentesis(rm) + " = "
@@ -81,7 +77,6 @@ public final class TrinomioSimple extends MetodoBase {
         return r.signo() < 0 ? Formato.numero(r) : "+" + r;
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Busca dos números que multiplicados den el término independiente y sumados den el coeficiente de x.";

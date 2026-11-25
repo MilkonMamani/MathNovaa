@@ -8,10 +8,6 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * M04: aspa simple homogénea, Ax² + Bxy + Cy² = (a1x + c1y)(a2x + c2y). Es el aspa simple de F13 con
- * la segunda letra en la columna de la derecha: con t = x/y, At² + Bt + C debe tener Δ cuadrado perfecto.
- */
 final class AspaSimpleHomogenea extends MetodoBase {
 
     AspaSimpleHomogenea() {
@@ -85,7 +81,6 @@ final class AspaSimpleHomogenea extends MetodoBase {
         return Polinomio.termino(a, Monomio.de(x, 1)).sumar(Polinomio.termino(c, Monomio.de(y, 1)));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Todos los términos tienen el mismo grado: míralo como un trinomio en x y en y, y cruza los productos de los extremos.";

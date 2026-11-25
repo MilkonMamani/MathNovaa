@@ -13,7 +13,6 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.pizarra.AspaSimple;
 
-/** Los renglones de cada paso según la operación: el lím en cada renglón, y′ en una derivada. */
 class RenglonesPasoTest {
 
     private static final RenglonesPaso.Marco LIMITE = RenglonesPaso.Marco.de("CALCULA EL LÍMITE",

@@ -30,18 +30,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * Parser de descenso recursivo: un método por regla de la gramática BNF de MathNova.
- * Sigue el prototipo banco-de-prueba-casos-uso/parser_bnf.py.
- *
- * <p>Precedencia de mayor a menor: llamada, raíz y paréntesis; ^ (derecha); signo unario;
- * *, /, multiplicación implícita (izquierda); + y - (izquierda).
- *
- * <p>{@code <entrada> ::= <operacion> | <expresion>}: un límite, una derivada o una integral va
- * sola, nunca dentro de otra expresión (HU34). En este sprint solo se reconoce; no se resuelve.
- *
- * <p>HU38: {@code <ecuacion> ::= <expresion> "=" <expresion>}, con un solo "=" en el nivel superior.
- */
 public final class Parser {
 
     private static final Map<String, TipoFuncion> FUNCIONES = Map.ofEntries(
@@ -61,18 +49,12 @@ public final class Parser {
         this.tokens = tokens;
     }
 
-    /**
-     * Lee una entrada completa: una operación (lim, d/dx, ∂/∂x, ∫, ∬, ∭) o una expresión.
-     *
-     * @throws ErrorSintaxis si está mal escrita, con mensaje en español y posición base 1
-     */
     public static Expresion parse(String texto) {
         Parser p = new Parser(Lexer.tokenizar(texto));
         Expresion e;
         if (p.actual().esOperacion()) {
             e = p.operacion();
         } else if (p.coeficienteDeOperacion()) {
-            // "3∫(3x, x, 3, 6)" o "3·∫(…)": un número delante de la operación (Sprint 6)
             Constante c = new Constante(Racional.parse(p.avanzar().texto()));
             if (p.esOperador('*', '·')) {
                 p.avanzar();
@@ -94,7 +76,6 @@ public final class Parser {
         return e;
     }
 
-    /** Después de "=": el lado derecho; un segundo "=" no se acepta. */
     private Expresion ecuacion(Expresion izquierda) {
         Token igual = avanzar();
         if (es(Token.Tipo.FIN) || esOperador('=')) {
@@ -112,7 +93,6 @@ public final class Parser {
         return new pe.mathnova.domain.expresion.Ecuacion(izquierda, derecha);
     }
 
-    /** Un número seguido de una derivada o una integral, con o sin "·" entre los dos. */
     private boolean coeficienteDeOperacion() {
         if (!es(Token.Tipo.NUMERO) || k + 1 >= tokens.size()) {
             return false;
@@ -123,8 +103,6 @@ public final class Parser {
         }
         return sig.tipo() == Token.Tipo.DERIVADA || sig.tipo() == Token.Tipo.INTEGRAL && sig.texto().equals("∫");
     }
-
-    // ------------------------------------------------------------------ utilidades
 
     private Token actual() {
         return tokens.get(k);
@@ -175,12 +153,6 @@ public final class Parser {
         }
     }
 
-    // ------------------------------------------------------------------ operaciones (HU34)
-
-    /**
-     * {@code <operacion> ::= <limite> | <derivada> | <parcial> | <integral> | <integral_multiple> | <gradiente>
-     * | <direccional>}
-     */
     private Expresion operacion() {
         Token t = actual();
         return switch (t.tipo()) {
@@ -194,7 +166,6 @@ public final class Parser {
         };
     }
 
-    /** {@code <limite> ::= "lim" "(" <variable> <flecha> <punto> [ "+" | "-" ] "," <expresion> ")"} */
     private Expresion limite() {
         avanzar();
         esperar('(');
@@ -218,10 +189,6 @@ public final class Parser {
         return new Limite(variable, punto, lado, cuerpo);
     }
 
-    /**
-     * {@code <limite_doble> ::= "lim" "(" "(" <variable> "," <variable> ")" <flecha> "(" <punto_lim> "," <punto_lim> ")"
-     * "," <expresion> ")"} (HU29, RF54). Ya se leyeron "lim" y el primer "(".
-     */
     private Expresion limiteDoble() {
         avanzar();
         Token tx = actual();
@@ -248,7 +215,6 @@ public final class Parser {
         return new LimiteDoble(x, y, a, b, cuerpo);
     }
 
-    /** Un {@code <punto_lim>} del límite doble: como el del límite simple, pero sin ∞. */
     private Expresion puntoFinito(Token variable) {
         Token t = actual();
         Limite.Punto punto = punto();
@@ -259,7 +225,6 @@ public final class Parser {
                 t.posicion());
     }
 
-    /** {@code <extremos> ::= "extremos" "(" <expresion> [ ";" <ecuacion> ] ")"} (HU30, RF55). */
     private Expresion extremos() {
         avanzar();
         esperar('(');
@@ -278,11 +243,6 @@ public final class Parser {
         return new Extremos(f, g);
     }
 
-    /**
-     * {@code <punto> ::= [ "-" ] ( "∞" | "inf" | <numero> [ "π" ] [ "/" <numero> ] | "π" [ "/" <numero> ] )}
-     *
-     * <p>RN46: un número, una fracción, un múltiplo de π o ±∞; nunca una letra.
-     */
     private Limite.Punto punto() {
         boolean negativo = false;
         if (esOperador('-')) {
@@ -321,7 +281,6 @@ public final class Parser {
         return es(Token.Tipo.CONSTANTE) && actual().texto().equals("π");
     }
 
-    /** RN46. */
     private void rechazarLetraEnPunto() {
         if (es(Token.Tipo.VARIABLE) || es(Token.Tipo.CONSTANTE) || es(Token.Tipo.FUNCION)) {
             Token t = actual();
@@ -330,10 +289,9 @@ public final class Parser {
         }
     }
 
-    /** {@code <derivada> ::= "d" [ <entero> ] "/d" <variable> [ <entero> ] "(" <expresion> ")"} (RN47) */
     private Expresion derivada() {
         Token t = avanzar();
-        String texto = t.texto(); // "d2/dx2"
+        String texto = t.texto();
         int barra = texto.indexOf('/');
         int ordenArriba = ordenDe(texto.substring(1, barra), t);
         char variable = texto.charAt(barra + 2);
@@ -346,7 +304,6 @@ public final class Parser {
         esperar('(');
         Expresion cuerpo = cuerpo("de la derivada");
         if (ordenArriba == 1 && esOperador('=')) {
-            // D08: d/dx(x^2 + y^2 = 25), derivación implícita
             avanzar();
             cuerpo = new pe.mathnova.domain.expresion.Ecuacion(cuerpo, cuerpo("del lado derecho"));
         }
@@ -354,19 +311,15 @@ public final class Parser {
         return new Derivada(ordenArriba, variable, cuerpo);
     }
 
-    /**
-     * {@code <parcial> ::= "∂" [ <entero> ] "/" "∂" <variable> { "∂" <variable> } "(" <expresion> ")"}.
-     * También acepta ∂2/∂x2, que es ∂x∂x.
-     */
     private Expresion parcial() {
         Token t = avanzar();
-        String texto = t.texto(); // "∂2/∂x∂y"
+        String texto = t.texto();
         int barra = texto.indexOf('/');
         int orden = ordenDe(texto.substring(1, barra), t);
         List<Character> variables = new ArrayList<>();
         int j = barra + 1;
         while (j < texto.length()) {
-            char v = texto.charAt(j + 1); // en j está '∂'
+            char v = texto.charAt(j + 1);
             validarVariable(v, t.posicion() + j + 1);
             int fin = j + 2;
             while (fin < texto.length() && Character.isDigit(texto.charAt(fin))) {
@@ -385,7 +338,6 @@ public final class Parser {
         return new DerivadaParcial(variables, cuerpoEntreParentesis("de la derivada parcial"));
     }
 
-    /** {@code <gradiente> ::= "grad" "(" <expresion> [ "," <punto> ] ")"} (HU28, RF53). */
     private Expresion gradiente() {
         avanzar();
         esperar('(');
@@ -399,7 +351,6 @@ public final class Parser {
         return new Gradiente(f, punto);
     }
 
-    /** {@code <direccional> ::= "Du" "(" <expresion> "," <vector> "," <punto> ")"} (HU28, RF53). */
     private Expresion direccional() {
         avanzar();
         esperar('(');
@@ -416,7 +367,6 @@ public final class Parser {
         return new Direccional(f, vector, punto);
     }
 
-    /** {@code <vector> ::= "(" <expresion> { "," <expresion> } ")"}, igual que {@code <punto>}. */
     private List<Expresion> tupla(String que) {
         if (!esOperador('(')) {
             throw esperaba(que + " entre paréntesis, como (1, 2)");
@@ -432,7 +382,6 @@ public final class Parser {
         return r;
     }
 
-    /** Orden escrito junto a d o ∂; "" es orden 1. */
     private static int ordenDe(String digitos, Token t) {
         if (digitos.isEmpty()) {
             return 1;
@@ -449,7 +398,6 @@ public final class Parser {
         return orden;
     }
 
-    /** {@code <integral> ::= ("∫" | "int") "(" <expresion> "," <variable> [ "," <expresion> "," <expresion> ] ")"} */
     private Expresion integral() {
         avanzar();
         esperar('(');
@@ -468,11 +416,6 @@ public final class Parser {
         return new Integral(cuerpo, variable);
     }
 
-    /**
-     * {@code <integral_multiple> ::= ("∬" | "∭") "(" <expresion> { "," <variable> "," <rango> } [ ";" <coordenadas> ] ")"},
-     * {@code <rango> ::= <expresion> "," <expresion> | "[" <expresion> "," <expresion> "]"},
-     * con 2 rangos para ∬ y 3 para ∭.
-     */
     private Expresion integralMultiple() {
         Token simbolo = avanzar();
         int rangosEsperados = simbolo.texto().equals("∬") ? 2 : 3;
@@ -490,7 +433,6 @@ public final class Parser {
                 }
             }
             esperar(',');
-            // Gramática v2: "x, a, b". También "x, [a, b]", la forma de antes: dan el mismo árbol.
             boolean corchete = esOperador('[');
             if (corchete) {
                 avanzar();
@@ -517,7 +459,6 @@ public final class Parser {
         return new IntegralMultiple(cuerpo, rangos, coordenadas);
     }
 
-    /** {@code "coord" "=" ( "polares" | "cilindricas" | "esfericas" )} (Sprint 8, V10). */
     private IntegralMultiple.Coordenadas coordenadas(int rangos) {
         if (!es(Token.Tipo.COORDENADAS) || !actual().texto().equals("coord")) {
             throw esperaba("coord=polares, coord=cilindricas o coord=esfericas");
@@ -544,7 +485,6 @@ public final class Parser {
         return c;
     }
 
-    /** {@code <variable>} de una operación: una letra que no sea e, i ni π (RN42). */
     private char variableDeOperacion() {
         Token t = actual();
         if (es(Token.Tipo.CONSTANTE)) {
@@ -575,7 +515,6 @@ public final class Parser {
         return e;
     }
 
-    /** Una expresión obligatoria dentro de una operación; si no está, lo dice claro. */
     private Expresion cuerpo(String de) {
         if (esOperador(')', ',') || es(Token.Tipo.FIN)) {
             throw new ErrorSintaxis("Falta la expresión " + de, actual().posicion());
@@ -583,9 +522,6 @@ public final class Parser {
         return expresion();
     }
 
-    // ------------------------------------------------------------------ gramática
-
-    /** {@code <expresion> ::= <termino> { ("+" | "-") <termino> }} */
     private Expresion expresion() {
         List<Expresion> terminos = new ArrayList<>();
         terminos.add(termino());
@@ -597,12 +533,6 @@ public final class Parser {
         return terminos.size() == 1 ? terminos.getFirst() : new Suma(terminos);
     }
 
-    /**
-     * {@code <termino> ::= <unario> { <op_mult> <unario> | <factor_implicito> }}
-     *
-     * <p>Si el término empieza con signo menos y sigue con más factores ("-2x"), el signo
-     * se sube a todo el término: queda -(2x) y no (-2)·x. El valor es el mismo.
-     */
     private Expresion termino() {
         Expresion primero = unario();
         boolean negado = false;
@@ -640,13 +570,11 @@ public final class Parser {
         return esOperador('*', '·', '/') || iniciaImplicito();
     }
 
-    /** {@code <factor_implicito>}: empieza con variable, constante, función, "(", "√" o "∛"; nunca con número. */
     private boolean iniciaImplicito() {
         return es(Token.Tipo.VARIABLE) || es(Token.Tipo.CONSTANTE) || es(Token.Tipo.FUNCION)
                 || actual().esOperacion() || es(Token.Tipo.INFINITO) || esOperador('(', '√', '∛');
     }
 
-    /** {@code <unario> ::= ("+" | "-") <unario> | <potencia>} */
     private Expresion unario() {
         if (esOperador('-')) {
             avanzar();
@@ -659,7 +587,6 @@ public final class Parser {
         return potencia();
     }
 
-    /** {@code <potencia> ::= <primario> [ "^" <exponente> ]} */
     private Expresion potencia() {
         Expresion base = primario();
         if (esOperador('^')) {
@@ -669,7 +596,6 @@ public final class Parser {
         return base;
     }
 
-    /** {@code <exponente> ::= [ "+" | "-" ] <primario> [ "^" <exponente> ]} */
     private Expresion exponente() {
         boolean negativo = false;
         if (esOperador('+', '-')) {
@@ -683,7 +609,6 @@ public final class Parser {
         return negativo ? new Negacion(e) : e;
     }
 
-    /** {@code <primario> ::= <numero> | <variable> | <constante> | "(" <expresion> ")" | <llamada> | <raiz>} */
     private Expresion primario() {
         Token t = actual();
         switch (t.tipo()) {
@@ -727,7 +652,6 @@ public final class Parser {
         }
     }
 
-    /** {@code <raiz> ::= ("√" | "∛") <primario> | "√[" <entero> "]" <primario>} */
     private Expresion raiz() {
         int indice = avanzar().esOperador('√') ? 2 : 3;
         if (indice == 2 && esOperador('[')) {
@@ -742,10 +666,6 @@ public final class Parser {
         return new Raiz(indice, primario());
     }
 
-    /**
-     * {@code <llamada> ::= <funcion> [ "^" <entero> ] <argumento>}
-     * con {@code <funcion> ::= ... | "log" [ "_" <entero> ]}
-     */
     private Expresion llamada() {
         Token nombre = avanzar();
         TipoFuncion tipo = FUNCIONES.get(nombre.texto());
@@ -771,10 +691,6 @@ public final class Parser {
         return potencia == null ? f : new Potencia(f, Constante.de(potencia));
     }
 
-    /**
-     * {@code <argumento> ::= "(" <expresion> ")" | <argumento_simple>}
-     * con {@code <argumento_simple> ::= [ <numero> ] <variable> [ "^" <entero> ]}
-     */
     private Expresion argumento() {
         if (esOperador('(')) {
             avanzar();

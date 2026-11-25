@@ -16,19 +16,8 @@ import pe.mathnova.presentation.latex.TextoLatex;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 import pe.mathnova.presentation.resolucion.Igualdades;
 
-/**
- * I03: la integración por partes como en el cuaderno, con tipografía matemática.
- * <pre>
- *   u = ln(x)        dv = x dx
- *   du = dx/x        v = x²/2
- * </pre>
- * Arriba, por qué u es esa (ILATE); a la izquierda u y debajo du, a la derecha dv y debajo v (si la pizarra
- * se angosta, la columna de la derecha baja). Después, ∫u dv = uv − ∫v du, la sustitución con los valores
- * y la integral que queda, con los "=" alineados.
- */
 public final class TablaPartes extends VBox {
 
-    /** La fórmula de integración por partes, como la escribe el motor. */
     static final String FORMULA_TEXTO = "uv − ∫v du";
     static final String FORMULA = "\\int u\\,dv = uv - \\int v\\,du";
 
@@ -58,7 +47,6 @@ public final class TablaPartes extends VBox {
         }
     }
 
-    /** ∫u dv = uv − ∫v du y después las cuentas del motor, una por renglón. */
     static List<Igualdades.Renglon> renglones(List<String> lineas) {
         List<Igualdades.Renglon> r = new ArrayList<>();
         for (String l : lineas) {
@@ -86,7 +74,6 @@ public final class TablaPartes extends VBox {
         Matcher m = UNO_SOBRE.matcher(v);
         String latex;
         if (simbolo.equals("du") && m.matches() && !m.group(1).contains("/")) {
-            // du = (1/x) dx se escribe dx/x
             String den = TextoLatex.convertir(parentesisEnFunciones(m.group(1)));
             latex = den == null ? null : "\\frac{d" + m.group(2) + "}{" + den + "}";
         } else {
@@ -99,13 +86,11 @@ public final class TablaPartes extends VBox {
         return f;
     }
 
-    /** El renglón en LaTeX: ln(x) con paréntesis y un espacio fino antes del dx; null si es una frase. */
     static String latex(String texto) {
         String l = TextoLatex.convertir(parentesisEnFunciones(texto));
         return TextoLatex.conDiferenciales(l);
     }
 
-    /** "ln x" → "ln(x)": el argumento de una función entre paréntesis, como en la pizarra del docente. */
     static String parentesisEnFunciones(String texto) {
         return FUNCION_SIN_PARENTESIS.matcher(texto).replaceAll("$1($2)");
     }

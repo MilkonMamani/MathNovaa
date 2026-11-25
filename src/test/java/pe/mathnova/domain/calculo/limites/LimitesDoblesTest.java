@@ -24,7 +24,6 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/** Sprint 8, Parte A (HU29, RF54): límites dobles con evaluación directa, trayectorias (V05) y polares (V06). */
 class LimitesDoblesTest {
 
     private static final MotorLimitesDobles MOTOR = new MotorLimitesDobles();
@@ -41,8 +40,6 @@ class LimitesDoblesTest {
     private static String lineas(PasoLimite p) {
         return String.join("\n", ((TrabajoIntermedio.Agrupacion) p.trabajo()).grupos());
     }
-
-    // ------------------------------------------------------------------ gramática
 
     @Test
     void seLeeElLimiteDoble() {
@@ -69,11 +66,8 @@ class LimitesDoblesTest {
         String latex = "\\lim_{(x,y)\\to(0,0)}\\frac{xy}{x^2+y^2}";
         assertEquals("lim((x, y)→(0, 0), xy/(x^2 + y^2))", TraductorLatex.traducir(latex));
         LimiteDoble l = (LimiteDoble) Parser.parse("lim((x,y)→(1,2), x^2 + x y)");
-        // lo que dibuja ImpresoraLatex vuelve a leerse igual
         assertEquals(l, Parser.parse(TraductorLatex.traducir(ImpresoraLatex.imprimir(l))));
     }
-
-    // ------------------------------------------------------------------ los ejemplos exactos
 
     @Test
     void xyEntreSumaDeCuadradosNoExiste() {
@@ -117,7 +111,6 @@ class LimitesDoblesTest {
                 () -> assertTrue(r.polar().cota().contains("≤ r"), r.polar().cota()),
                 () -> assertTrue(lineas(r.pasos().getLast()).contains("sándwich")),
                 () -> assertEquals(List.of("L01", "V05", "V06"), r.codigos()));
-        // las trayectorias coinciden, y aun así no se declara con ellas (RN38)
         assertTrue(lineas(r.pasos().get(1)).contains("RN38"));
     }
 
@@ -155,11 +148,8 @@ class LimitesDoblesTest {
                 () -> assertTrue(r.latex().endsWith("= 3"), r.latex()));
     }
 
-    // ------------------------------------------------------------------ más casos
-
     @Test
     void lasTrayectoriasNoBastanParaDecirQueExiste() {
-        // x y²/(x² + y⁴): todas las rectas dan 0, pero x = y² da 1/2
         ResolucionLimiteDoble r = resolver("lim((x,y)→(0,0), x y^2/(x^2 + y^4))");
         assertEquals(Estado.NO_EXISTE, r.estado());
         assertEquals("1/2", trayectoria(r, "x = y²").texto());
@@ -167,7 +157,6 @@ class LimitesDoblesTest {
 
     @Test
     void sinMetodoQueDecidaSeDiceAsi() {
-        // x³/(x² + y⁴): las trayectorias dan 0 y el denominador no es homogéneo
         ResolucionLimiteDoble r = resolver("lim((x,y)→(0,0), x^3/(x^2 + y^4))");
         assertAll(
                 () -> assertEquals(Estado.NO_DECIDIDO, r.estado()),

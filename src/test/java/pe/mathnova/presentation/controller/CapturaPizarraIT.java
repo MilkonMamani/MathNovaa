@@ -26,10 +26,6 @@ import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.editor.EditorMatematico;
 
-/**
- * Capturas de la Pizarra (ancha y angosta) de los ejercicios de referencia, en target/capturas-pizarra.
- * Solo con {@code -Dmathnova.capturaPizarra=true}; además, -Dmathnova.capturaPizarra.casos="a;b" elige otros.
- */
 @EnabledIfSystemProperty(named = "mathnova.capturaPizarra", matches = "true")
 class CapturaPizarraIT {
 
@@ -154,7 +150,6 @@ class CapturaPizarraIT {
         }
     }
 
-    /** Abre los pasos internos y el detalle de la comprobación para que salgan en la captura. */
     private static void expandir(Node pizarra) {
         if (!Boolean.getBoolean("mathnova.capturaPizarra.expandir")) {
             return;

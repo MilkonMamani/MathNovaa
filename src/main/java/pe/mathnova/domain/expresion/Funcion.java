@@ -2,10 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.Objects;
 
-/**
- * Llamada a función. Solo LOG usa base (10 si se escribe "log x", 2 si se escribe "log_2 x");
- * para las demás la base es 0.
- */
 public record Funcion(TipoFuncion tipo, Expresion argumento, int base) implements Expresion {
 
     public Funcion {
@@ -19,7 +15,6 @@ public record Funcion(TipoFuncion tipo, Expresion argumento, int base) implement
         }
     }
 
-    /** Función sin base; para LOG usa base 10. */
     public Funcion(TipoFuncion tipo, Expresion argumento) {
         this(tipo, argumento, tipo == TipoFuncion.LOG ? 10 : 0);
     }

@@ -2,10 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/**
- * RN17: fracción impropia: la integral empieza por la división. También cuando al simplificar se cancela
- * todo el denominador (Sprint 6).
- */
 final class IntegralConDivision implements ReglaSugerencia {
 
     @Override
@@ -22,7 +18,6 @@ final class IntegralConDivision implements ReglaSugerencia {
         int m = r.gradoAbajo();
         String plantilla = "∫(" + r.texto() + ", " + r.variable() + ")";
         if (m < 1) {
-            // Sprint 6: al simplificar se canceló todo el denominador
             return List.of(new Sugerencia(codigo(), "INTEGRAR", "Integral (queda un polinomio)",
                     "Al simplificar se cancela el denominador: se dividen los polinomios y lo que queda se integra "
                             + "término a término.",

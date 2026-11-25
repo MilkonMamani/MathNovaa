@@ -26,11 +26,6 @@ import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Sprint 7, Parte A (HU26, RF49): los ejemplos exactos de integración avanzada. No se compara el texto:
- * la derivada de la antiderivada que da el motor debe ser el integrando (en varios puntos del dominio,
- * con BigDecimal), y el método debe ser el que corresponde.
- */
 class IntegralesAvanzadasTest {
 
     private static final MotorIntegrales MOTOR = new MotorIntegrales(new OrquestadorFactorizacion());
@@ -39,7 +34,6 @@ class IntegralesAvanzadasTest {
         return MOTOR.resolver(Parser.parse(texto));
     }
 
-    /** F′(x) = f(x) en cada punto, con 30 cifras. */
     private static void derivadaEsElIntegrando(ResolucionIntegral r, String puntos) {
         assertTrue(r.resuelta(), () -> "no se resolvió: " + r.texto());
         char x = r.variable();
@@ -93,8 +87,6 @@ class IntegralesAvanzadasTest {
         assertEquals(MotorIntegrales.BARROW, r.pasos().getLast().codigo());
     }
 
-    // ------------------------------------------------------------------ por partes
-
     @Test
     void laTablaDePartesMuestraUduDvYv() {
         ResolucionIntegral r = resolver("∫(x ln x, x)");
@@ -144,8 +136,6 @@ class IntegralesAvanzadasTest {
         assertEquals("sen x", t.u());
     }
 
-    // ------------------------------------------------------------------ trigonométricas y sustitución
-
     @Test
     void sustitucionTrigonometricaDibujaElTriangulo() {
         ResolucionIntegral r = resolver("∫(1/(x^2 √(9 - x^2)), x)");
@@ -175,8 +165,6 @@ class IntegralesAvanzadasTest {
         assertTrue(l.getFirst().contains("(1 − cos x²)") || l.getFirst().contains("1 − "), l.toString());
         assertTrue(l.stream().anyMatch(s -> s.startsWith("u = cos x")), l.toString());
     }
-
-    // ------------------------------------------------------------------ Exploración y mensajes
 
     @Test
     void exploracionMuestraLaEleccionIlate() {

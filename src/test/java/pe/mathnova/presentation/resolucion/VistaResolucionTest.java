@@ -21,7 +21,6 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.pizarra.ModeloRuffini;
 
-/** Lo que ve el estudiante: etiquetas, nombres sin códigos, Ruffini seguido, descartados y notas. */
 class VistaResolucionTest {
 
     private static final Pattern CODIGO = Pattern.compile("\\b(F[0-9][0-9]|A[0-9]|P[0-9][0-9])\\b");
@@ -37,7 +36,6 @@ class VistaResolucionTest {
         return VistaResolucion.de(r, new VerificacionDePrueba().de(r), codigos);
     }
 
-    /** Verificacion.de es del paquete de aplicación: se llega por el servicio, sin historial. */
     private static final class VerificacionDePrueba {
         private final pe.mathnova.application.service.FactorizacionService servicio =
                 new pe.mathnova.application.service.FactorizacionService(new OrquestadorFactorizacion());
@@ -67,7 +65,6 @@ class VistaResolucionTest {
         assertEquals(VistaResolucion.Etiqueta.SIN_FACTORIZACION, vista("x^10 + x + 1").etiqueta());
     }
 
-    /** A.1: ningún código interno a la vista (ni en títulos, ni en motivos, ni en alternativas). */
     @Test
     void sinCodigosPorDefecto() {
         for (String texto : List.of("2x^4 - 5x^3 + 5x - 2", "6x^2 + x - 2", "x^4 + 1", "x^10 + x + 1", "x^3 + x + 1",
@@ -92,7 +89,6 @@ class VistaResolucionTest {
                 con.pasos().stream().map(VistaPaso::titulo).toList());
     }
 
-    /** A.4: tres pasos de Ruffini seguidos se presentan como uno con tres tablas apiladas. */
     @Test
     void ruffiniSeguidoEsUnSoloPaso() {
         String entrada = "x^5 - 5x^4 + 7x^3 - 7x^2 + 16x - 12";
@@ -109,7 +105,6 @@ class VistaResolucionTest {
                 () -> assertEquals(1, paso.orden()),
                 () -> assertEquals(3, m.tablas().size()),
                 () -> assertEquals(List.of("x = 1", "x = 2", "x = 3"), m.tablas().stream().map(ModeloRuffini.Tabla::raiz).toList()),
-                // el cociente de una es la fila de arriba de la siguiente
                 () -> assertEquals(m.tablas().get(0).abajo(),
                         m.tablas().get(1).arriba().stream().map(ModeloRuffini.Celda::texto).toList()),
                 () -> assertEquals(m.tablas().get(1).abajo(),
@@ -131,7 +126,6 @@ class VistaResolucionTest {
                 () -> assertTrue(paso.justificacion().contains("Se completa con 0 el término de x² que falta")));
     }
 
-    /** A.5: agrupados por la expresión sobre la que se probaron. */
     @Test
     void descartadosAgrupadosPorExpresion() {
         VistaResolucion v = vista("2x^4 - 5x^3 + 5x - 2");
@@ -143,13 +137,11 @@ class VistaResolucionTest {
                 () -> assertTrue(v.descartados().stream().anyMatch(g ->
                         Polinomio.desde(g.sobre()).equals(Polinomio.desde(Parser.parse("2x^2 - 5x + 2"))))),
                 () -> assertEquals(v.descartados().stream().mapToInt(g -> g.filas().size()).sum(), v.totalDescartados()));
-        // Los motivos del dominio que nombran un código pasan a nombrar el método.
         VistaResolucion aspa = vista("6x^2 + x - 2", "F13", false);
         assertTrue(aspa.descartados().isEmpty());
         assertEquals("corresponde Aspa simple", pe.mathnova.presentation.FormateadorTexto.sinCodigos("corresponde F13"));
     }
 
-    /** A.6 y A.7: una sola frase sobre los factores y el subtítulo con el número de factores. */
     @Test
     void notaDeFactoresYSubtitulo() {
         VistaResolucion lineales = vista("2x^4 - 5x^3 + 5x - 2");
@@ -172,7 +164,6 @@ class VistaResolucionTest {
         assertAll(
                 () -> assertEquals(VistaResolucion.Etiqueta.VERIFICADO, v.etiqueta()),
                 () -> assertEquals(List.of("Restricciones del denominador original: x ≠ −3, x ≠ 2"), v.notas()),
-                // Mismo grado arriba y abajo: es impropia, así que después de cancelar (P01) se divide (P02).
                 () -> assertEquals(List.of("F05", "F12", "P01", "P02"), v.pasos().stream().map(VistaPaso::codigo).toList()),
                 () -> assertEquals(List.of("Diferencia de cuadrados · numerador", "Trinomio simple · denominador",
                         "Simplificar fracción", "División de polinomios"), v.pasos().stream().map(VistaPaso::titulo).toList()));

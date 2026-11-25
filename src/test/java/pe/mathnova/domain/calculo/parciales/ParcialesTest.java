@@ -23,7 +23,6 @@ import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/** Sprint 7, Parte C (HU28, RF52, RF53): parciales, gradiente, derivada direccional y regla de la cadena. */
 class ParcialesTest {
 
     private static final MotorParciales MOTOR = new MotorParciales();
@@ -32,7 +31,6 @@ class ParcialesTest {
         return MOTOR.resolver(Parser.parse(texto));
     }
 
-    /** Dos expresiones iguales en varios puntos (con BigDecimal). */
     private static void iguales(Expresion esperado, Expresion obtenido) {
         for (double[] p : List.of(new double[] {1.3, -0.7, 2.1}, new double[] {-2.2, 0.4, 1.7}, new double[] {0.9, 3.1, -1.2})) {
             Map<Character, pe.mathnova.domain.numeros.ComplejoDecimal> v = Map.of(
@@ -80,7 +78,7 @@ class ParcialesTest {
                 () -> iguales(Parser.parse("2x + y z"), r.vector().get(0)),
                 () -> iguales(Parser.parse("x z"), r.vector().get(1)),
                 () -> iguales(Parser.parse("x y"), r.vector().get(2)),
-                () -> assertEquals("(y·z + 2x, x·z, x·y)", r.texto()), // la pizarra pone "·" entre letras, como 2a·t
+                () -> assertEquals("(y·z + 2x, x·z, x·y)", r.texto()),
                 () -> assertTrue(r.verificada()));
     }
 
@@ -147,8 +145,6 @@ class ParcialesTest {
         iguales(Parser.parse("3x^2"), t.hessiana().get(1).get(0));
         iguales(Parser.parse("2"), t.hessiana().get(1).get(1));
     }
-
-    // ------------------------------------------------------------------ gramática y editor
 
     @Test
     void gramatica() {

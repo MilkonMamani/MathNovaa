@@ -37,19 +37,10 @@ import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.grafica.DatosCurvasNivel;
 
-/**
- * El guion de demostración: cada ejercicio con las teclas con que lo arma el estudiante, el LaTeX que
- * deja MathLive (guardado en {@code src/test/resources/latex/<id>.tex}), el texto que debe salir de
- * TraductorLatex y lo que debe mostrar la pantalla.
- *
- * <p>En los pasos, "[etiqueta]" es la tecla del teclado en pantalla con esa etiqueta ("[→]" es la
- * flecha); el resto se escribe con el teclado físico, letra por letra.
- */
 final class Guion {
 
     static final Path FIXTURES = Path.of("src", "test", "resources", "latex");
 
-    /** Lo que se ve después de pulsar Resolver. */
     record Salida(Object resolucion, String pantalla, List<DatosCurvasNivel> curvas) {
     }
 
@@ -58,15 +49,6 @@ final class Guion {
         void comprobar(Salida s);
     }
 
-    /**
-     * @param id        nombre del fixture
-     * @param campo     "Q", "R" o "C"
-     * @param pasos     las teclas y el texto, en orden
-     * @param texto     lo que debe dar TraductorLatex
-     * @param latexCon  algo que el LaTeX debe tener (\operatorname{extremos}), o null
-     * @param aviso     si no se puede resolver: lo que debe decir el aviso de la entrada; null si se resuelve
-     * @param chequeo   lo que debe cumplir el resultado, si se resuelve
-     */
     record Caso(String id, String nombre, String campo, List<String> pasos, String texto, String latexCon,
                 String aviso, Chequeo chequeo) {
 
@@ -83,10 +65,6 @@ final class Guion {
             return new Caso(id, nombre, campo, pasos, texto, fragmento, aviso, chequeo);
         }
 
-        /**
-         * El LaTeX guardado; null si todavía no se capturó. Se lee del archivo y no del classpath: así la
-         * captura y la prueba pueden ir en la misma corrida.
-         */
         String latex() {
             Path p = FIXTURES.resolve(id + ".tex");
             if (Files.exists(p)) {
@@ -201,8 +179,6 @@ final class Guion {
                         "x+", "[sen]", "x"));
     }
 
-    // ------------------------------------------------------------------ chequeos
-
     interface Combinable extends Chequeo {
         default Chequeo y(Chequeo otro) {
             return s -> {
@@ -221,7 +197,6 @@ final class Guion {
                 () -> "en la pantalla falta \"" + fragmento + "\": " + s.pantalla()));
     }
 
-    /** Los mismos factores, sin importar el orden. */
     static Combinable factores(String esperado) {
         return c(s -> {
             Resolucion res = assertInstanceOf(Resolucion.class, s.resolucion());
@@ -292,7 +267,6 @@ final class Guion {
         });
     }
 
-    /** No existe: por la izquierda −∞ y por la derecha +∞. */
     static Combinable limiteLaterales() {
         return c(s -> {
             ResolucionLimite res = assertInstanceOf(ResolucionLimite.class, s.resolucion());
@@ -314,7 +288,6 @@ final class Guion {
         return primitiva(x -> 0.5 * (Math.asin(x) + x * Math.sqrt(1 - x * x)), -0.5, 0.7);
     }
 
-    /** Una primitiva: F(b) − F(a) coincide con la esperada (la constante no importa). */
     static Combinable primitiva(DoubleUnaryOperator esperada, double a, double b) {
         return c(s -> {
             ResolucionIntegral res = assertInstanceOf(ResolucionIntegral.class, s.resolucion());
@@ -338,10 +311,6 @@ final class Guion {
         });
     }
 
-    /**
-     * No existe: la trayectoria y = mx da 0 y y = x² da 1/2 (RN38); la gráfica dibuja las curvas de
-     * nivel con esas dos trayectorias.
-     */
     static Combinable limiteDobleNoExiste() {
         return c(s -> {
             ResolucionLimiteDoble res = assertInstanceOf(ResolucionLimiteDoble.class, s.resolucion());
@@ -350,7 +319,6 @@ final class Guion {
             res.trayectorias().forEach(t -> valores.put(t.nombre(), t.texto()));
             assertEquals("0", valores.get("y = mx"), valores::toString);
             assertEquals("1/2", valores.get("y = x²"), valores::toString);
-            // Los pasos (Procedimiento) nombran las dos trayectorias y dicen por qué no existe, con RN38.
             assertTrue(s.pantalla().contains("y = mx"), s.pantalla());
             assertTrue(s.pantalla().contains("y = x²"), s.pantalla());
             assertTrue(s.pantalla().contains("el límite no existe (RN38)"), s.pantalla());
@@ -393,7 +361,6 @@ final class Guion {
         return z.re().doubleValue();
     }
 
-    /** Los factores entre paréntesis del primer nivel, leídos por el parser. */
     static Set<String> mismosFactores(String formula) {
         String s = formula.replace("·", "").replace("−", "-");
         Set<String> f = new TreeSet<>();
@@ -410,7 +377,6 @@ final class Guion {
                 nivel--;
                 if (nivel == 0) {
                     String factor = s.substring(desde, i + 1);
-                    // ln(x) dentro de (ln(x) - 2) no es un factor: solo los grupos que no siguen a una letra
                     if (desde == 0 || !Character.isLetter(s.charAt(desde - 1))) {
                         f.add(Parser.parse(factor).toString());
                     }

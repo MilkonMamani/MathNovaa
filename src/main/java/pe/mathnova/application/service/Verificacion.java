@@ -19,19 +19,9 @@ import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 
-/**
- * HU18: el resultado expandido paso a paso y si coincide con la entrada.
- *
- * @param resultado forma factorizada en texto, como "2(x - 1)^2"
- * @param productos cada multiplicación hecha para expandirla, como "(x - 1)^2 = x^2 - 2x + 1"
- * @param expandido el polinomio que queda al final
- * @param coincide  true si es igual a la entrada
- * @param numerica  true si se comparó evaluando con 40 cifras (radicales anidados, Parte E) y no expandiendo
- */
 public record Verificacion(String resultado, List<String> productos, String expandido, boolean coincide,
                            boolean numerica) {
 
-    /** "Verificado numéricamente con 40 cifras". */
     public static final String AYUDA_NUMERICA = "Verificado numéricamente con " + EvaluacionNumerica.CIFRAS + " cifras";
 
     public Verificacion {
@@ -76,7 +66,6 @@ public record Verificacion(String resultado, List<String> productos, String expa
         return new Verificacion(forma.aTexto(), productos, total.toString(), coincide);
     }
 
-    /** HU18 para P01: arriba·(denominador original) = (numerador original)·abajo. */
     static Verificacion de(Simplificacion s) {
         Polinomio num = s.numerador().resultado().expandir();
         Polinomio den = s.denominador().resultado().expandir();
@@ -94,9 +83,6 @@ public record Verificacion(String resultado, List<String> productos, String expa
         return p.terminos().size() > 1 ? "(" + p + ")" : p.toString();
     }
 
-    // ------------------------------------------------------------------ R y C (Parte E)
-
-    /** Exacta si no hay radicales anidados: se expande factor por factor; si no, en cinco puntos. */
     static Verificacion enCampo(Resolucion r) {
         Polinomio entrada = Polinomio.desde(r.entrada());
         FormaExtendida forma = r.extension().resultado();
@@ -130,7 +116,6 @@ public record Verificacion(String resultado, List<String> productos, String expa
         return new Verificacion(forma.aTexto(), productos, total.toString(), v.coincide(), false);
     }
 
-    /** Expresiones con funciones: entrada y resultado en los puntos donde ambas están definidas. */
     static Verificacion de(ResolucionFunciones r) {
         if (!r.factorizable()) {
             return new Verificacion(r.formula(), List.of(), "", false, false);
@@ -148,7 +133,6 @@ public record Verificacion(String resultado, List<String> productos, String expa
                 definidos++;
                 lineas.add("x = " + p + ":  " + a.texto(12) + " ≈ " + b.texto(12) + (igual ? "  ✓" : "  ✗"));
             } catch (ArithmeticException e) {
-                // fuera del dominio: el punto no cuenta
             }
         }
         lineas.addFirst("Se evalúan la entrada y el resultado con " + EvaluacionNumerica.CIFRAS + " cifras:");
@@ -156,7 +140,6 @@ public record Verificacion(String resultado, List<String> productos, String expa
                 coincide && definidos >= 2, true);
     }
 
-    /** Positivos para que ln x esté definido; ninguno es múltiplo de π/2. */
     private static final List<Racional> PUNTOS_POSITIVOS = List.of(Racional.de(1, 3), Racional.de(5, 7),
             Racional.de(13, 11), Racional.de(17, 9), Racional.de(29, 13));
 

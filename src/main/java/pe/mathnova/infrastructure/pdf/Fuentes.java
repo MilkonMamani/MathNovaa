@@ -15,12 +15,6 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
-/**
- * Las fuentes del texto del PDF (no de las fórmulas, que dibuja jlatexmath). Se usa la fuente de la app
- * (Segoe UI en Windows) incrustada solo con los glifos usados, para que "→", "≠" o "√" salgan bien; si no está,
- * Arial o DejaVu Sans, y en último caso Helvetica. Un carácter que la fuente no tiene se cambia por uno
- * parecido ("→" por "->") en vez de romper la exportación.
- */
 final class Fuentes {
 
     private static final String[][] NORMAL = {
@@ -67,7 +61,6 @@ final class Fuentes {
                 try {
                     return PDType0Font.load(pdf, f);
                 } catch (IOException | RuntimeException e) {
-                    // sigue con la siguiente
                 }
             }
         }
@@ -82,7 +75,6 @@ final class Fuentes {
         return negrita;
     }
 
-    /** El texto con solo los caracteres que la fuente puede dibujar. */
     String seguro(PDFont f, String t) {
         if (t == null) {
             return "";
@@ -120,7 +112,6 @@ final class Fuentes {
         }
     }
 
-    /** Parte el texto en renglones de a lo más {@code ancho} puntos, por palabras. */
     List<String> partir(PDFont f, float tamano, String t, float ancho) {
         List<String> renglones = new ArrayList<>();
         String limpio = t == null ? "" : t.strip().replaceAll("\\s+", " ");
@@ -139,7 +130,6 @@ final class Fuentes {
                 renglones.add(actual.toString());
                 actual.setLength(0);
             }
-            // Una palabra más larga que el renglón se corta por caracteres.
             String resto = palabra;
             while (ancho(f, tamano, resto) > ancho && resto.length() > 1) {
                 int k = resto.length() - 1;

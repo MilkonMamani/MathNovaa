@@ -36,14 +36,9 @@ import pe.mathnova.presentation.editor.EditorMatematico;
 import pe.mathnova.presentation.grafica.GraficaFuncion;
 import pe.mathnova.presentation.grafica.VentanaGrafica;
 
-/**
- * La pantalla "Resolver ejercicio" completa (resolucion.fxml, el editor MathLive y la Pizarra): ya no hay
- * línea de resultado en vivo, las notas empiezan ocultas y "Escribir" llena el editor sin resolver.
- */
 class ResolverPizarraYEscrituraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    /** Cuántas veces se pidió el resumen en una línea (la antigua línea en vivo). */
     private static final AtomicInteger EN_VIVO = new AtomicInteger();
     private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR);
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
@@ -55,7 +50,6 @@ class ResolverPizarraYEscrituraTest {
         }
     };
 
-    /** Sin base de datos ni animaciones, con las explicaciones ocultas. */
     private static final class Preferencias extends ConfiguracionService {
         Preferencias() {
             super(null);
@@ -106,7 +100,6 @@ class ResolverPizarraYEscrituraTest {
             ventana = Fx.ventana(raiz, 1280, 900);
             editor = (EditorMatematico) raiz.lookup(".editor-matematico");
         });
-        // El editor está listo cuando devuelve lo que se le puso.
         enFx(() -> editor.setLatex("x"));
         Fx.esperar(() -> "x".equals(editor.getLatex()), "el editor no cargó");
         enFx(() -> editor.setLatex(""));
@@ -221,7 +214,6 @@ class ResolverPizarraYEscrituraTest {
             assertTrue(seVe(canvas));
             Fx.trazo(canvas, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60});
         });
-        // Sin pulsar nada: lo reconocido aparece en el campo de arriba.
         Fx.esperar(() -> ReconocedorSimulado.LATEX.equals(editor.getLatex()), "el editor no recibió el ejercicio");
         enFx(() -> assertTrue(controlador.escritoAMano(), "falta \"✎ Escrito a mano\""));
         Thread.sleep(1000);
@@ -232,7 +224,6 @@ class ResolverPizarraYEscrituraTest {
             assertNull(controlador.ultimaResolucion());
         });
 
-        // Al editar con el teclado la etiqueta se va; Resolver sigue siendo cosa del estudiante.
         enFx(() -> editor.setLatex("x^2-1"));
         Fx.esperar(() -> !controlador.escritoAMano(), "\"Escrito a mano\" sigue tras editar");
         Fx.esperar(() -> !raiz.lookup("#botonResolver").isDisabled(), "Resolver no se activó");
@@ -248,9 +239,8 @@ class ResolverPizarraYEscrituraTest {
         Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
         enFx(() -> {
             Fx.trazo(canvas, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60});
-            // Con el campo todavía vacío, la escritura pendiente deja Resolver activo.
             assertFalse(raiz.lookup("#botonResolver").isDisabled(), "Resolver activo con escritura sin leer");
-            ((Button) raiz.lookup("#botonResolver")).fire(); // antes de la pausa
+            ((Button) raiz.lookup("#botonResolver")).fire();
         });
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió");
         enFx(() -> {
@@ -278,7 +268,6 @@ class ResolverPizarraYEscrituraTest {
     void conElDedoLlenaElCampoYResuelve() throws Exception {
         enFx(() -> ((ToggleButton) raiz.lookup("#pestanaEscribir")).fire());
         Node canvas = enFx(() -> raiz.lookup(".lienzo-escritura-canvas"));
-        // Como en Windows: eventos táctiles más sus eventos de mouse sintetizados.
         enFx(() -> Fx.trazoTactil(canvas, 1, new double[] {20, 60}, new double[] {60, 100}, new double[] {100, 60}));
         enFx(() -> assertFalse(raiz.lookup("#botonResolver").isDisabled(), "Resolver activo con lo escrito con el dedo"));
         Fx.esperar(() -> ReconocedorSimulado.LATEX.equals(editor.getLatex()), "lo escrito con el dedo no llegó al campo");
@@ -286,7 +275,6 @@ class ResolverPizarraYEscrituraTest {
         Fx.esperar(() -> controlador.estado() == EstadoResolucion.RESUELTO, "no se resolvió lo escrito con el dedo");
     }
 
-    /** "Comprobación" solo al factorizar; al factorizar, sin sugerencias de cálculo; un límite termina en el resultado. */
     @Test
     void laComprobacionSoloApareceAlFactorizarYEmpiezaCerrada() throws Exception {
         enFx(() -> controlador.resolver("x^2 - 5x + 6"));

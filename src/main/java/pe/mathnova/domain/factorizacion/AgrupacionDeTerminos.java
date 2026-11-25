@@ -10,26 +10,12 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F04: agrupación de términos. Prueba TODAS las particiones del conjunto de términos, primero las
- * de términos seguidos (como antes) y después el resto:
- * <ul>
- *   <li>4 términos: las 3 formas de 2+2; luego las 4 de 3+1 (un trinomio cuadrado perfecto y un
- *       cuadrado, que dejan una diferencia de cuadrados).</li>
- *   <li>5 términos: las 10 de 2+3. 6 términos: las 15 de 2+2+2 y las 10 de 3+3.</li>
- * </ul>
- * En las agrupaciones con factor común, cada grupo se escribe como c·m·(q) y todos deben compartir q.
- * Si ninguna lo logra, se acepta que el q de un grupo sea una diferencia de cuadrados que contiene al
- * de los demás: 2(x⁴ − 1) − 5x(x² − 1), con x⁴ − 1 = (x² + 1)(x² − 1). Solo se muestra la agrupación
- * que funcionó, con los grupos en el orden en que quedaron.
- */
 public final class AgrupacionDeTerminos extends MetodoBase {
 
     public AgrupacionDeTerminos() {
         super("F04");
     }
 
-    /** Solo con 4 términos o más. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() >= 4;
@@ -52,7 +38,6 @@ public final class AgrupacionDeTerminos extends MetodoBase {
             }
         }
         if (n == 4) {
-            // El suelto al final y al principio, como antes; después en el medio.
             for (int suelto : new int[] {3, 0, 1, 2}) {
                 probadas.add(suelto == 0 ? "1+3" : "3+1");
                 List<Termino> tres = new ArrayList<>(ts);
@@ -78,7 +63,6 @@ public final class AgrupacionDeTerminos extends MetodoBase {
                 + ") deja un factor común");
     }
 
-    /** Índices de cada grupo; primero las de términos seguidos. */
     static List<List<List<Integer>>> particiones(int n) {
         List<List<List<Integer>>> r = new ArrayList<>();
         switch (n) {
@@ -106,10 +90,6 @@ public final class AgrupacionDeTerminos extends MetodoBase {
         return r.stream().distinct().toList();
     }
 
-    /**
-     * Todas las particiones de {0..n−1} en grupos con esos tamaños: cada grupo en orden y los grupos
-     * ordenados por su primer índice.
-     */
     private static List<List<List<Integer>>> todas(int n, List<Integer> tamanos) {
         List<List<List<Integer>>> r = new ArrayList<>();
         repartir(IntStream.range(0, n).boxed().toList(), tamanos, new ArrayList<>(), r);
@@ -174,14 +154,9 @@ public final class AgrupacionDeTerminos extends MetodoBase {
         return String.join("+", particion.stream().map(g -> String.valueOf(g.size())).toList());
     }
 
-    /** Un grupo escrito como c·m·(q). */
     private record Grupo(List<Termino> terminos, Racional c, Monomio m, Polinomio q) {
     }
 
-    /**
-     * Cada grupo es c·m·(q) con el mismo q: p = q·(Σ c·m). Con {@code conDiferencia}, el q de un
-     * grupo puede ser una diferencia de cuadrados (a + b)(a − b) donde a ± b es el q común.
-     */
     private Optional<ResultadoMetodo> conFactorComun(Polinomio p, List<Termino> ts, List<List<Integer>> particion,
                                                      boolean conDiferencia) {
         List<Grupo> grupos = new ArrayList<>();
@@ -251,10 +226,6 @@ public final class AgrupacionDeTerminos extends MetodoBase {
                 new TrabajoIntermedio.Agrupacion(lineas));
     }
 
-    /**
-     * 3+1: (trinomio cuadrado perfecto r²) − s² = (r + s)(r − s).
-     * 1+3: s² − (trinomio cuadrado perfecto r²) = (s + r)(s − r).
-     */
     private Optional<ResultadoMetodo> trinomioMasCuadrado(Polinomio p, List<Termino> tres, Termino suelto,
                                                           boolean sueltoPrimero) {
         Polinomio trinomio = Termino.suma(tres);
@@ -284,7 +255,6 @@ public final class AgrupacionDeTerminos extends MetodoBase {
         return Optional.of(resultado(justificacion, p, factores, trabajo));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Mira si al juntar los términos de dos en dos aparece algo que se repite.";

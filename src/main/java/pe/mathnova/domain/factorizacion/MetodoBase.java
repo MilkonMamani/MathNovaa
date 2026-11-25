@@ -4,10 +4,6 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * Base de los métodos: cada uno escribe solo {@link #intentar}, que devuelve el resultado o lanza
- * {@link NoAplica} con el motivo. Así la comprobación y la aplicación usan la misma cuenta.
- */
 abstract class MetodoBase implements MetodoFactorizacion {
 
     private final String codigo;
@@ -45,7 +41,6 @@ abstract class MetodoBase implements MetodoFactorizacion {
         }
     }
 
-    /** @throws NoAplica con el motivo legible */
     abstract ResultadoMetodo intentar(Polinomio p);
 
     ResultadoMetodo resultado(String justificacion, Polinomio antes, List<Factor> factores,
@@ -53,7 +48,6 @@ abstract class MetodoBase implements MetodoFactorizacion {
         return new ResultadoMetodo(factores, Paso.aplicado(codigo, justificacion, antes, factores, trabajo));
     }
 
-    /** El método no aplica; el mensaje es el motivo. */
     static final class NoAplica extends RuntimeException {
         NoAplica(String motivo) {
             super(motivo, null, false, false);

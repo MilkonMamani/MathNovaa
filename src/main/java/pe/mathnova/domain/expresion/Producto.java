@@ -2,7 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.List;
 
-/** Producto de dos o más factores (explícito con * o ·, o implícito como en 2xy). */
 public record Producto(List<Expresion> factores) implements Expresion {
 
     public Producto {

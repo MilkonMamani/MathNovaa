@@ -9,15 +9,9 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 
-/**
- * El conjunto solución sobre la recta real: las raíces repartidas a distancias iguales con su valor debajo, los
- * tramos incluidos en azul (con flecha si llegan a ±∞), un punto lleno en cada raíz incluida y un círculo abierto
- * en cada raíz excluida. Cambia con {@link #mostrar} sin rehacerse.
- */
 public final class RectaSolucion extends Pane {
 
     private static final PseudoClass INCLUIDA = PseudoClass.getPseudoClass("incluida");
-    /** Una raíz excluida que limita un tramo azul: círculo abierto. Las demás excluidas son una marca neutra. */
     private static final PseudoClass EXTREMO = PseudoClass.getPseudoClass("extremo");
     private static final double Y = 18;
     private static final double MARGEN = 10;
@@ -66,7 +60,6 @@ public final class RectaSolucion extends Pane {
         setMinWidth(0);
     }
 
-    /** Resalta lo que cumple la condición. */
     public void mostrar(AnalisisFactorizacion.Condicion c) {
         int n = recta.raices().size();
         tramoIncluido = new boolean[n + 1];
@@ -105,7 +98,6 @@ public final class RectaSolucion extends Pane {
         requestLayout();
     }
 
-    /** Para las pruebas: qué tramos y qué raíces quedaron en azul. */
     boolean tramoIncluido(int t) {
         return tramoIncluido[t];
     }
@@ -114,7 +106,6 @@ public final class RectaSolucion extends Pane {
         return raizIncluida[r];
     }
 
-    /** La raíz va como círculo abierto: excluida y extremo de un tramo azul. */
     boolean extremoAbierto(int r) {
         return !raizIncluida[r] && (tramoIncluido[r] || tramoIncluido[r + 1]);
     }
@@ -174,7 +165,6 @@ public final class RectaSolucion extends Pane {
         flecha(flechaDerecha, der, 1, FLECHA);
     }
 
-    /** Una punta de flecha en x que mira a la izquierda (−1) o a la derecha (+1). */
     private static void flecha(Polygon p, double x, int sentido, double largo) {
         p.getPoints().setAll(x, Y, x - sentido * largo, Y - largo * 0.6, x - sentido * largo, Y + largo * 0.6);
     }

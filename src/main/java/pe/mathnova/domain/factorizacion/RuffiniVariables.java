@@ -9,11 +9,6 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * M07: Ruffini respecto de una letra. La principal (x) es la variable y las demás son parámetros: se
- * buscan raíces x = r·yʲ que anulen el polinomio (por ejemplo x = y) y se divide con los coeficientes
- * como polinomios en y. Si la raíz vuelve a anular el cociente, se sigue con la misma (multiplicidad).
- */
 final class RuffiniVariables extends MetodoBase {
 
     private static final int CANDIDATOS_MAXIMOS = 40;
@@ -56,7 +51,6 @@ final class RuffiniVariables extends MetodoBase {
         throw noAplica("Ningún x = r·" + y + "ʲ (con r entre los divisores) anula el polinomio");
     }
 
-    /** Las raíces racionales posibles de p(x, 1), en el orden de RN09: 1, −1, 2, −2, 1/2, … */
     private static List<Racional> candidatos(Polinomio enX, char x) {
         BigInteger a0 = enX.constante().num();
         BigInteger an = enX.coeficiente(Monomio.de(x, enX.gradoEn(x))).num();
@@ -121,7 +115,6 @@ final class RuffiniVariables extends MetodoBase {
         return String.join(" | ", r);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Míralo como un polinomio de una sola letra y busca un valor de esa letra que lo haga cero.";

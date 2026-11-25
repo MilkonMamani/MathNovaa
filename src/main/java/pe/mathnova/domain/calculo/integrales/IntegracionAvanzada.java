@@ -29,38 +29,21 @@ import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * HU26, RF49: los métodos de integración del Sprint 7, que el motor prueba después de sustitución y de
- * fracciones parciales:
- * <ul>
- *   <li>I04: integrales trigonométricas: senᵐ·cosⁿ con un exponente impar (se separa un factor y
- *       sen² + cos² = 1), con los dos pares (ángulo mitad), tanⁿ (tan² = sec² − 1), secⁿ (sec³ por
- *       partes), cscⁿ y cotⁿ;</li>
- *   <li>I05: sustitución trigonométrica para √(a² − x²), √(a² + x²) y √(x² − a²), con el triángulo
- *       rectángulo para regresar a x;</li>
- *   <li>I03: por partes, ∫u dv = uv − ∫v du, con u elegida por ILATE (RN36); se repite hasta cuatro
- *       veces y, si reaparece la integral original (eˣ·sen x), se despeja como una ecuación.</li>
- * </ul>
- */
 final class IntegracionAvanzada {
 
     static final String PARTES = "I03";
     static final String TRIGONOMETRICA = "I04";
     static final String SUSTITUCION_TRIG = "I05";
-    /** Cuántas veces seguidas se aplica por partes (RN36). */
     static final int MAXIMO_PARTES = 4;
     private static final int MAXIMA_POTENCIA = 12;
     private static final char THETA = 'θ';
 
-    /** El resto del motor, sin por partes: lo usa por partes para v = ∫dv y para ∫v du. */
     interface Integrador {
         Optional<MotorIntegrales.Integracion> integrar(Expresion g, char x);
     }
 
     private IntegracionAvanzada() {
     }
-
-    // ================================================================== utilidades
 
     private static String p(Expresion e) {
         return ImpresoraPizarra.imprimir(e);
@@ -90,7 +73,6 @@ final class IntegracionAvanzada {
         return Simplificador.negar(e);
     }
 
-    /** k·e repartido en los términos de una suma: 3(tan θ − θ) queda 3tan θ − 3θ. */
     private static Expresion escalar(Racional k, Expresion e) {
         Expresion t = s(e);
         if (t instanceof Suma sm) {
@@ -107,7 +89,6 @@ final class IntegracionAvanzada {
         return Expresiones.variables(e).contains(x);
     }
 
-    /** El número de delante y el resto: −3·eˣ·sen x da (−3, eˣ·sen x). */
     private record ConCoeficiente(Racional coeficiente, Expresion resto) {
     }
 
@@ -131,7 +112,6 @@ final class IntegracionAvanzada {
         return new ConCoeficiente(Racional.UNO, t);
     }
 
-    /** k si a = k·b con k un número; null si no. */
     static Racional proporcional(Expresion a, Expresion b) {
         ConCoeficiente ca = separar(a);
         ConCoeficiente cb = separar(b);
@@ -142,13 +122,9 @@ final class IntegracionAvanzada {
         return q instanceof Constante k ? k.valor() : null;
     }
 
-    // ================================================================== I04: trigonométricas
-
-    /** Antiderivada y renglones de una integral trigonométrica. */
     record Trig(Expresion integral, List<String> lineas, String titulo) {
     }
 
-    /** coef·Π fᵢ(k·x)^nᵢ con fᵢ trigonométricas, todas del mismo argumento k·x. */
     private static final class Monomial {
         Racional coeficiente = Racional.UNO;
         Racional k;
@@ -218,7 +194,6 @@ final class IntegracionAvanzada {
         return true;
     }
 
-    /** k si e es k·x; null si no. */
     private static Racional lineal(Expresion e, char x) {
         if (e instanceof Variable v && v.nombre() == x) {
             return Racional.UNO;
@@ -229,7 +204,6 @@ final class IntegracionAvanzada {
                 return q.coeficiente(Monomio.de(x, 1));
             }
         } catch (RuntimeException noEs) {
-            // no es k·x
         }
         return null;
     }
@@ -267,7 +241,6 @@ final class IntegracionAvanzada {
         return "Se usa la fórmula de reducción, que sale de integrar por partes (sec³ x: u = sec x, dv = sec² x dx)";
     }
 
-    /** Si es una sola función (tanⁿ, secⁿ, cscⁿ, cotⁿ) usa su regla; si no, lo pasa a senᵖ·cos^q. */
     private static Optional<Trig> integrarMonomio(Monomial m, char x) {
         Racional k = m.k;
         if (m.exponentes.size() == 1) {
@@ -318,7 +291,6 @@ final class IntegracionAvanzada {
         return senCos(pSen, qCos, k, x);
     }
 
-    /** ∫senᵖ(kx)·cos^q(kx) dx con p y q enteros. */
     static Optional<Trig> senCos(int pSen, int qCos, Racional k, char x) {
         if (Math.abs(pSen) > MAXIMA_POTENCIA || Math.abs(qCos) > MAXIMA_POTENCIA) {
             return Optional.empty();
@@ -359,26 +331,18 @@ final class IntegracionAvanzada {
         return new Funcion(t, arg(k, x));
     }
 
-    /** "sen x", "cos(2x)". */
     private static String nombre(TipoFuncion t, Racional k, char x) {
         return p(f(t, k, x));
     }
 
-    /**
-     * senᵐ·cosⁿ con m impar (o cosᵐ·senⁿ): se separa un factor y el resto pasa con sen² + cos² = 1.
-     *
-     * @param impar el exponente impar m; {@code otro} el de la otra función
-     * @param seno  true si el impar es el del seno (u = cos), false si es el del coseno (u = sen)
-     */
     private static Expresion impar(int impar, int otro, Racional k, char x, boolean seno, List<String> l) {
         TipoFuncion separada = seno ? TipoFuncion.SEN : TipoFuncion.COS;
         TipoFuncion uFun = seno ? TipoFuncion.COS : TipoFuncion.SEN;
         int mitad = (impar - 1) / 2;
         Expresion u = f(uFun, k, x);
         char w = 'u';
-        // (1 − u²)^mitad · u^otro, desarrollado
         Polinomio base = Polinomio.UNO.restar(Polinomio.variable(w).potencia(2)).potencia(mitad);
-        Racional signo = seno ? Racional.UNO.negar() : Racional.UNO; // du = −k·sen dx o du = k·cos dx
+        Racional signo = seno ? Racional.UNO.negar() : Racional.UNO;
         Racional factor = signo.dividir(k);
         List<Expresion> terminos = new ArrayList<>();
         List<Expresion> enU = new ArrayList<>();
@@ -408,7 +372,6 @@ final class IntegracionAvanzada {
         return r;
     }
 
-    /** senᵖ·cos^q con p y q pares (≥ 0): ángulo mitad, y otra vez sobre cada potencia de cos(2kx). */
     private static Expresion pares(int pSen, int qCos, Racional k, char x, List<String> l) {
         char w = 'c';
         Racional medio = Racional.de(1, 2);
@@ -445,7 +408,6 @@ final class IntegracionAvanzada {
         return r;
     }
 
-    /** ∫tanⁿ(kx) dx con tan² = sec² − 1. */
     private static Expresion tanN(int n, Racional k, char x, List<String> l) {
         String t = nombre(TipoFuncion.TAN, k, x);
         if (n == 0) {
@@ -466,7 +428,6 @@ final class IntegracionAvanzada {
         return s(mas(primero, menos(resto)));
     }
 
-    /** ∫cotⁿ(kx) dx con cot² = csc² − 1. */
     private static Expresion cotN(int n, Racional k, char x, List<String> l) {
         String t = nombre(TipoFuncion.COT, k, x);
         if (n == 0) {
@@ -484,7 +445,6 @@ final class IntegracionAvanzada {
         return s(mas(primero, menos(resto)));
     }
 
-    /** ∫secⁿ(kx) dx: sec x → ln|sec x + tan x|, sec² → tan, y desde sec³ la reducción (por partes). */
     private static Expresion secN(int n, Racional k, char x, List<String> l) {
         Expresion sec = f(TipoFuncion.SEC, k, x);
         Expresion tan = f(TipoFuncion.TAN, k, x);
@@ -517,7 +477,6 @@ final class IntegracionAvanzada {
         return s(mas(primero, por(c(Racional.de(n - 2, n - 1)), resto)));
     }
 
-    /** ∫cscⁿ(kx) dx: csc x → −ln|csc x + cot x|, csc² → −cot, y desde csc³ la reducción. */
     private static Expresion cscN(int n, Racional k, char x, List<String> l) {
         Expresion csc = f(TipoFuncion.CSC, k, x);
         Expresion cot = f(TipoFuncion.COT, k, x);
@@ -542,18 +501,12 @@ final class IntegracionAvanzada {
         return s(mas(primero, por(c(Racional.de(n - 2, n - 1)), resto)));
     }
 
-    // ================================================================== I05: sustitución trigonométrica
-
     private enum Forma {
-        /** √(a² − x²): x = a·sen θ. */
         SEN,
-        /** √(a² + x²): x = a·tan θ. */
         TAN,
-        /** √(x² − a²): x = a·sec θ. */
         SEC
     }
 
-    /** coef·xᵏ·(radical)ʳ con r impar. */
     private static final class Radical {
         Racional coeficiente = Racional.UNO;
         int k;
@@ -760,7 +713,6 @@ final class IntegracionAvanzada {
         return Optional.of(new MotorIntegrales.Integracion(antiderivada, List.of(paso), SUSTITUCION_TRIG));
     }
 
-    /** senᵖ θ·cos^q θ escrita con su nombre: cos² θ, sec θ, tan² θ, csc² θ, … */
     private static Expresion monomioTrig(int pSen, int qCos) {
         Variable t = new Variable(THETA);
         if (pSen == -qCos && pSen != 0) {
@@ -775,10 +727,8 @@ final class IntegracionAvanzada {
         return por(pot(new Funcion(TipoFuncion.SEN, t), pSen), pot(new Funcion(TipoFuncion.COS, t), qCos));
     }
 
-    /** El triángulo rectángulo: lados en x y θ en función de x. */
     private record Triangulo(Expresion opuesto, Expresion adyacente, Expresion hipotenusa, Expresion angulo) {
 
-        /** La razón como numerador/denominador. */
         Expresion[] razon(TipoFuncion t) {
             return switch (t) {
                 case SEN -> new Expresion[] {opuesto, hipotenusa};
@@ -811,7 +761,6 @@ final class IntegracionAvanzada {
             return r;
         }
 
-        /** Cambia θ y sus razones por lo que dice el triángulo; vacío si queda algo que no se sabe regresar. */
         Optional<Expresion> regresar(Expresion e) {
             try {
                 return Optional.of(cambiar(e));
@@ -858,10 +807,6 @@ final class IntegracionAvanzada {
             return cc.coeficiente().equals(Racional.de(2)) && cc.resto() instanceof Variable v && v.nombre() == THETA;
         }
 
-        /**
-         * ln|…| de razones de θ: todas tienen el mismo denominador en el triángulo, así que queda
-         * ln|numerador| − ln|denominador|, y si el denominador es un número se va con la constante C.
-         */
         private Expresion logaritmo(Expresion dentro) {
             List<Expresion> terminos = dentro instanceof Suma sm ? sm.terminos() : List.of(dentro);
             Expresion den = null;
@@ -891,9 +836,6 @@ final class IntegracionAvanzada {
         }
     }
 
-    // ================================================================== I03: por partes
-
-    /** Las letras de ILATE, de la que se elige primero como u a la última. */
     enum Ilate {
         I("inversa"), L("logarítmica"), A("algebraica"), T("trigonométrica"), E("exponencial");
 
@@ -946,11 +888,9 @@ final class IntegracionAvanzada {
         }
     }
 
-    /** La elección de u y dv, con v ya integrada. */
     record Eleccion(Expresion u, Ilate letraU, Expresion dv, Expresion v, String ilate) {
     }
 
-    /** Elige u por ILATE (la primera que deja integrar dv) y calcula v. */
     static Optional<Eleccion> elegir(Expresion g, char x, Integrador resto) {
         ConCoeficiente cc = separar(g);
         Expresion h = cc.resto();
@@ -1025,7 +965,6 @@ final class IntegracionAvanzada {
         return letras.stream().min(Ilate::compareTo).orElseThrow();
     }
 
-    /** ∫g = a + c·I, con I la integral original (para la integral cíclica). */
     private record Lineal(Expresion a, Racional c, List<PasoLimite> pasos) {
     }
 
@@ -1114,7 +1053,6 @@ final class IntegracionAvanzada {
         return Optional.of(new Lineal(a, cI, List.of(paso)));
     }
 
-    /** x·eˣ − eˣ queda (x − 1)·eˣ: si todos los términos llevan el mismo factor no polinómico, sale. */
     static Expresion factorComun(Expresion e, char x) {
         ConCoeficiente fuera = separar(e);
         if (!fuera.coeficiente().equals(Racional.UNO) && fuera.resto() instanceof Suma) {
@@ -1150,7 +1088,6 @@ final class IntegracionAvanzada {
         return e;
     }
 
-    /** FormaFinal.ordenar, sin fallar si no puede. */
     private static final class FormaFinalSegura {
         static Expresion ordenar(Expresion e, char x) {
             try {

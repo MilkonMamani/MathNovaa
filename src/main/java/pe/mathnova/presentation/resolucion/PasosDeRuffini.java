@@ -14,11 +14,6 @@ import pe.mathnova.domain.factorizacion.Paso;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio.TablaRuffini;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * Varios pasos de Ruffini seguidos (F16 y F17) se presentan como UN solo paso, con las tablas
- * apiladas como en el cuaderno: el cociente de una es la fila de arriba de la siguiente. Es solo
- * presentación: el motor y la base los siguen teniendo como pasos separados.
- */
 final class PasosDeRuffini {
 
     private PasosDeRuffini() {
@@ -29,10 +24,6 @@ final class PasosDeRuffini {
                 && p.trabajo() instanceof TablaRuffini;
     }
 
-    /**
-     * Cuántos pasos desde {@code desde} forman una misma cadena: cada uno trabaja sobre el cociente
-     * del anterior. 1 si el paso no es de Ruffini o el siguiente no continúa su tabla.
-     */
     static int largoDeLaCadena(List<Paso> pasos, int desde) {
         if (!esRuffini(pasos.get(desde))) {
             return 1;
@@ -50,10 +41,6 @@ final class PasosDeRuffini {
         return n;
     }
 
-    /**
-     * Las tablas que agrega {@code siguiente} a las ya apiladas, o null si no continúa la cadena.
-     * Un F17 repite al principio la tabla del F16 anterior; un F16 nuevo empieza con el cociente.
-     */
     private static List<TablaRuffini.Division> continuacion(List<TablaRuffini.Division> apiladas, TablaRuffini siguiente) {
         TablaRuffini.Division ultima = apiladas.getLast();
         List<TablaRuffini.Division> ds = siguiente.divisiones();
@@ -64,7 +51,6 @@ final class PasosDeRuffini {
         return ds.getFirst().coeficientes().equals(cociente) ? ds : null;
     }
 
-    /** Las tablas de toda la cadena, apiladas, con los candidatos de cada paso. */
     static TablaRuffini tablaUnica(List<Paso> cadena) {
         TablaRuffini primera = (TablaRuffini) cadena.getFirst().trabajo();
         List<TablaRuffini.Division> tablas = new ArrayList<>(primera.divisiones());
@@ -81,13 +67,11 @@ final class PasosDeRuffini {
         return new TablaRuffini(primera.variable(), candidatos, tablas);
     }
 
-    /** Todos los factores lineales que salieron y el último cociente: (x − 1)(x − 2)(x² + x + 2). */
     static Expresion despues(List<Paso> cadena) {
         Racional constante = Racional.UNO;
         Map<Polinomio, Integer> factores = new LinkedHashMap<>();
         for (int i = 0; i < cadena.size(); i++) {
             List<Factor> fs = cadena.get(i).despues();
-            // Menos en el último paso, el último factor es el cociente que sigue dividiéndose.
             int hasta = i == cadena.size() - 1 ? fs.size() : fs.size() - 1;
             for (Factor f : fs.subList(0, hasta)) {
                 if (f.polinomio().esConstante()) {
@@ -102,7 +86,6 @@ final class PasosDeRuffini {
         return new FormaFactorizada(constante, lista).aExpresion();
     }
 
-    /** "Se aplica Ruffini 3 veces seguidas…: x = 1, x = 2 y x = 3." más el aviso de los ceros completados. */
     static String justificacion(List<Paso> cadena, TablaRuffini tabla) {
         List<String> raices = tabla.divisiones().stream()
                 .map(d -> tabla.variable() + " = " + FormateadorTexto.numero(d.raiz())).toList();

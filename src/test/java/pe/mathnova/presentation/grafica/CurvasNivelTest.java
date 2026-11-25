@@ -26,10 +26,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.presentation.resolucion.ContenidoExtremos;
 import pe.mathnova.presentation.resolucion.ContenidoIntegralMultiple;
 
-/**
- * Sprint 8, Parte D: CurvasNivel dibuja de verdad las curvas de nivel (de azul a naranja), los puntos críticos, la
- * restricción y la región sombreada, y la rueda acerca. Fuera de pantalla, sin abrir la aplicación.
- */
 class CurvasNivelTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -101,7 +97,6 @@ class CurvasNivelTest {
         DatosCurvasNivel d = ContenidoIntegralMultiple.de(r, SERVICIO.caminos(r), false).curvasNivel().orElseThrow();
         int sombra = enFx(() -> {
             WritableImage img = dibujar(d).snapshot(null, null);
-            // el azul al 18 % sobre blanco
             return pixeles(img, Color.color(1 - 0.18 * (1 - 0.145), 1 - 0.18 * (1 - 0.388), 1 - 0.18 * (1 - 0.922)),
                     0.04);
         });

@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-/** La tabla de confusiones y elegir una alternativa para un símbolo dudoso. */
 class EscrituraTest {
 
     @Test
@@ -32,7 +31,6 @@ class EscrituraTest {
 
     @Test
     void elegirCambiaElSimboloYCorreLosQueSiguen() {
-        // "2x+x": la primera x dudosa (x o ×) y la última también.
         SimboloDudoso primera = new SimboloDudoso(1, "x", TablaConfusiones.alternativas("x"), 0.4);
         SimboloDudoso ultima = new SimboloDudoso(3, "x", TablaConfusiones.alternativas("x"), 0.5);
         ResultadoReconocimiento r = new ResultadoReconocimiento("2x+x", List.of(primera, ultima));

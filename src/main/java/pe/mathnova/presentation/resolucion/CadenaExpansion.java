@@ -13,24 +13,8 @@ import pe.mathnova.domain.factorizacion.FormaFactorizada;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 
-/**
- * "Ver expansión" (HU18) como una cadena de expresiones completas, del resultado a la entrada:
- *
- * <pre>
- *   2x²(x + 2)(x + 1)²(x − 1)²(x − 2)
- * = 2x²(x + 2)(x − 2)[(x + 1)(x − 1)]²     se juntan los pares (a + b)(a − b)
- * = 2x²(x² − 4)(x² − 1)²                    cada par es una diferencia de cuadrados
- * = 2x²(x² − 4)(x⁴ − 2x² + 1)               se desarrollan las potencias
- * = 2x²(x⁶ − 6x⁴ + 9x² − 4)                 se multiplican los factores, de a dos
- * = 2x⁸ − 12x⁶ + 18x⁴ − 8x²                 se distribuye el factor de adelante
- * </pre>
- *
- * En cada renglón siguen escritos los factores que faltan desarrollar. Todas las cuentas son exactas
- * (polinomios con coeficientes racionales o con radicales) y al final se compara con la entrada.
- */
 public final class CadenaExpansion {
 
-    /** Las expresiones y si la última es la entrada. */
     public record Resultado(List<String> expresiones, boolean coincide) {
         public Resultado {
             expresiones = List.copyOf(expresiones);
@@ -44,7 +28,6 @@ public final class CadenaExpansion {
     private CadenaExpansion() {
     }
 
-    /** En Q: con {@code inicial} tal como se ve el resultado. */
     public static Resultado de(FormaFactorizada f, Polinomio entrada, String inicial) {
         List<Bloque<Polinomio>> fs = new ArrayList<>();
         for (Factor x : f.factores()) {
@@ -53,7 +36,6 @@ public final class CadenaExpansion {
         return cadena(POLINOMIO, f.constante(), fs, entrada, inicial);
     }
 
-    /** En R o C con coeficientes exactos (sin radicales anidados); vacío si no son exactos. */
     public static Optional<Resultado> de(FormaExtendida f, Polinomio entrada, String inicial) {
         if (!f.exacta() || entrada.variables().size() > 1) {
             return Optional.empty();
@@ -69,8 +51,6 @@ public final class CadenaExpansion {
                 : PolinomioAlgebraico.desde(entrada);
         return Optional.of(cadena(ar, f.constante(), fs, e, inicial));
     }
-
-    // ------------------------------------------------------------------ el recorrido
 
     private interface Aritmetica<T> {
         T multiplicar(T a, T b);
@@ -89,7 +69,6 @@ public final class CadenaExpansion {
 
         String latex(T a);
 
-        /** a·b escrito término a término sin reducir ("x^{2} - 3x - 2x + 6"), o null si no se escribe así. */
         default String distribuido(T a, T b) {
             return null;
         }
@@ -98,13 +77,11 @@ public final class CadenaExpansion {
     private record Bloque<T>(T base, int exp) {
     }
 
-    /** Un par (a + b)(a − b), elevado a {@code exp}. */
     private record Par<T>(T a, T b, int exp) {
     }
 
     private static <T> Resultado cadena(Aritmetica<T> ar, Racional c, List<Bloque<T>> factores, T entrada,
                                         String inicial) {
-        // Adelante: la constante y los monomios (2x²); detrás, los factores por desarrollar.
         T frente = ar.constante(c);
         StringBuilder latexFrente = new StringBuilder(coef(c));
         List<Bloque<T>> resto = new ArrayList<>();
@@ -120,15 +97,12 @@ public final class CadenaExpansion {
         List<String> l = new ArrayList<>();
         l.add(inicial);
 
-        // 1. Los pares conjugados juntos.
         List<Object> items = emparejar(ar, resto);
-        // Solo (x + 2)(x − 2): se distribuye término a término, como cualquier producto de dos factores.
         if (adelante.isEmpty() && items.size() == 1 && items.getFirst() instanceof Par<?> p && p.exp() == 1) {
             items = new ArrayList<>(resto);
         }
         if (items.stream().anyMatch(o -> o instanceof Par)) {
             agregar(l, adelante + items(ar, items));
-            // 2. Cada par es una diferencia de cuadrados.
             List<Object> multiplicados = new ArrayList<>();
             for (Object o : items) {
                 multiplicados.add(o instanceof Par<?> p ? new Bloque<>(ar.multiplicar(cast(p.a()), cast(p.b())), p.exp()) : o);
@@ -140,14 +114,11 @@ public final class CadenaExpansion {
         for (Object o : items) {
             bloques.add(cast(o));
         }
-        // 3. Las potencias se desarrollan.
         if (bloques.stream().anyMatch(b -> b.exp() > 1)) {
             bloques.replaceAll(b -> b.exp() > 1 ? new Bloque<>(ar.potencia(b.base(), b.exp()), 1) : b);
             agregar(l, adelante.isEmpty() && bloques.size() == 1 ? ar.latex(bloques.getFirst().base())
                     : adelante + bloques(ar, bloques));
         }
-        // 4. Los factores se multiplican de a dos, de izquierda a derecha: primero cada término por cada término
-        //    (x² − 3x − 2x + 6) y después reducido (x² − 5x + 6). Los factores que faltan siguen escritos.
         while (bloques.size() > 1) {
             T a = bloques.get(0).base();
             T b = bloques.get(1).base();
@@ -162,7 +133,6 @@ public final class CadenaExpansion {
             bloques.set(0, new Bloque<>(producto, 1));
             agregar(l, adelante + (solo ? ar.latex(producto) : bloques(ar, bloques)));
         }
-        // 5. Se distribuye lo de adelante: el polinomio expandido y ordenado.
         T total = bloques.isEmpty() ? frente : ar.multiplicar(frente, bloques.getFirst().base());
         agregar(l, ar.latex(total));
         return new Resultado(l, total.equals(entrada));
@@ -183,7 +153,6 @@ public final class CadenaExpansion {
         return (X) o;
     }
 
-    /** Cada factor lineal con su conjugado (ax + b, ax − b), en el lugar del primero de los dos. */
     private static <T> List<Object> emparejar(Aritmetica<T> ar, List<Bloque<T>> resto) {
         List<Object> items = new ArrayList<>();
         boolean[] usado = new boolean[resto.size()];
@@ -208,7 +177,6 @@ public final class CadenaExpansion {
             usado[pareja] = true;
             Bloque<T> b = resto.get(pareja);
             int e = Math.min(a.exp(), b.exp());
-            // el de signo + primero: (x + 2)(x − 2)
             boolean masPrimero = ar.latex(a.base()).contains("+") || !ar.latex(b.base()).contains("+");
             items.add(masPrimero ? new Par<>(a.base(), b.base(), e) : new Par<>(b.base(), a.base(), e));
             if (a.exp() > e) {
@@ -264,8 +232,6 @@ public final class CadenaExpansion {
         }
         return FormaLegible.racional(k);
     }
-
-    // ------------------------------------------------------------------ aritméticas
 
     private static final Aritmetica<Polinomio> POLINOMIO = new Aritmetica<>() {
         @Override

@@ -15,12 +15,6 @@ import javafx.stage.FileChooser;
 import pe.mathnova.domain.escritura.Muestra;
 import pe.mathnova.infrastructure.escritura.ArchivoMuestras;
 
-/**
- * Solo para desarrollo (se activa con {@code -Dmathnova.muestras=true}): guarda lo que hay en el lienzo como
- * una muestra etiquetada en JSON y vuelve a dibujar una muestra guardada. La etiqueta la escribe el
- * desarrollador y es la respuesta correcta para probar un reconocedor más adelante; esta barra no reconoce
- * nada.
- */
 final class BarraMuestras extends VBox {
 
     static final String PROPIEDAD = "mathnova.muestras";
@@ -37,7 +31,6 @@ final class BarraMuestras extends VBox {
         this.alCargar = alCargar;
         getStyleClass().add("barra-muestras");
         setSpacing(6);
-        // Que se note que no es parte de la app para el estudiante.
         setStyle("-fx-border-color: #F59E0B; -fx-border-style: dashed; -fx-border-radius: 8;"
                 + " -fx-padding: 8; -fx-background-color: #FFFBEB; -fx-background-radius: 8;");
 
@@ -61,7 +54,6 @@ final class BarraMuestras extends VBox {
         getChildren().addAll(titulo, fila, estado);
     }
 
-    /** Guarda lo que hay en el lienzo con la etiqueta escrita; null si falta la etiqueta o los trazos. */
     Path guardar() {
         String texto = etiqueta.getText() == null ? "" : etiqueta.getText().strip();
         if (texto.isEmpty()) {
@@ -83,7 +75,6 @@ final class BarraMuestras extends VBox {
         }
     }
 
-    /** Vuelve a dibujar la muestra del archivo en el lienzo. */
     boolean cargar(Path ruta) {
         try {
             Muestra m = ArchivoMuestras.leer(ruta);

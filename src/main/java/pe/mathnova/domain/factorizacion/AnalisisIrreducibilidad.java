@@ -11,20 +11,10 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Por qué un factor que ningún método pudo partir ya no se factoriza en Q (HU07).
- * <ul>
- *   <li>Grado 1: siempre irreducible.</li>
- *   <li>Grado 2: discriminante negativo o no cuadrado perfecto (A1).</li>
- *   <li>Grado 3: sin raíces racionales p/q (se prueban los candidatos).</li>
- *   <li>Grado 4 a 8: A4, método de Kronecker. Por encima de 8 no se certifica.</li>
- * </ul>
- */
 public final class AnalisisIrreducibilidad {
 
     static final String SIN_CERTIFICAR = "No se encontró una factorización en Q.";
 
-    /** Más allá de esto no se enumeran divisores para los candidatos p/q. */
     private static final BigInteger LIMITE = BigInteger.valueOf(1_000_000_000_000L);
     private static final int CANDIDATOS_VISIBLES = 12;
 
@@ -67,10 +57,6 @@ public final class AnalisisIrreducibilidad {
         return new Irreducibilidad(p, "A4", SIN_CERTIFICAR, false);
     }
 
-    /**
-     * A6 (RF51): con dos o tres letras y grado total hasta 6, la reducción de Kronecker. Si ninguna
-     * combinación de los factores del polinomio en una letra regresa a un factor, no se parte.
-     */
     private static Irreducibilidad enVarias(Polinomio p) {
         Optional<Multivariable.Reduccion> r = Multivariable.kronecker(p);
         if (r.isEmpty()) {

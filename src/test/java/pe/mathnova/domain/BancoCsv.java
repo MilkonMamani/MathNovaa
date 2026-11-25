@@ -10,13 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Lee src/test/resources/banco_factorizacion.csv respetando los campos entre comillas. */
 public final class BancoCsv {
 
     public record Fila(String id, String metodo, String pasos, String campo, String curso,
                        String dificultad, String entrada, String resultadoEsperado, String nota) {
 
-        /** resultado_esperado sin lo que va después de ";". */
         public String resultadoSinNota() {
             int pc = resultadoEsperado.indexOf(';');
             return (pc < 0 ? resultadoEsperado : resultadoEsperado.substring(0, pc)).trim();
@@ -40,7 +38,7 @@ public final class BancoCsv {
                 "No está banco_factorizacion.csv");
         List<Fila> resultado = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-            r.readLine(); // encabezado
+            r.readLine();
             String linea;
             while ((linea = r.readLine()) != null) {
                 if (linea.isBlank()) {

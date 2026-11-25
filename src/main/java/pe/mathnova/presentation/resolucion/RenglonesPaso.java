@@ -12,30 +12,10 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.latex.TextoLatex;
 import pe.mathnova.presentation.pizarra.Pizarra;
 
-/**
- * Los renglones de operaciones de un paso de la Pizarra, una transformación por renglón, según la operación:
- * <ul>
- *   <li>Límite: el {@code \lim_{x \to a}} se escribe en cada renglón mientras la expresión depende de x; la
- *       cancelación lleva "x ≠ a" y la evaluación empieza en el límite: lím (x + 3) = 3 + 3 = 6.</li>
- *   <li>Derivada: la regla con sus valores y la derivada como y′ = …; "Simplificar" sigue la misma cadena.</li>
- *   <li>Factorización e integral: los renglones del motor y la igualdad que resulta.</li>
- * </ul>
- * Sin JavaFX; lo dibuja {@link Igualdades}. Todo sale de los datos del paso: no se recalcula nada.
- */
 final class RenglonesPaso {
 
-    /** Qué operación muestra la Pizarra. */
     enum Operacion { GENERAL, LIMITE, DERIVADA, INTEGRAL }
 
-    /**
-     * Lo que vale para todos los pasos de un ejercicio.
-     *
-     * @param operacion qué se resuelve
-     * @param limite    "\lim_{x \to 3}" en un límite, o null
-     * @param variable  la variable del límite ('x'), o 0
-     * @param punto     el punto del límite en LaTeX ("3"), o null
-     * @param derivada  "\frac{d}{dx}" en una derivada, o null
-     */
     record Marco(Operacion operacion, String limite, char variable, String punto, String derivada) {
 
         static final Marco GENERAL = new Marco(Operacion.GENERAL, null, (char) 0, null, null);
@@ -65,7 +45,6 @@ final class RenglonesPaso {
                         hay ? m.group() : "\\frac{d}{dx}");
             }
             if (rotulo.equals("INTEGRA")) {
-                // "\int" o "\int_{0}^{3}" y la variable del diferencial
                 Matcher op = INTEGRAL.matcher(e);
                 Matcher dif = DIFERENCIAL.matcher(e);
                 return new Marco(Operacion.INTEGRAL, op.find() ? op.group() : "\\int", dif.find() ? dif.group(1).charAt(0)
@@ -74,7 +53,6 @@ final class RenglonesPaso {
             return GENERAL;
         }
 
-        /** "\lim_{x \to 3}" de "\lim_{x \to 3} \frac{…}{…}", o null. */
         static String prefijoLimite(String latex) {
             String inicio = "\\lim_{";
             if (!latex.startsWith(inicio)) {
@@ -93,18 +71,11 @@ final class RenglonesPaso {
         }
     }
 
-    /** "Factorizar y cancelar": la cancelación vale para x ≠ a. */
     static final String CANCELAR = "L02";
 
     private RenglonesPaso() {
     }
 
-    /**
-     * Los renglones del paso, o null si el trabajo es un dibujo (aspa, tabla de Ruffini, tabla de partes…) y
-     * solo falta la conclusión (ver {@link #conclusion}).
-     *
-     * @param principal si es un paso de primer nivel (no un subpaso)
-     */
     static List<Igualdades.Renglon> renglones(VistaPaso p, Marco marco, boolean principal) {
         Marco m = efectivo(marco, p);
         if (ReorganizarPasos.SUSTITUIR.equals(p.codigo())) {
@@ -121,9 +92,7 @@ final class RenglonesPaso {
             String l = lineas.get(indice);
             String linea = l;
             String cabeza = null;
-            // El primer renglón es la fórmula de la regla ("(uⁿ)' = n·uⁿ⁻¹·u'"); no se toca.
             if (m.operacion() == Operacion.DERIVADA && antesTexto != null && indice > 0) {
-                // "((3x² + 1)⁴)' = 4(3x² + 1)³·6x": la regla con los valores, escrita como y′ = …
                 String regla = "(" + antesTexto + ")' = ";
                 String regla2 = "(" + antesTexto + ")′ = ";
                 if (linea.startsWith(regla) || linea.startsWith(regla2)) {
@@ -143,25 +112,17 @@ final class RenglonesPaso {
             return conLimite(r, p, antesLatex, m);
         }
         if (m.operacion() == Operacion.INTEGRAL) {
-            // "2x\,dx": un espacio fino antes del diferencial
             r.replaceAll(x -> x.latex() == null ? x
                     : new Igualdades.Renglon(TextoLatex.conDiferenciales(x.latex()), x.texto(), x.marca()));
         }
         if (m.operacion() == Operacion.DERIVADA && MotorDerivadas.SIMPLIFICAR.equals(p.codigo()) && principal
                 && !r.isEmpty() && r.getFirst().latex() != null
                 && TextoLatex.igualDeAfuera(r.getFirst().latex()) < 0) {
-            // Simplificar: y′ = 24(3x² + 1)³·x = 24x(3x² + 1)³
             r.set(0, Igualdades.Renglon.deLatex("y' = " + r.getFirst().latex()));
         }
         return r;
     }
 
-    /**
-     * La igualdad que resulta del paso, en LaTeX, o null si los renglones ya la dicen.
-     *
-     * @param hayRenglones si el paso escribió renglones (o un dibujo) antes
-     * @param ultimo       el último renglón escrito, o null
-     */
     static String conclusion(VistaPaso p, Marco marco, boolean principal, boolean hayRenglones,
                              Igualdades.Renglon ultimo) {
         if (ReorganizarPasos.SUSTITUIR.equals(p.codigo())) {
@@ -188,7 +149,6 @@ final class RenglonesPaso {
                     yield null;
                 }
                 if (p.codigo().matches("D\\d\\d") && antes != null) {
-                    // Después de "y′ = 4(3x² + 1)³·6x", lo que queda al multiplicar: "= 24(3x² + 1)³x".
                     boolean sigue = ultimo != null && ultimo.latex() != null
                             && ultimo.latex().startsWith(derivadaDe(antes, m, principal));
                     yield (sigue ? "=" : derivadaDe(antes, m, principal) + " =") + " " + despues;
@@ -199,7 +159,6 @@ final class RenglonesPaso {
                 yield antes == null ? despues : antes + " = " + despues;
             }
             case INTEGRAL -> {
-                // El motor ya escribió "∫x/2 dx = x²/4" como último renglón.
                 if (ultimo != null && ultimo.latex() != null && ultimo.latex().strip().startsWith("\\int")
                         && TextoLatex.igualDeAfuera(ultimo.latex()) > 0) {
                     yield null;
@@ -210,10 +169,6 @@ final class RenglonesPaso {
         };
     }
 
-    /**
-     * Dentro de un límite, solo sus pasos (L01…L07) llevan el lím en cada renglón: la factorización del
-     * numerador (F…) se escribe como una factorización y las derivadas de L'Hôpital (D…) como derivadas.
-     */
     static Marco efectivo(Marco m, VistaPaso p) {
         if (m.operacion() != Operacion.LIMITE || p.codigo().startsWith("L")
                 || ReorganizarPasos.SUSTITUIR.equals(p.codigo())) {
@@ -225,10 +180,6 @@ final class RenglonesPaso {
         return Marco.GENERAL;
     }
 
-    /**
-     * El ejercicio vuelto a escribir con la expresión factorizada. En un límite, el lím y su punto siguen hasta
-     * evaluar, y la cancelación lleva x ≠ a; en una integral, el operador, los límites y el diferencial.
-     */
     private static List<Igualdades.Renglon> sustituir(VistaPaso p, Marco m) {
         String antes = ImpresoraLatex.imprimir(p.antes());
         String despues = p.despues() == null ? null : ImpresoraLatex.imprimir(p.despues());
@@ -243,11 +194,9 @@ final class RenglonesPaso {
             String dx = " \\, d" + m.variable();
             String restriccion = restriccion(p);
             if (restriccion == null) {
-                // El denominador escrito factorizado (fracciones parciales): la integral no cambia
                 r.add(Igualdades.Renglon.deLatex(m.limite() + " " + antes + dx + " = " + m.limite() + " " + despues
                         + dx));
             } else {
-                // Factorizar y cancelar: la integral con los factores, y en el renglón siguiente la cancelación
                 r.add(Igualdades.Renglon.deLatex(m.limite() + " " + antes + dx));
                 r.add(Igualdades.Renglon.deLatex("= " + m.limite() + " " + cuerpoIntegral(despues) + dx
                         + " \\qquad (" + restriccion + ")"));
@@ -255,7 +204,6 @@ final class RenglonesPaso {
         } else if (m.operacion() == Operacion.DERIVADA && despues != null) {
             String restriccion = restriccion(p);
             r.add(Igualdades.Renglon.deLatex(m.derivada() + "\\left(" + antes + "\\right)"));
-            // d/dx (x + 1)²: una potencia de un paréntesis no lleva otro paréntesis alrededor
             boolean potencia = p.despues() instanceof pe.mathnova.domain.expresion.Potencia pot
                     && despues.startsWith("\\left(") && !(pot.base() instanceof pe.mathnova.domain.expresion.Variable);
             r.add(Igualdades.Renglon.deLatex("= " + m.derivada() + (potencia ? " " + despues : "\\left(" + despues
@@ -266,7 +214,6 @@ final class RenglonesPaso {
         return r;
     }
 
-    /** "x \neq -2,\ x \neq 3" de los renglones "x ≠ −2, x ≠ 3" del paso; null si no hay restricciones. */
     static String restriccion(VistaPaso p) {
         if (!(p.trabajo() instanceof TrabajoIntermedio.Agrupacion a) || a.grupos().isEmpty()) {
             return null;
@@ -274,25 +221,20 @@ final class RenglonesPaso {
         return restriccionLatex(String.join(", ", a.grupos()));
     }
 
-    /** "x ≠ −2, x ≠ 3" → "x \neq -2,\ x \neq 3". */
     static String restriccionLatex(String texto) {
         return texto.replace("≠", "\\neq").replace("−", "-").replace(", ", ",\\ ");
     }
 
-    /** Lo que va entre ∫ y dx: una suma entre paréntesis. */
     private static String cuerpoIntegral(String latex) {
         return TextoLatex.igualDeAfuera(latex) < 0 && necesitaParentesis(latex) ? "\\left(" + latex + "\\right)" : latex;
     }
 
-    /** "y'" para el paso que deriva la función completa; "\frac{d}{dx}\left(u\right)" para una parte. */
     private static String derivadaDe(String antesLatex, Marco m, boolean principal) {
         if (principal) {
             return "y'";
         }
         return m.derivada() + "\\left(" + antesLatex + "\\right)";
     }
-
-    // ------------------------------------------------------------------ límites
 
     private static List<Igualdades.Renglon> conLimite(List<Igualdades.Renglon> renglones, VistaPaso p,
                                                      String antes, Marco m) {
@@ -309,14 +251,12 @@ final class RenglonesPaso {
                 nuevas.add(parte.isEmpty() ? parte : conLimite(parte, m));
             }
             String latex = String.join(" = ", nuevas).strip();
-            // La evaluación ("3 + 3 = 6") empieza en el límite que se evalúa.
             if (i == 0 && antes != null && !partes.getFirst().isEmpty() && !depende(partes.getFirst(), m)) {
                 latex = conLimite(antes, m) + " = " + latex;
             }
             r.add(new Igualdades.Renglon(latex, x.texto(), x.marca()));
         }
         if (CANCELAR.equals(p.codigo()) && r.size() >= 2) {
-            // Al cancelar el factor (x − a) se supone x ≠ a.
             int k = r.size() - 1;
             Igualdades.Renglon u = r.get(k);
             if (u.latex() != null) {
@@ -327,7 +267,6 @@ final class RenglonesPaso {
         return r;
     }
 
-    /** "\lim_{x \to 3} \left(x + 3\right)" si depende de x; si no (3 + 3), tal cual. */
     static String conLimite(String latex, Marco m) {
         String s = latex.strip();
         if (s.startsWith("\\lim") || !depende(s, m)) {
@@ -336,19 +275,16 @@ final class RenglonesPaso {
         return m.limite() + " " + (necesitaParentesis(s) ? "\\left(" + s + "\\right)" : s);
     }
 
-    /** La expresión tiene la variable del límite (fuera de los nombres de comandos como \frac o \text). */
     static boolean depende(String latex, Marco m) {
         String sinComandos = latex.replaceAll("\\\\text\\{[^}]*}", " ").replaceAll("\\\\[a-zA-Z]+", " ");
         return sinComandos.indexOf(m.variable()) >= 0;
     }
 
-    /** Una suma o resta de afuera necesita paréntesis detrás del límite: lím (x + 3). */
     private static boolean necesitaParentesis(String latex) {
         int nivel = 0;
         for (int i = 0; i < latex.length(); i++) {
             char c = latex.charAt(i);
             if (c == '\\') {
-                // \left( … \right): se cuentan como paréntesis
                 continue;
             }
             if (c == '{' || c == '(' || c == '[') {
@@ -362,7 +298,6 @@ final class RenglonesPaso {
         return false;
     }
 
-    /** Los lados de "a = b = c" separados por los "=" de afuera; "= b" da ["", "b"]. */
     static List<String> partes(String latex) {
         List<String> r = new ArrayList<>();
         int nivel = 0;
@@ -386,7 +321,6 @@ final class RenglonesPaso {
         return r;
     }
 
-    /** El paso dibuja su trabajo como diagrama y la conclusión ya está en el dibujo. */
     static boolean dibujoConcluye(TrabajoIntermedio t) {
         return t instanceof TrabajoIntermedio.TablaPartes || t instanceof TrabajoIntermedio.AspaSimple a
                 && a.segunda() == 0;

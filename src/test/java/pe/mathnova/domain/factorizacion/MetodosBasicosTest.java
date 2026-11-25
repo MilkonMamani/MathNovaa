@@ -15,14 +15,12 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.factorizacion.MetodoFactorizacion.ResultadoMetodo;
 import pe.mathnova.domain.parser.Parser;
 
-/** F01, F02, F05, F07, F12 y F13: factores, justificación con valores concretos y motivo de descarte. */
 class MetodosBasicosTest {
 
     static Polinomio p(String texto) {
         return Polinomio.desde(Parser.parse(texto));
     }
 
-    /** Aplica, comprueba que los factores multiplicados dan la entrada y devuelve el resultado. */
     static ResultadoMetodo aplica(MetodoFactorizacion m, String entrada, String... factores) {
         Polinomio antes = p(entrada);
         assertTrue(m.puedeAplicarse(antes, Campo.Q).aplica(), () -> m.puedeAplicarse(antes, Campo.Q).motivo());
@@ -49,8 +47,6 @@ class MetodosBasicosTest {
         assertEquals(motivo, a.motivo());
         assertThrows(IllegalArgumentException.class, () -> m.aplicar(antes, Campo.Q));
     }
-
-    // ------------------------------------------------------------------ F01 y F02
 
     @Test
     void f01SacaMcdYMenorPotencia() {
@@ -82,8 +78,6 @@ class MetodosBasicosTest {
         noAplica(FactorComun.fraccionario(), "2x + 4", "Todos los coeficientes son enteros: corresponde F01");
     }
 
-    // ------------------------------------------------------------------ F05
-
     @Test
     void f05DiferenciaDeCuadrados() {
         var r = aplica(new DiferenciaDeCuadrados(), "4x^2 - 25", "2x + 5", "2x - 5");
@@ -100,8 +94,6 @@ class MetodosBasicosTest {
         noAplica(new DiferenciaDeCuadrados(), "x^3 - 1", "x³ no es un cuadrado perfecto");
         noAplica(new DiferenciaDeCuadrados(), "x^2 + x + 1", "Tiene 3 términos; hacen falta 2");
     }
-
-    // ------------------------------------------------------------------ F07
 
     @Test
     void f07TrinomioCuadradoPerfecto() {
@@ -120,13 +112,10 @@ class MetodosBasicosTest {
         noAplica(new TrinomioCuadradoPerfecto(), "x^2 + 2x - 1", "−1 es negativo: no es un cuadrado");
     }
 
-    // ------------------------------------------------------------------ F12
-
     @Test
     void f12TrinomioSimple() {
         var r = aplica(new TrinomioSimple(), "x^2 - 5x + 6", "x - 2", "x - 3");
         assertEquals("−2 + (−3) = −5 y (−2)·(−3) = 6", r.paso().justificacion());
-        // Sprint 3 (HU06): F12 también dibuja el aspa (x | −2) y (x | −3).
         var aspa = assertInstanceOf(TrabajoIntermedio.AspaSimple.class, r.paso().trabajo());
         assertAll(
                 () -> assertEquals(pe.mathnova.domain.algebra.Racional.de(-2), aspa.c1()),
@@ -141,8 +130,6 @@ class MetodosBasicosTest {
         noAplica(new TrinomioSimple(), "x^2 + x + 1", "No hay enteros m y n con m + n = 1 y m·n = 1");
         noAplica(new TrinomioSimple(), "6x^2 + x - 2", "El coeficiente de x² es 6, no 1: corresponde F13");
     }
-
-    // ------------------------------------------------------------------ F13
 
     @Test
     void f13AspaSimple() {

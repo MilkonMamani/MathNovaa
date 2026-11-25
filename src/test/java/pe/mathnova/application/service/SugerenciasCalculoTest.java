@@ -17,10 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Sprint 6, Parte D: un polinomio sugiere la derivada y los puntos críticos; una fracción sugiere su
- * integral. RN20: solo queda activa si la plantilla se resuelve de verdad.
- */
 class SugerenciasCalculoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -67,7 +63,6 @@ class SugerenciasCalculoTest {
         assertTrue(SERVICIO.resolverIntegral(s.plantilla(), null, f -> { }).verificada());
     }
 
-    /** RN20: si ningún método la resuelve, la tarjeta sale pero desactivada. */
     @ParameterizedTest
     @ValueSource(strings = {"1/(x^3 + 2)", "1/(x^2 - 2)", "1/(x^2 + 1)^2"})
     void unaIntegralQueNoSeResuelveQuedaDesactivada(String q) {

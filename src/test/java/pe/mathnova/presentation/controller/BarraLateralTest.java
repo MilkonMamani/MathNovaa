@@ -43,11 +43,6 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.Navegador;
 import pe.mathnova.presentation.editor.EditorMatematico;
 
-/**
- * La barra lateral compacta y desplegada (principal.fxml) con la pantalla "Resolver ejercicio" real en
- * el centro: orden de las cinco opciones, un clic abre la sección, la selección no se pierde y alternar
- * el menú no toca el ejercicio. Con -Dmathnova.capturasBarra=carpeta guarda capturas de ambos estados.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BarraLateralTest {
 
@@ -77,7 +72,6 @@ class BarraLateralTest {
         }
     }
 
-    /** Navegador de prueba: las dos acciones existentes, sin Spring. */
     private static final class NavegadorPrueba extends Navegador {
         final List<String> llamadas = new ArrayList<>();
         final StackPane configuracion = new StackPane();
@@ -119,7 +113,6 @@ class BarraLateralTest {
         });
         EditorMatematico editor = Fx.enFx(() -> (EditorMatematico) raiz.lookup(".editor-matematico"));
         assertNotNull(editor);
-        // El editor está listo cuando devuelve lo que se le puso.
         Fx.enFx(() -> editor.setLatex("x"));
         Fx.esperar(() -> "x".equals(editor.getLatex()), "El editor no cargó");
     }
@@ -183,7 +176,6 @@ class BarraLateralTest {
                 assertEquals(ContentDisplay.GRAPHIC_ONLY, b.getContentDisplay(), b.getText());
                 assertEquals(44, b.getHeight(), 0.5, b.getText());
                 assertEquals(56 - 1, b.getWidth(), 0.5, "toda la fila responde: " + b.getText());
-                // ícono de 18 × 18 sobre una caja de 24, centrada en la barra
                 assertEquals(24, ((Region) b.getGraphic()).getWidth(), 0.01);
                 assertEquals(16, xIcono(b), 0.5, b.getText());
             }
@@ -204,7 +196,6 @@ class BarraLateralTest {
             Fx.trazo(opciones().get(0), new double[] {28, 22});
             assertEquals(List.of("Configuración", "Resolver"), NAVEGADOR.llamadas);
             assertTrue(principal.muestra(resolucion));
-            // Desde el Sprint 9 (Historial, Práctica y Ejemplos) todas las opciones funcionan
             assertTrue(opciones().stream().noneMatch(Node::isDisabled));
         });
     }
@@ -244,7 +235,6 @@ class BarraLateralTest {
         Object resultado = Fx.enFx(() -> resolucionControlador.ultimaResolucion());
         String texto = Fx.enFx(() -> resolucionControlador.texto());
         List<Node> pasos = Fx.enFx(() -> List.copyOf(pizarraPasos()));
-        // un paso intermedio de la pizarra: "anterior" una vez
         String paso = Fx.enFx(() -> {
             Button anterior = (Button) resolucion.lookup(".pizarra-flecha-nav");
             if (!anterior.isDisabled()) {
@@ -318,7 +308,7 @@ class BarraLateralTest {
         if (carpeta == null) {
             return;
         }
-        Thread.sleep(700); // que el WebView del editor pinte la fórmula
+        Thread.sleep(700);
         var imagen = Fx.enFx(() -> raiz.snapshot(null, null));
         File archivo = new File(carpeta, nombre);
         archivo.getParentFile().mkdirs();

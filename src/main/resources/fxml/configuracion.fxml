@@ -11,9 +11,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- "Configuración" (Sprint 9, parte E). Cuatro tarjetas: Resolución, Apariencia, Datos y Acerca de. Cada
-     ajuste se guarda en la tabla configuracion en el momento en que cambia, con el aviso "Guardado", y se aplica
-     en toda la app sin reiniciar (ConfiguracionService). -->
 <ScrollPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.mathnova.presentation.controller.ConfiguracionController"
             fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false" styleClass="contenido-scroll">
@@ -28,7 +25,6 @@
                    wrapText="true"/>
         </VBox>
 
-        <!-- ============ Resolución ============ -->
         <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
             <Label text="Resolución" styleClass="titulo-tarjeta"/>
 
@@ -90,7 +86,6 @@
             </HBox>
         </VBox>
 
-        <!-- ============ Apariencia ============ -->
         <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
             <Label text="Apariencia" styleClass="titulo-tarjeta"/>
 
@@ -106,7 +101,6 @@
                     <ToggleButton fx:id="letraMuyGrande" text="Muy grande" styleClass="opcion-campo, opcion-ancha"/>
                 </HBox>
             </HBox>
-            <!-- La vista previa crece con la letra, como la Pizarra -->
             <StackPane fx:id="vistaPrevia" styleClass="ajuste-vista-previa, escala-letra" alignment="CENTER_LEFT"
                        accessibleText="Vista previa del tamaño de letra"/>
 
@@ -123,7 +117,6 @@
             </HBox>
         </VBox>
 
-        <!-- ============ Datos ============ -->
         <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
             <Label text="Datos" styleClass="titulo-tarjeta"/>
             <HBox styleClass="ajuste-fila">
@@ -134,7 +127,6 @@
             </HBox>
         </VBox>
 
-        <!-- ============ Acerca de ============ -->
         <VBox styleClass="tarjeta, ajustes-tarjeta" maxWidth="760">
             <Label text="Acerca de" styleClass="titulo-tarjeta"/>
             <GridPane fx:id="versiones" hgap="24" vgap="8"/>

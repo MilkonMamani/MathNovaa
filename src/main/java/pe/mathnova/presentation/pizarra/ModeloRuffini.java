@@ -7,35 +7,15 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * Lo que dibuja {@link TablaRuffini}, ya como texto de pizarra: las fichas de los candidatos y las
- * tablas apiladas. No usa JavaFX, así que se prueba sin abrir la ventana.
- *
- * @param fallidos candidatos probados que no son raíz ("x = 1 ✗ residuo −2"), en orden
- * @param raices   las raíces encontradas ("x = 2 ✓")
- */
 public record ModeloRuffini(List<String> fallidos, List<String> raices, List<Tabla> tablas, List<String> faltantes) {
 
     public ModeloRuffini(List<String> fallidos, List<String> raices, List<Tabla> tablas) {
         this(fallidos, raices, tablas, List.of());
     }
 
-    /** Una celda de la fila de arriba; {@code relleno} si es un 0 de un término que faltaba. */
     public record Celda(String texto, boolean relleno) {
     }
 
-    /**
-     * Una tabla. Sus columnas quedan alineadas a la izquierda con las de la tabla de arriba.
-     *
-     * @param raiz      "x = 2"
-     * @param arriba    fila de coeficientes
-     * @param medio     fila del medio: una celda vacía y luego resultado anterior × raíz
-     * @param abajo     fila de resultados sin el residuo (los coeficientes del cociente)
-     * @param residuo   el último número de la fila de abajo
-     * @param origenes  para cada celda del medio (desde la segunda), de dónde sale: "2·2"
-     * @param valor     la raíz sola, como se escribe a la izquierda de la tabla: "2", "−1/2"
-     * @param factor    el factor que da un residuo 0: "(x − 2)", "(x + 1)", "x"
-     */
     public record Tabla(String raiz, List<Celda> arriba, List<String> medio, List<String> abajo, String residuo,
                         boolean residuoCero, List<String> origenes, String valor, String factor) {
 
@@ -45,7 +25,6 @@ public record ModeloRuffini(List<String> fallidos, List<String> raices, List<Tab
         }
     }
 
-    /** El factor (x − r) de una raíz r: "(x − 2)", "(x + 1/2)" o "x". */
     static String factor(char v, Racional r) {
         if (r.esCero()) {
             return String.valueOf(v);

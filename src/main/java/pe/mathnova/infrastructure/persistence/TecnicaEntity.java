@@ -7,7 +7,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Tabla tecnica de V1 (catálogo de V2 y V3, solo lectura): F01…, L01…, D01…, y los pasos internos de V3. */
 @Entity
 @Table(name = "tecnica")
 @Getter

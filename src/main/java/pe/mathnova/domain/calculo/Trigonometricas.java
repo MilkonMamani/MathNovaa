@@ -12,36 +12,22 @@ import pe.mathnova.domain.expresion.Funcion;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * Polinomios en cos θ, sen θ (y cos φ, sen φ) para las coordenadas polares, cilíndricas y esféricas (Sprint 8).
- * Cada función se guarda como una letra auxiliar: α = cos θ, β = sen θ, γ = cos φ, δ = sen φ. Así r²·α² + r²·β²
- * se reduce con sen² + cos² = 1 a r², algo que el simplificador de árboles no hace.
- */
 public final class Trigonometricas {
 
     public static final char THETA = 'θ';
     public static final char PHI = 'φ';
-    /** cos θ. */
     public static final char COS_T = 'α';
-    /** sen θ. */
     public static final char SEN_T = 'β';
-    /** cos φ. */
     public static final char COS_F = 'γ';
-    /** sen φ. */
     public static final char SEN_F = 'δ';
 
     private Trigonometricas() {
     }
 
-    /** Las letras auxiliares. */
     public static boolean esAuxiliar(char c) {
         return c == COS_T || c == SEN_T || c == COS_F || c == SEN_F;
     }
 
-    /**
-     * p con sen² + cos² = 1 aplicado: se prueba cambiar sen² por 1 − cos² y cos² por 1 − sen² (en θ y en φ)
-     * y se queda la forma con menos términos.
-     */
     public static Polinomio reducir(Polinomio p) {
         Polinomio mejor = p;
         for (int t = 0; t < 3; t++) {
@@ -65,12 +51,10 @@ public final class Trigonometricas {
         return mejor;
     }
 
-    /** La forma canónica (sen θ y sen φ con exponente 0 o 1): dos polinomios son iguales si sus formas coinciden. */
     public static Polinomio canonica(Polinomio p) {
         return cambiarCuadrado(cambiarCuadrado(p, SEN_T, COS_T), SEN_F, COS_F);
     }
 
-    /** Cada s² se cambia por 1 − c², hasta que s quede con exponente 0 o 1. */
     static Polinomio cambiarCuadrado(Polinomio p, char s, char c) {
         Polinomio r = Polinomio.CERO;
         Polinomio unoMenos = Polinomio.UNO.restar(Polinomio.termino(Racional.UNO, Monomio.de(c, 2)));
@@ -86,7 +70,6 @@ public final class Trigonometricas {
         return r;
     }
 
-    /** El polinomio con las letras auxiliares cambiadas por cos θ, sen θ, cos φ y sen φ, simplificado. */
     public static Expresion aExpresion(Polinomio p) {
         Expresion e = p.aExpresion();
         e = Expresiones.reemplazar(e, new Variable(COS_T), new Funcion(TipoFuncion.COS, new Variable(THETA), 0));
@@ -96,7 +79,6 @@ public final class Trigonometricas {
         return funcionesAlFinal(Simplificador.simplificar(e));
     }
 
-    /** ρ²·sen φ y no sen φ·ρ²: en cada producto las funciones van después de las letras. */
     private static Expresion funcionesAlFinal(Expresion e) {
         return switch (e) {
             case pe.mathnova.domain.expresion.Producto p -> {
@@ -120,7 +102,6 @@ public final class Trigonometricas {
         };
     }
 
-    /** ∂p/∂θ con d(cos θ) = −sen θ dθ y d(sen θ) = cos θ dθ (y lo mismo en φ). */
     public static Polinomio derivarAngulo(Polinomio p, char angulo) {
         char c = angulo == THETA ? COS_T : COS_F;
         char s = angulo == THETA ? SEN_T : SEN_F;

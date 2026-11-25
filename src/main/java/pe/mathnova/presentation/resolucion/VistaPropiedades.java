@@ -11,15 +11,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 
-/**
- * La sección "Propiedades de la función" (RF66), como texto de pizarra y sin JavaFX: una tabla
- * pequeña y la tabla de signos como recta.
- *
- * @param filas       "Grado" → "4", "Raíces racionales" → "x = −1, x = 1/2…"
- * @param marcas      las raíces sobre la recta, de menor a mayor: "−1", "1/2", "1", "2"
- * @param signos      +1 o −1 en cada tramo (uno más que marcas); vacío si no hay tabla de signos
- * @param avisoSignos por qué no hay tabla de signos, o null
- */
 public record VistaPropiedades(List<Fila> filas, List<String> marcas, List<Integer> signos, String avisoSignos) {
 
     public record Fila(String nombre, String valor) {
@@ -31,15 +22,10 @@ public record VistaPropiedades(List<Fila> filas, List<String> marcas, List<Integ
         signos = List.copyOf(signos);
     }
 
-    /** Vacío si el polinomio tiene más de una letra. */
     public static Optional<VistaPropiedades> de(Resolucion r) {
         return enQ(r).map(v -> r.extension() == null ? v : conCampo(v, r));
     }
 
-    /**
-     * En R o C se agregan las raíces del campo: las exactas (√2, 1 + 2i) de los factores lineales y,
-     * si se aproximaron (A5), las aproximadas con ≈.
-     */
     private static VistaPropiedades conCampo(VistaPropiedades v, Resolucion r) {
         var ext = r.extension();
         List<Fila> filas = new ArrayList<>(v.filas());
@@ -80,7 +66,6 @@ public record VistaPropiedades(List<Fila> filas, List<String> marcas, List<Integ
         });
     }
 
-    /** Para una fracción: raíces, asíntotas, huecos y corte con el eje y; sin tabla de signos. */
     public static Optional<VistaPropiedades> de(DatosGrafica d) {
         String x = String.valueOf(d.variable());
         List<Fila> filas = new ArrayList<>();
@@ -95,7 +80,6 @@ public record VistaPropiedades(List<Fila> filas, List<String> marcas, List<Integ
         return Optional.of(new VistaPropiedades(filas, List.of(), List.of(), null));
     }
 
-    /** "x = −1, x = 1 (doble)" o "no tiene". */
     private static String raices(String x, List<Raiz> raices) {
         if (raices.isEmpty()) {
             return "no tiene";
@@ -112,7 +96,6 @@ public record VistaPropiedades(List<Fila> filas, List<String> marcas, List<Integ
         };
     }
 
-    /** "(5/2, −1/4)": exacto, como fracción o entero. */
     public static String punto(Punto p) {
         return "(" + FormateadorTexto.numero(p.x()) + ", " + FormateadorTexto.numero(p.y()) + ")";
     }

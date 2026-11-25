@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/** Un factor elevado a su multiplicidad: (x + 2)^3 es Factor(x + 2, 3). */
 public record Factor(Polinomio polinomio, int multiplicidad) {
 
     public Factor {
@@ -18,7 +17,6 @@ public record Factor(Polinomio polinomio, int multiplicidad) {
         return new Factor(p, 1);
     }
 
-    /** polinomio^multiplicidad. */
     public Polinomio expandir() {
         return polinomio.potencia(multiplicidad);
     }

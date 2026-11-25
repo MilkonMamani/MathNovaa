@@ -15,18 +15,6 @@ import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Cómo se comprueba cada fila del banco, según su método principal (Sprints 2 a 7):
- * <ul>
- *   <li>F01–F20 y M01–M07 en Q: los mismos factores (en cualquier orden, ComparadorFactorizacion) y el
- *       mismo polinomio; en M01–M07 además el primer paso es el del banco y los factores finales quedan
- *       certificados (A6);</li>
- *   <li>F21–F30 en R y C: por estructura en el campo, con la verificación de la Parte E;</li>
- *   <li>A4: un solo factor, certificado; A5: las mismas raíces aproximadas; P01: la misma fracción y las
- *       mismas restricciones; T01–T05: con cada función como una letra.</li>
- * </ul>
- * Lo usan BancoCompletoTest y BancoFactorizacionTest.
- */
 public final class ComprobacionBanco {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();

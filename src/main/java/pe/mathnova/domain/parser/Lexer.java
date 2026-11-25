@@ -7,27 +7,11 @@ import java.util.Map;
 
 import pe.mathnova.domain.expresion.Letras;
 
-/**
- * Convierte el texto en tokens.
- * <ul>
- *   <li>Antes de leer normaliza: "−" a "-", "×" a "*", "²" a "^2", "³" a "^3", "⁺" a "+" y "⁻" a "-".
- *       Ignora los espacios.</li>
- *   <li>Las operaciones se reconocen antes que las letras sueltas: "lim", "int", "inf", "d/dx",
- *       "d2/dx2" (RN47: "d/dx" siempre es derivada) y "∂/∂x".</li>
- *   <li>Después las letras buscan el nombre de función más largo (arcsen antes que sen; RN45: "ln"
- *       es logaritmo, para l·n se escribe "l n"); si ninguno calza, toman una sola letra: e, i y π
- *       son constantes (RN42) y las demás latinas y griegas minúsculas son variables (RF57).
- *       Por eso "2xy" es 2·x·y.</li>
- *   <li>Σ, ∏, ∮ y |x| se rechazan (RF62); una casilla □ sin llenar también.</li>
- *   <li>El decimal va solo con punto.</li>
- * </ul>
- */
 public final class Lexer {
 
     static final String FUERA_DE_ALCANCE = "Las sumatorias, productorias, integrales de línea y el valor "
             + "absoluto están fuera del alcance de MathNova";
 
-    /** Nombre escrito → nombre canónico. */
     private static final Map<String, String> NOMBRES = Map.ofEntries(
             Map.entry("arcsen", "arcsen"), Map.entry("arcsin", "arcsen"),
             Map.entry("arccos", "arccos"), Map.entry("arcsec", "arcsec"),
@@ -43,7 +27,6 @@ public final class Lexer {
             Map.entry("pi", "π"),
             Map.entry("lim", "lim"), Map.entry("int", "∫"), Map.entry("inf", "∞"),
             Map.entry("grad", "grad"), Map.entry("Du", "Du"),
-            // Sprint 8
             Map.entry("extremos", "extremos"), Map.entry("coord", "coord"),
             Map.entry("polares", "polares"), Map.entry("cilindricas", "cilindricas"),
             Map.entry("cilíndricas", "cilindricas"), Map.entry("esfericas", "esfericas"),
@@ -54,7 +37,6 @@ public final class Lexer {
             .toList();
 
     private static final String OPERADORES = "+-*/^()·√∛_,[]→=;";
-    /** RF62: sumatoria, productoria, integral de línea y valor absoluto. */
     private static final String FUERA = "Σ∑∏Π∮|";
     private static final char CASILLA = '□';
 
@@ -62,7 +44,6 @@ public final class Lexer {
     }
 
     public static List<Token> tokenizar(String original) {
-        // Texto normalizado y, para cada carácter, su posición (base 1) en el original.
         StringBuilder s = new StringBuilder();
         List<Integer> origen = new ArrayList<>();
         for (int i = 0; i < original.length(); i++) {
@@ -83,7 +64,6 @@ public final class Lexer {
         return new Lectura(s.toString(), origen, original.length()).leer();
     }
 
-    /** Recorrido del texto normalizado. */
     private static final class Lectura {
 
         private final String s;
@@ -172,14 +152,12 @@ public final class Lexer {
             }
         }
 
-        /** En i hay "d" [ ["^"] entero ] "/d" seguido de una letra. */
         private boolean esDerivada() {
             int j = exponenteOpcional(i + 1);
             return j + 2 < s.length() && s.charAt(j) == '/' && s.charAt(j + 1) == 'd'
                     && Character.isLetter(s.charAt(j + 2));
         }
 
-        /** "d" [ ["^"] entero ] "/d" letra [ ["^"] entero ]; el parser valida la letra y los órdenes. */
         private void derivada(int pos) {
             int j = exponenteOpcional(i + 1);
             String orden = sinCircunflejo(i + 1, j);
@@ -188,7 +166,6 @@ public final class Lexer {
             agregar(Token.Tipo.DERIVADA, "d" + orden + "/d" + variable + sinCircunflejo(j + 3, fin), pos, fin - i);
         }
 
-        /** "∂" [ ["^"] entero ] "/" ( "∂" letra [ ["^"] entero ] )+ ; el parser valida letras y órdenes. */
         private void parcial(int pos) {
             int j = exponenteOpcional(i + 1);
             StringBuilder texto = new StringBuilder("∂").append(sinCircunflejo(i + 1, j));
@@ -210,7 +187,6 @@ public final class Lexer {
             agregar(Token.Tipo.PARCIAL, texto.toString(), pos, j - i);
         }
 
-        /** Salta un exponente opcional "2" o "^2" (de "²") y devuelve dónde termina. */
         private int exponenteOpcional(int desde) {
             int j = desde;
             if (j + 1 < s.length() && s.charAt(j) == '^' && esDigito(s.charAt(j + 1))) {

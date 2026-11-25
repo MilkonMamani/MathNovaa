@@ -3,11 +3,6 @@ package pe.mathnova.domain.expresion;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * ∇f, opcionalmente en un punto (HU28, RF53): {@code <gradiente> ::= "grad" "(" <expresion> [ "," <punto> ] ")"}.
- *
- * @param punto las coordenadas del punto, en el orden x, y, z…; vacío si no se pide en un punto
- */
 public record Gradiente(Expresion cuerpo, List<Expresion> punto) implements Expresion {
 
     public Gradiente {

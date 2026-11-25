@@ -2,16 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.List;
 
-/**
- * Escribe el árbol en el formato del banco de pruebas: "x^2", "2x", "(x - 2)(x + 3)", "2·i",
- * "e^x·(x + 1)", "√3·i/2". Lo que imprime se vuelve a leer con Parser y da el mismo árbol
- * (salvo constantes negativas o fraccionarias sueltas, que el parser nunca produce).
- *
- * <p>Multiplicación: se escribe sin signo ("2x^2(x - 1)") salvo antes de un número, de i o de una
- * raíz, después de una raíz, de un cociente o de un paréntesis seguido de otra cosa, y en los
- * productos con funciones o e^x, donde todos los factores van con "·" menos el coeficiente
- * entero inicial ("2sen(x)·(cos(x) - 1)").
- */
 public final class ImpresoraTexto implements Visitante<String> {
 
     private static final ImpresoraTexto INSTANCIA = new ImpresoraTexto();
@@ -37,8 +27,6 @@ public final class ImpresoraTexto implements Visitante<String> {
     public String visitar(Variable v) {
         return String.valueOf(v.nombre());
     }
-
-    // ------------------------------------------------------------------ operaciones (HU34)
 
     @Override
     public String visitar(Limite l) {
@@ -71,13 +59,11 @@ public final class ImpresoraTexto implements Visitante<String> {
         return sb.append('(').append(p(d.cuerpo())).append(')').toString();
     }
 
-    /** "grad(x^2 + y^2)", "grad(x^2 + y^2, (1, 2))". */
     @Override
     public String visitar(Gradiente g) {
         return "grad(" + p(g.cuerpo()) + (g.enUnPunto() ? ", " + tupla(g.punto()) : "") + ")";
     }
 
-    /** "Du(x^2 + y^2, (3, 4), (1, 2))". */
     @Override
     public String visitar(Direccional d) {
         return "Du(" + p(d.cuerpo()) + ", " + tupla(d.vector()) + ", " + tupla(d.punto()) + ")";
@@ -106,19 +92,16 @@ public final class ImpresoraTexto implements Visitante<String> {
         return sb.append(')').toString();
     }
 
-    /** "lim((x, y)→(0, 0), xy/(x^2 + y^2))" (Sprint 8). */
     @Override
     public String visitar(LimiteDoble l) {
         return "lim((" + l.x() + ", " + l.y() + ")→(" + p(l.a()) + ", " + p(l.b()) + "), " + p(l.cuerpo()) + ")";
     }
 
-    /** "extremos(x y; x + y = 10)" (Sprint 8). */
     @Override
     public String visitar(Extremos x) {
         return "extremos(" + p(x.funcion()) + (x.conRestriccion() ? "; " + p(x.restriccion()) : "") + ")";
     }
 
-    /** "x^2 - 5x + 6 = 0" (HU38). */
     @Override
     public String visitar(Ecuacion e) {
         return p(e.izquierda()) + " = " + p(e.derecha());
@@ -142,7 +125,6 @@ public final class ImpresoraTexto implements Visitante<String> {
             if (k == 0) {
                 sb.append(t instanceof Suma ? entreParentesis(t) : p(t));
             } else {
-                // Un solo operador por término: x - 3, x - 2x y x + 3, no x + -3, x + -2x ni x - -3 (ver Signos)
                 Signos.Termino signo = Signos.separar(t);
                 Expresion v = signo.valor();
                 sb.append(signo.negativo() ? " - " : " + ").append(v instanceof Suma ? entreParentesis(v) : p(v));
@@ -163,7 +145,6 @@ public final class ImpresoraTexto implements Visitante<String> {
     public String visitar(Producto prod) {
         List<Expresion> factores = prod.factores();
         if (factores.getFirst() instanceof Constante c && c.valor().signo() < 0) {
-            // -2x, no (-2)x; -x, no (-1)x
             Expresion resto = Signos.sinMenos(prod).orElseThrow();
             return "-" + (Precedencia.de(resto) < Precedencia.SIGNO || Signos.conMenos(resto)
                     ? entreParentesis(resto) : p(resto));
@@ -197,7 +178,6 @@ public final class ImpresoraTexto implements Visitante<String> {
         };
     }
 
-    /** 3/5 escrito como cociente de dos enteros: en un producto va como "(3/5)x". */
     private static boolean esFraccionNumerica(Expresion e) {
         return e instanceof Cociente(Constante n, Constante d) && n.valor().esEntero() && d.valor().esEntero();
     }
@@ -213,7 +193,6 @@ public final class ImpresoraTexto implements Visitante<String> {
             return coeficienteInicial ? "" : "·";
         }
         if (anteriorEnvuelto) {
-            // "(x + 1)(x - 2)^2" y "(3/5)x" van juntos; "(∛2 + ∛4)·x" lleva punto.
             return anterior instanceof Suma && inicio != '(' ? "·" : "";
         }
         if (esI(f) || anterior instanceof Raiz || anterior instanceof Cociente || esI(anterior)) {

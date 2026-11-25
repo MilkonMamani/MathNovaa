@@ -21,12 +21,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 import pe.mathnova.presentation.latex.VistaLatex;
 
-/**
- * "Comparación Q / R / C" de Exploración: una fila por campo. La primera columna (Q, R o C) tiene ancho fijo y
- * va arriba a la izquierda; la segunda se adapta al ancho: primero la forma legible y qué estructura tiene,
- * y debajo, plegado, el detalle exacto. Una fórmula larga nunca ensancha el panel: se reparte en renglones
- * y, si el detalle exacto no cabe, se desplaza solo esa fórmula.
- */
 public final class ComparacionCampos extends VBox {
 
     static final double ANCHO_ROTULO = 36;
@@ -34,15 +28,6 @@ public final class ComparacionCampos extends VBox {
     private static final double TAMANO = 16;
     private static final double TAMANO_MINIMO = 13;
 
-    /**
-     * Una fila.
-     *
-     * @param rotulo       "Q", "R", "C" o "Q = R = C"
-     * @param latex        la forma legible
-     * @param descripcion  la estructura ("Un factor lineal y un factor cuadrático irreducible"), o null
-     * @param definiciones qué es r (y z), con su valor exacto plegado; vacío si no hay símbolos
-     * @param exacto       la forma con todos los radicales, si es distinta de la legible; null si no
-     */
     public record Fila(String rotulo, String latex, String descripcion, List<Desarrollo.Renglon> definiciones,
                        String exacto) {
         public Fila {
@@ -67,7 +52,6 @@ public final class ComparacionCampos extends VBox {
         }
     }
 
-    /** Las filas de una comparación del servicio, en el orden Q, R, C. */
     public static List<Fila> filas(FactorizacionService.Comparacion c) {
         if (c.iguales()) {
             return List.of(new Fila("Q = R = C", c.latex().get(Campo.Q), c.nota(), List.of(), null));
@@ -76,7 +60,7 @@ public final class ComparacionCampos extends VBox {
         for (Campo campo : Campo.values()) {
             String latex = c.latex().get(campo);
             if (latex == null) {
-                continue; // la operación no tiene sentido o no hay resultado en ese campo
+                continue;
             }
             Resolucion r = c.resoluciones().get(campo);
             Optional<FormaLegible> legible = FormaLegible.de(r);
@@ -87,7 +71,6 @@ public final class ComparacionCampos extends VBox {
         return l;
     }
 
-    /** Mientras se calcula: las tres etiquetas y "Calculando…". */
     public static ComparacionCampos calculando() {
         List<Fila> l = new ArrayList<>();
         for (Campo c : Campo.values()) {
@@ -112,7 +95,7 @@ public final class ComparacionCampos extends VBox {
         VBox cuerpo = new VBox(4);
         cuerpo.getStyleClass().add("comparacion-cuerpo");
         cuerpo.setMinWidth(0);
-        cuerpo.setPrefWidth(0); // la columna flexible toma lo que queda, nunca lo que pida la fórmula
+        cuerpo.setPrefWidth(0);
         cuerpo.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(cuerpo, Priority.ALWAYS);
         if (f.latex() != null) {
@@ -145,7 +128,6 @@ public final class ComparacionCampos extends VBox {
         return h;
     }
 
-    /** "Ver forma exacta": la fórmula completa, con desplazamiento horizontal solo en su recuadro. */
     private Node exacto(String latex) {
         ToggleButton ver = new ToggleButton(VER_EXACTA);
         ver.getStyleClass().add("pizarra-ver-detalle");
@@ -163,7 +145,7 @@ public final class ComparacionCampos extends VBox {
         desplazable.setMinWidth(0);
         desplazable.setPrefViewportWidth(1);
         desplazable.setMaxWidth(Double.MAX_VALUE);
-        double alto = imagen.getBoundsInLocal().getHeight() + 22; // la imagen y la barra
+        double alto = imagen.getBoundsInLocal().getHeight() + 22;
         desplazable.setPrefViewportHeight(alto);
         desplazable.setMinViewportHeight(alto);
         desplazable.setVisible(false);
@@ -179,18 +161,14 @@ public final class ComparacionCampos extends VBox {
         return caja;
     }
 
-    // ------------------------------------------------------------------ para las pruebas
-
     public List<Fila> filas() {
         return filas;
     }
 
-    /** Las etiquetas Q, R y C. */
     public List<Region> rotulos() {
         return List.copyOf(rotulos);
     }
 
-    /** "Ver valor exacto de r" y "Ver forma exacta". */
     public List<ToggleButton> controles() {
         return List.copyOf(controles);
     }

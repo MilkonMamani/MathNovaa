@@ -11,18 +11,6 @@ import pe.mathnova.domain.expresion.Extremos;
 import pe.mathnova.domain.expresion.ImpresoraLatex;
 import pe.mathnova.domain.expresion.ImpresoraPizarra;
 
-/**
- * Los puntos críticos de f clasificados (HU30, RF55): con el criterio del Hessiano (V07) o, con una restricción,
- * con los multiplicadores de Lagrange (V08).
- *
- * @param variables   las letras de f (y de g), en orden
- * @param gradiente   ∇f, componente por componente
- * @param hessiana    la matriz hessiana de f (en el Hessiano); vacía con Lagrange
- * @param restriccion g(x, y) − c, la restricción igualada a cero; null sin restricción
- * @param puntos      ordenados por coordenadas
- * @param avisos      raíces irracionales que se dejaron fuera, ramas que no se resolvieron
- * @param completo    false si el sistema no se pudo resolver del todo
- */
 public record ResolucionExtremos(Extremos entrada, Tipo tipo, Expresion funcion, List<Character> variables,
                                  List<Expresion> gradiente, List<List<Expresion>> hessiana, Expresion restriccion,
                                  List<Punto> puntos, List<PasoLimite> pasos, List<String> avisos, boolean completo) {
@@ -43,7 +31,6 @@ public record ResolucionExtremos(Extremos entrada, Tipo tipo, Expresion funcion,
 
     public enum Clase {
         MINIMO("mínimo local"), MAXIMO("máximo local"), SILLA("punto de silla"), NO_DECIDE("el criterio no decide"),
-        /** Lagrange: el mayor valor de f sobre la restricción entre los puntos comparados. */
         MAXIMO_RESTRINGIDO("máximo"),
         MINIMO_RESTRINGIDO("mínimo"),
         SIN_CLASIFICAR("sin clasificar");
@@ -67,12 +54,6 @@ public record ResolucionExtremos(Extremos entrada, Tipo tipo, Expresion funcion,
         }
     }
 
-    /**
-     * @param lambda el multiplicador (Lagrange); null en el Hessiano
-     * @param valor  f en el punto
-     * @param fxx    las segundas derivadas en el punto (Hessiano); null con Lagrange
-     * @param d      D = fxx·fyy − fxy²; null con Lagrange
-     */
     public record Punto(List<Racional> coordenadas, Racional lambda, Racional valor, Racional fxx, Racional fxy,
                         Racional fyy, Racional d, Clase clase) {
 
@@ -81,7 +62,6 @@ public record ResolucionExtremos(Extremos entrada, Tipo tipo, Expresion funcion,
             Objects.requireNonNull(clase, "clase");
         }
 
-        /** "(1, 0)". */
         public String texto() {
             return "(" + String.join(", ", coordenadas.stream().map(ImpresoraPizarra::numero).toList()) + ")";
         }
@@ -98,7 +78,6 @@ public record ResolucionExtremos(Extremos entrada, Tipo tipo, Expresion funcion,
         avisos = List.copyOf(avisos);
     }
 
-    /** "(0, 0) punto de silla; (1, 1) mínimo local", o "(5, 5) máximo, f = 25". */
     public String texto() {
         if (puntos.isEmpty()) {
             return completo ? "No hay puntos críticos con coordenadas exactas" : "No se pudo resolver el sistema";

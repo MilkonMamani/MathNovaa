@@ -15,13 +15,6 @@ import pe.mathnova.application.service.ResolverService;
 import pe.mathnova.domain.ecuacion.ResolvedorEcuaciones;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 
-/**
- * El estado único de la pantalla: nada del ejercicio anterior queda como si fuera actual.
- *
- * <p>RF71 (la línea de resultado en vivo bajo el editor) se retiró: el resultado depende del método y
- * del campo Q/R/C, y mostrarlo antes de Resolver adelantaba la respuesta. Las aserciones sobre esa línea
- * se quitaron de estas pruebas y la que solo probaba RF71 quedó desactivada; RF77 (atenuar) sigue.
- */
 class PantallaResolucionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -56,7 +49,6 @@ class PantallaResolucionTest {
         escribir("x^2-5x+6");
         assertEquals(EstadoResolucion.ESCRIBIENDO, p.estado());
         assertTrue(p.botonActivo());
-        // RF71 retirado: antes aquí llegaba la línea en vivo "= (x − 2)(x − 3)".
         resolver(true);
         assertEquals(EstadoResolucion.RESUELTO, p.estado());
         assertTrue(p.verificado());
@@ -70,12 +62,10 @@ class PantallaResolucionTest {
         resolver(true);
 
         escribir("x^2-5x+");
-        // de inmediato: sin "Verificado", paneles atenuados (RF77)
         assertFalse(p.verificado());
         assertFalse(p.etiquetaVisible());
         assertTrue(p.atenuado());
         assertEquals(EstadoResolucion.ESCRIBIENDO, p.estado());
-        // a los 400 ms: el error a la vista y Resolver desactivado; los paneles siguen atenuados
         p.confirmar(p.version());
         assertEquals(EstadoResolucion.ERROR, p.estado());
         assertNotNull(p.mensaje());
@@ -83,11 +73,6 @@ class PantallaResolucionTest {
         assertTrue(p.atenuado());
     }
 
-    /**
-     * RF71 retirado. Esta prueba comprobaba que un resultado en vivo de una versión vieja de la entrada
-     * se descartaba (enVivoListo con la versión anterior no se mostraba y con la actual sí). La línea en
-     * vivo ya no existe, ni enVivoListo ni lineaEnVivo: no queda nada que probar aquí.
-     */
     @Disabled("RF71 retirado: ya no hay línea de resultado en vivo bajo el editor")
     @Test
     void unCalculoEnVivoViejoSeDescarta() {
@@ -98,7 +83,7 @@ class PantallaResolucionTest {
         escribir("x^2-1");
         int v = p.version();
         p.empezarCalculo();
-        escribir("x^2-4"); // el estudiante sigue escribiendo mientras se calcula
+        escribir("x^2-4");
         p.resultado(v, true);
         assertEquals(EstadoResolucion.ESCRIBIENDO, p.estado());
         assertTrue(p.atenuado());
@@ -122,7 +107,6 @@ class PantallaResolucionTest {
     void elMismoTextoNoCuentaComoCambio() {
         escribir("x^2-5x+6");
         resolver(true);
-        // El editor avisa otra vez con lo mismo (o el historial pone el mismo ejercicio con otros espacios).
         assertFalse(p.cambiar(PantallaResolucion.analizarTexto("x^2 - 5x + 6", SERVICIO)));
         assertEquals(EstadoResolucion.RESUELTO, p.estado());
         assertTrue(p.verificado());

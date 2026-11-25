@@ -19,11 +19,6 @@ import pe.mathnova.application.service.ConfiguracionService.TamanoLetra;
 import pe.mathnova.application.service.ConfiguracionService.Tema;
 import pe.mathnova.domain.factorizacion.Campo;
 
-/**
- * Sprint 9, parte E: la tabla configuracion. Valores por defecto, guardar y leer cada clave (también por su
- * propiedad observable) y que "Borrar todo el historial" no toque los ejemplos. Base de prueba de target/; cada
- * prueba se deshace al terminar, y las propiedades vuelven a su valor por defecto.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class ConfiguracionServiceTest {
@@ -43,7 +38,6 @@ class ConfiguracionServiceTest {
     @Autowired
     private JdbcTemplate jdbc;
 
-    /** El servicio es uno para todas las pruebas: sus propiedades vuelven a lo de fábrica. */
     @AfterEach
     void restaurar() {
         configuracion.guardarCampoPorDefecto(Campo.Q);
@@ -69,7 +63,6 @@ class ConfiguracionServiceTest {
         assertEquals(Tema.CLARO, configuracion.tema());
         assertTrue(configuracion.animacionesActivas());
 
-        // Al arrancar se crean las claves que faltan, con esos valores
         configuracion.crearClavesFaltantes();
         assertEquals(Map.of(ConfiguracionService.CAMPO_POR_DEFECTO, "Q", ConfiguracionService.MODO_PIZARRA, "todos",
                 ConfiguracionService.MOSTRAR_EXPLICACIONES, "false", ConfiguracionService.MOSTRAR_CODIGOS, "false",

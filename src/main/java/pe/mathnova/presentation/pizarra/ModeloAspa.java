@@ -6,14 +6,6 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * Lo que dibuja {@link AspaSimple}, como texto de pizarra. Para 6x² + x − 2:
- * izquierda [2x, 3x], derecha [−1, 2], productos ["2x·2 = 4x", "3x·(−1) = −3x"],
- * suma "4x − 3x = x ✓" y resultado "(2x − 1)(3x + 2)".
- *
- * <p>En el aspa homogénea (M04) la derecha lleva la segunda letra: para 2x² + 5xy − 3y² queda
- * izquierda [2x, x], derecha [−y, 3y], productos ["2x·3y = 6xy", "x·(−y) = −xy"] y "6xy − xy = 5xy ✓".
- */
 public record ModeloAspa(List<String> izquierda, List<String> derecha, List<String> productos, String suma,
                          boolean sumaCorrecta, String resultado) {
 
@@ -23,7 +15,6 @@ public record ModeloAspa(List<String> izquierda, List<String> derecha, List<Stri
         boolean homogenea = w != 0;
         String x1 = FormateadorTexto.termino(a.a1(), v, 1);
         String x2 = FormateadorTexto.termino(a.a2(), v, 1);
-        // Productos cruzados: fila 1 izquierda × fila 2 derecha y fila 2 izquierda × fila 1 derecha.
         Racional p1 = a.a1().multiplicar(a.c2());
         Racional p2 = a.a2().multiplicar(a.c1());
         Racional b = p1.sumar(p2);
@@ -47,7 +38,6 @@ public record ModeloAspa(List<String> izquierda, List<String> derecha, List<Stri
         return w == 0 ? FormateadorTexto.numeroEnParentesis(c) : FormateadorTexto.terminoEnParentesis(c, w, 1);
     }
 
-    /** "4x", o "6xy" en la homogénea. */
     private static String cruce(Racional c, char v, char w) {
         return FormateadorTexto.termino(c, v, 1) + (w == 0 ? "" : String.valueOf(w));
     }

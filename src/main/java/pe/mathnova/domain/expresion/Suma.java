@@ -2,7 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.List;
 
-/** Suma de dos o más términos. Una resta es un término Negacion. */
 public record Suma(List<Expresion> terminos) implements Expresion {
 
     public Suma {

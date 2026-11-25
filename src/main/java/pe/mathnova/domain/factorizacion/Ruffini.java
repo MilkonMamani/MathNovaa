@@ -8,11 +8,6 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio.TablaRuffini;
 
-/**
- * F16: Ruffini con el teorema de las raíces racionales. Prueba los candidatos p/q en el orden de
- * RN09 hasta que uno deja residuo 0; los términos que faltan se completan con 0. Saca un solo factor
- * (qx − p) por paso; el cociente sigue en el orquestador (F17 si la raíz se repite).
- */
 public final class Ruffini extends MetodoBase {
 
     private static final int CANDIDATOS_VISIBLES = 10;
@@ -21,7 +16,6 @@ public final class Ruffini extends MetodoBase {
         super("F16");
     }
 
-    /** Solo desde grado 3, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 3;
@@ -70,12 +64,10 @@ public final class Ruffini extends MetodoBase {
         return resultado(j.toString(), p, factores, new TablaRuffini(v, probados, List.of(d)));
     }
 
-    /** (q·x − p) para la raíz p/q. */
     static Polinomio lineal(char v, Racional r) {
         return Polinomio.termino(Racional.de(r.den()), Monomio.de(v, 1)).sumar(Polinomio.constante(Racional.de(r.num()).negar()));
     }
 
-    /** "Se completa con 0 el término de x² que falta" o "Se completan con 0 los términos de x² y x que faltan". */
     static String completados(char v, int grado, List<Integer> posiciones) {
         List<String> nombres = new ArrayList<>();
         for (int pos : posiciones) {
@@ -95,7 +87,6 @@ public final class Ruffini extends MetodoBase {
         return r.signo() < 0 ? r.negar() : r;
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Prueba si algún divisor del término independiente (entre los divisores del coeficiente principal) hace cero el polinomio.";

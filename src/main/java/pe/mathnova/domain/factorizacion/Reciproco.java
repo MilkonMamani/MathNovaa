@@ -7,18 +7,12 @@ import java.util.Optional;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F18: polinomio recíproco de grado par 2m (los coeficientes se leen igual de ida y de vuelta).
- * Se divide entre xᵐ, se usa z = x + 1/x (x² + 1/x² = z² − 2, x³ + 1/x³ = z³ − 3z…), se factoriza
- * en z y cada factor (Dz − N) se regresa como Dx² − Nx + D.
- */
 public final class Reciproco extends MetodoBase {
 
     public Reciproco() {
         super("F18");
     }
 
-    /** Solo grado par desde 4, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 4 && p.grado() % 2 == 0;
@@ -46,7 +40,6 @@ public final class Reciproco extends MetodoBase {
         char x = u.variable();
         char z = x == 'z' ? 'w' : 'z';
 
-        // Q(z) = a_m + Σ a_{m+k}·T_k(z), con T_k = x^k + 1/x^k escrito en z.
         List<Univariado> t = new ArrayList<>();
         t.add(Univariado.de(z, List.of(Racional.de(2))));
         t.add(Univariado.de(z, List.of(Racional.CERO, Racional.UNO)));
@@ -59,7 +52,6 @@ public final class Reciproco extends MetodoBase {
             q = q.sumar(t.get(k).multiplicar(u.coef(m + k)));
         }
 
-        // Raíces racionales de Q(z), con su multiplicidad.
         List<Racional> raices = new ArrayList<>();
         Univariado resto = q;
         boolean encontro = true;
@@ -92,7 +84,6 @@ public final class Reciproco extends MetodoBase {
             factores.add(Factor.de(Univariado.de(x, List.of(d, n.negar(), d)).aPolinomio()));
             enZeta.add(Factor.de(Univariado.de(z, List.of(n.negar(), d)).aPolinomio()));
         }
-        // Lo que queda en z, de grado j, se regresa como x^j·R(x + 1/x) = Σ r_i (x² + 1)^i x^(j−i).
         int j = resto.grado();
         Univariado x2mas1 = Univariado.de(x, List.of(Racional.UNO, Racional.CERO, Racional.UNO));
         Univariado regreso = Univariado.de(x, List.of(Racional.CERO));
@@ -121,13 +112,11 @@ public final class Reciproco extends MetodoBase {
         return u.deMayorAMenor().stream().map(Formato::numero).toList();
     }
 
-    /** Sin el factor constante 1 que deja el resto cuando Q(z) se parte del todo. */
     private static List<Factor> ordenar(List<Factor> factores) {
         return factores.stream().filter(f -> !(f.polinomio().esConstante()
                 && f.polinomio().constante().equals(Racional.UNO))).toList();
     }
 
-    /** "(x² + 1/x²) + 3(x + 1/x) + 4". */
     private static String agrupado(Univariado u, int m, char x) {
         StringBuilder sb = new StringBuilder();
         for (int k = m; k >= 1; k--) {
@@ -178,7 +167,6 @@ public final class Reciproco extends MetodoBase {
         return Univariado.de(x, c);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Los coeficientes se leen igual de izquierda a derecha que de derecha a izquierda.";

@@ -27,7 +27,6 @@ import pe.mathnova.presentation.grafica.DatosCurvasNivel;
 import pe.mathnova.presentation.grafica.MarchingSquares;
 import pe.mathnova.presentation.grafica.VentanaGrafica;
 
-/** Sprint 8, Parte D: curvas de nivel y el contenido de las pestañas de límites dobles, extremos e integrales. */
 class PestanasSprint8Test {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -39,8 +38,6 @@ class PestanasSprint8Test {
         return s.filas().stream().collect(Collectors.toMap(VistaPropiedades.Fila::nombre, VistaPropiedades.Fila::valor,
                 (a, b) -> a, java.util.LinkedHashMap::new));
     }
-
-    // ------------------------------------------------------------------ marching squares
 
     @Test
     void lasCurvasDeNivelDeUnaParaboloideSonCirculos() {
@@ -70,8 +67,6 @@ class PestanasSprint8Test {
             assertTrue(seg[0] > 0 && seg[2] > 0);
         }
     }
-
-    // ------------------------------------------------------------------ límites dobles
 
     @Test
     void limiteDobleConSusTrayectorias() {
@@ -114,8 +109,6 @@ class PestanasSprint8Test {
         assertEquals(VistaResolucion.Etiqueta.CALCULADO, VistaResolucion.de(r, false).etiqueta());
     }
 
-    // ------------------------------------------------------------------ extremos
-
     @Test
     void extremosConSusPuntosMarcados() {
         ResolucionExtremos r = SERVICIO.resolverExtremos("extremos(x^3 + y^3 - 3xy)", f -> { });
@@ -144,8 +137,6 @@ class PestanasSprint8Test {
         assertEquals("λ = 5,  f = 25:  máximo",
                 filas(ContenidoExtremos.de(r).secciones().getFirst()).get("(5, 5)"));
     }
-
-    // ------------------------------------------------------------------ integrales múltiples
 
     @Test
     void integralDobleConSuRegionYSimpson() {
@@ -193,7 +184,6 @@ class PestanasSprint8Test {
                 () -> assertEquals(VistaExploracion.Estado.PROBAR, polares.estado()),
                 () -> assertEquals("V10 · Coordenadas polares", polares.nombre()),
                 () -> assertTrue(polares.vistaPrevia().contains("π/2"), polares.vistaPrevia()));
-        // "Probar" vuelve a resolver con ese camino
         ResolucionIntegralMultiple p = SERVICIO.resolverIntegralMultiple(
                 "∬(x^2 + y^2, y, -sqrt(1 - x^2), sqrt(1 - x^2), x, -1, 1)", "POLARES", f -> { });
         assertEquals("π/2", p.texto());
@@ -207,7 +197,6 @@ class PestanasSprint8Test {
         assertAll(
                 () -> assertEquals(1, f.x(), 1e-12),
                 () -> assertEquals(2, f.y(), 1e-12),
-                // ∇f(1, 2) = (2, 4): la flecha apunta en esa dirección
                 () -> assertEquals(2.0, f.dy() / f.dx(), 1e-9),
                 () -> assertEquals("∇f(1, 2)", f.rotulo()));
         assertTrue(ContenidoParciales.de(SERVICIO.resolverParciales("∂/∂x(x^2 y)", f2 -> { })).curvasNivel()
@@ -215,8 +204,6 @@ class PestanasSprint8Test {
         assertEquals(Optional.empty(), ContenidoParciales.de(SERVICIO.resolverParciales(
                 "d/dt(x^2 y); x = t^2, y = sen t", f2 -> { })).curvasNivel());
     }
-
-    // ------------------------------------------------------------------ sugerencias y servicio
 
     @Test
     void lasSugerenciasDeDosVariablesQuedanActivas() {
@@ -238,7 +225,6 @@ class PestanasSprint8Test {
         assertEquals(Optional.of("= 3"), SERVICIO.enVivo("lim((x,y)→(1,2), x^2 + xy)"));
         assertEquals(Optional.of("(1, 0) mínimo local"), SERVICIO.enVivo("extremos(x^2 + y^2 - 2x)"));
         assertEquals(Optional.of("= 9"), SERVICIO.enVivo("∬(x y, x, 0, 2, y, 0, 3)"));
-        // la regla de la cadena con ";" sigue funcionando
         assertTrue(SERVICIO.decidir("d/dt(x^2 y); x = t^2, y = sen t").resoluble());
     }
 }

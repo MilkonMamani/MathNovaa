@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Parte F del Sprint 5, sin JavaFX: lo que muestra la pantalla para un límite. */
 class VistaLimiteTest {
 
     private static final LimiteService SERVICIO = new LimiteService(new OrquestadorFactorizacion());
@@ -70,7 +69,6 @@ class VistaLimiteTest {
         assertEquals(2.0, m.a());
         assertEquals(4.0, m.valor());
         assertTrue(m.izquierda() && m.derecha());
-        // El hueco (2, 4) lo marca la simplificación: el círculo no se repite.
         assertEquals(1, d.huecos().size());
         assertFalse(m.hueco());
 
@@ -79,7 +77,7 @@ class VistaLimiteTest {
         assertNull(di.extra().limite().a());
         assertEquals(2.0, di.extra().limite().valor());
         assertEquals(2.0, di.extra().horizontal());
-        assertEquals(2, di.extra().verticales().size()); // ±√3
+        assertEquals(2, di.extra().verticales().size());
 
         ResolucionLimite sen = SERVICIO.calcular("lim(x→0, sen(x)/x)");
         DatosGrafica ds = DatosGrafica.de(sen, Optional.empty()).orElseThrow();

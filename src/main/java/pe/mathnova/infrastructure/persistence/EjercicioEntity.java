@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Tabla ejercicio de V1: una entrada, identificada por su forma normalizada. */
 @Entity
 @Table(name = "ejercicio")
 @Getter
@@ -39,11 +38,9 @@ public class EjercicioEntity {
     @Column(name = "expresion_latex", nullable = false)
     private String expresionLatex;
 
-    /** Letras separadas por coma: "x" o "a,b". */
     @Column(name = "variables", nullable = false)
     private String variables;
 
-    /** POLINOMIO, RACIONAL o TRASCENDENTE. */
     @Column(name = "tipo", nullable = false)
     private String tipo;
 
@@ -55,7 +52,6 @@ public class EjercicioEntity {
     @Column(name = "creado_en", nullable = false)
     private Instant creadoEn;
 
-    /** Tabla ejercicio_tema: los temas de todas sus resoluciones (factorizar en Q, límite…). */
     @ManyToMany
     @JoinTable(name = "ejercicio_tema", joinColumns = @JoinColumn(name = "ejercicio_id"),
             inverseJoinColumns = @JoinColumn(name = "tema_id"))

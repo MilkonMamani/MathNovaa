@@ -3,40 +3,22 @@ package pe.mathnova.presentation.editor;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Qué tecla va en cada pestaña del teclado (HU33, RF72) y qué hace. Sin JavaFX: el dibujo está en
- * {@link TecladoMatematico}.
- *
- * <p>Pestañas: 123 | f(x) | ABC | #&¬. 123 y f(x) tienen un bloque a la izquierda y otro a la
- * derecha; ABC y #&¬ son un solo bloque. ABC tiene una segunda capa con las griegas (αβγ).
- */
 public final class Teclas {
 
-    /** Cómo se dibuja la tecla. */
     public enum Tipo {
-        /** Blanca. */
         NORMAL,
-        /** Gris #d5d9e3: ⌫, ←, →, ⇧, αβγ, ABC. */
         ESPECIAL,
-        /** Azul marino. */
         ENTER,
-        /** Naranja, con tooltip "constante" (RN42). */
         CONSTANTE,
-        /** Gris claro, no hace nada; su tooltip dice por qué. */
         DESACTIVADA
     }
 
     public enum Accion {
-        /** Inserta LaTeX (con casillas #? o #@) y lleva el cursor a la primera casilla. */
         INSERTAR,
-        /** Escribe como si se tecleara (dígitos, letras, + - = ( ) , . < > !). */
         ESCRIBIR,
         BORRAR, IZQUIERDA, DERECHA, ENTER,
-        /** Pone la respuesta anterior. */
         ANS,
-        /** ⇧ en ABC. */
         MAYUSCULA,
-        /** αβγ ↔ ABC. */
         CAMBIAR_CAPA,
         NADA
     }
@@ -72,7 +54,6 @@ public final class Teclas {
         }
     }
 
-    /** Un bloque de filas; cada fila tiene sus teclas. */
     public record Bloque(List<List<Tecla>> filas) {
 
         public int columnas() {
@@ -82,8 +63,6 @@ public final class Teclas {
 
     public record Pestana(String titulo, Bloque izquierda, Bloque derecha) {
     }
-
-    // ------------------------------------------------------------------ teclas comunes
 
     static final Tecla BORRAR = Tecla.especial("⌫", Accion.BORRAR);
     static final Tecla IZQUIERDA = Tecla.especial("←", Accion.IZQUIERDA);
@@ -104,8 +83,6 @@ public final class Teclas {
         return new Bloque(List.of(filas));
     }
 
-    // ------------------------------------------------------------------ 123
-
     public static final Pestana NUMEROS = new Pestana("123",
             bloque(
                     fila(Tecla.escribir("x"), Tecla.escribir("y"), PI, E),
@@ -123,8 +100,6 @@ public final class Teclas {
                     fila(Tecla.escribir("1"), Tecla.escribir("2"), Tecla.escribir("3"),
                             Tecla.escribir("="), BORRAR),
                     fila(Tecla.escribir("0"), Tecla.escribir("."), IZQUIERDA, DERECHA, ENTER)));
-
-    // ------------------------------------------------------------------ f(x)
 
     public static final Pestana FUNCIONES = new Pestana("f(x)",
             bloque(
@@ -144,7 +119,6 @@ public final class Teclas {
                             Tecla.latex("∬", Plantillas.INTEGRAL_DOBLE, "integral doble")),
                     fila(Tecla.latex("∭", Plantillas.INTEGRAL_TRIPLE, "integral triple"),
                             Tecla.latex("∞", "\\infty"), I,
-                            // Sprint 8: el límite doble y los extremos en el lugar de ! y °, que la gramática no usa
                             Tecla.latex("lím(x,y)", Plantillas.LIMITE_DOBLE, "límite doble"),
                             Tecla.latex("extr", Plantillas.EXTREMOS, "puntos críticos y extremos")),
                     fila(Tecla.latex("□₍□₎", Plantillas.SUBINDICE, "subíndice"),
@@ -152,8 +126,6 @@ public final class Teclas {
                             Tecla.latex("Dᵤf", Plantillas.DIRECCIONAL, "derivada direccional"),
                             Tecla.latex("∂", Plantillas.PARCIAL_EN, "derivada parcial respecto de la variable que escribas"), BORRAR),
                     fila(Tecla.latex("→", "\\to", "tiende a"), Tecla.escribir(","), IZQUIERDA, DERECHA, ENTER)));
-
-    // ------------------------------------------------------------------ ABC y αβγ
 
     private static List<Tecla> letras(String s) {
         List<Tecla> r = new ArrayList<>();
@@ -176,7 +148,6 @@ public final class Teclas {
             r.add(switch (l) {
                 case "π" -> PI;
                 case "ς" -> Tecla.desactivada("ς", "no es una variable de MathNova");
-                // MathLive no conoce \omicron: se escribe la letra griega tal cual.
                 case "ο" -> Tecla.escribir("ο");
                 default -> Tecla.latex(l, LATEX_GRIEGAS.get(l));
             });
@@ -218,8 +189,6 @@ public final class Teclas {
                     filaInferior("ABC"))),
             null);
 
-    // ------------------------------------------------------------------ #&¬
-
     public static final Pestana SIMBOLOS = new Pestana("#&¬",
             bloque(
                     fila(Tecla.latex("∞", "\\infty"), Tecla.latex("≠", "\\ne"), Tecla.latex("≈", "\\approx"),
@@ -238,7 +207,6 @@ public final class Teclas {
                             Tecla.escribir(">"), Tecla.escribir("!"), IZQUIERDA, DERECHA, ENTER)),
             null);
 
-    /** Las cuatro pestañas en orden. αβγ es la segunda capa de ABC. */
     public static final List<Pestana> PESTANAS = List.of(NUMEROS, FUNCIONES, LETRAS, SIMBOLOS);
 
     @SafeVarargs

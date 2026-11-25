@@ -22,14 +22,6 @@ import pe.mathnova.presentation.grafica.DatosCurvasNivel;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.grafica.VentanaGrafica;
 
-/**
- * Un límite doble (Sprint 8, HU29).
- * <ul>
- *   <li>Gráfica: las curvas de nivel alrededor del punto y, encima, las trayectorias probadas, cada una con su valor
- *       (y = mx se dibuja con m = 1 y m = −1).</li>
- *   <li>Análisis: la tabla de trayectorias y, si se usó, la forma polar con su cota.</li>
- * </ul>
- */
 public record ContenidoLimiteDoble(String latexSolucion, List<SeccionAnalisis> secciones, DatosCurvasNivel curvas)
         implements ContenidoPestanas {
 

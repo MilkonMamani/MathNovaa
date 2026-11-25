@@ -13,11 +13,6 @@ import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.latex.TextoLatex;
 import pe.mathnova.presentation.resolucion.Igualdades;
 
-/**
- * I05: el triángulo rectángulo de la sustitución trigonométrica. θ está abajo a la izquierda, el
- * ángulo recto abajo a la derecha: el cateto de abajo es el adyacente, el de la derecha el opuesto y
- * la diagonal la hipotenusa. Al costado, las razones que se leen del triángulo para regresar a x.
- */
 public final class TrianguloSustitucion extends VBox {
 
     private static final double ANCHO = 170;
@@ -54,7 +49,6 @@ public final class TrianguloSustitucion extends VBox {
         lista.add(t.angulo());
         lista.addAll(t.razones());
         javafx.scene.Node razones = renglones(lista);
-        // Las razones al costado del triángulo; si la pizarra se angosta, bajan.
         javafx.scene.layout.FlowPane fila = new javafx.scene.layout.FlowPane(20, 8, dibujo, razones);
         fila.setRowValignment(javafx.geometry.VPos.CENTER);
         fila.setMinWidth(0);
@@ -72,7 +66,6 @@ public final class TrianguloSustitucion extends VBox {
         return l;
     }
 
-    /** Los renglones con tipografía matemática (fracciones, raíces), los "=" alineados si caben. */
     private static javafx.scene.Node renglones(java.util.List<String> lineas) {
         java.util.List<Igualdades.Renglon> r = new java.util.ArrayList<>();
         for (String l : lineas) {

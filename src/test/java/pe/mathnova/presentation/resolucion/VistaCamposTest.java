@@ -25,7 +25,6 @@ import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 
-/** Parte D: lo que se ve en R, en C y con funciones (sin abrir la ventana). */
 class VistaCamposTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -137,13 +136,10 @@ class VistaCamposTest {
                 () -> assertTrue(c.latex().get(Campo.C).contains("\\sqrt{2}")),
                 () -> assertTrue(SERVICIO.comparar("x^2 + 1").latex().get(Campo.C).contains("i")),
                 () -> assertTrue(f.latex().containsKey(Campo.Q)),
-                // Sprint 5: la fracción también tiene resultado en R y C; aquí es el mismo en los tres.
                 () -> assertTrue(f.latex().containsKey(Campo.R) && f.iguales()),
                 () -> assertTrue(t.latex().containsKey(Campo.Q)),
                 () -> assertTrue(t.avisos().containsKey(Campo.C)));
     }
-
-    // ------------------------------------------------------------------ funciones
 
     @Test
     void sustitucionConTresRenglones() {
@@ -181,19 +177,16 @@ class VistaCamposTest {
                 () -> assertTrue(g.raices().isEmpty(), "las raíces trascendentes no se marcan como exactas"),
                 () -> assertEquals(1, g.extra().periodicas().size()),
                 () -> assertEquals(Math.PI / 2, g.extra().periodicas().getFirst().fase(), 1e-12),
-                () -> assertEquals(4, g.extra().periodicas().getFirst().entre(-5, 5).size()), // ±π/2, ±3π/2
+                () -> assertEquals(4, g.extra().periodicas().getFirst().entre(-5, 5).size()),
                 () -> assertEquals(0, g.funcion().valor(Math.PI / 4), 1e-12),
                 () -> assertTrue(Double.isNaN(DatosGrafica.de(SERVICIO.factorizarFunciones("ln(x)^2 - 4", f -> { }))
                         .orElseThrow().funcion().valor(-1))));
     }
 
-    // ------------------------------------------------------------------ LaTeX del banco
-
     static List<BancoCsv.Fila> filasNuevas() {
         return BancoCsv.filas().stream().filter(f -> !f.campo().equals("Q") || f.metodo().startsWith("T")).toList();
     }
 
-    /** Los resultados en R, C y con funciones se dibujan con jlatexmath. */
     @ParameterizedTest(name = "{0}")
     @MethodSource("filasNuevas")
     void dibujaLosResultados(BancoCsv.Fila f) {
@@ -208,7 +201,6 @@ class VistaCamposTest {
         assertFalse(latex.contains("√"), latex);
     }
 
-    /** Solo para que Verificacion quede importada: la etiqueta numérica es la de la Parte E. */
     @Test
     void textoDeLaAyuda() {
         assertEquals("Verificado numéricamente con 40 cifras", Verificacion.AYUDA_NUMERICA);

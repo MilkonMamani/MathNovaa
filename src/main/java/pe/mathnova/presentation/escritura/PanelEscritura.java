@@ -30,37 +30,12 @@ import pe.mathnova.domain.escritura.TablaConfusiones;
 import pe.mathnova.domain.escritura.Trazo;
 import pe.mathnova.infrastructure.escritura.ArchivoMuestras;
 
-/**
- * La pestaña "Escribir": el estudiante escribe el ejercicio a mano y lo reconocido aparece, editable, en
- * el mismo campo de arriba donde se escribe con el teclado ({@link Destino}).
- *
- * <ol>
- *   <li>Tras una pausa sin escribir ({@link #ESPERA}, configurable) se leen los trazos en un Task, fuera
- *       del hilo de la interfaz, y aparece "Reconociendo…". El estudiante puede levantar el dedo entre
- *       símbolos: cada trazo nuevo cancela la lectura en curso y vuelve a esperar la pausa.</li>
- *   <li>Cada lectura va con la versión del lienzo. La respuesta solo se usa si el lienzo no cambió desde
- *       entonces (si se escribió "2x", se añadió "+1" y llega tarde la lectura de "2x", se descarta) y si
- *       el estudiante no editó el campo de arriba mientras tanto ({@link Destino#generacion}): una
- *       corrección suya no la pisa una lectura anterior.</li>
- *   <li>Borrar todo invalida las lecturas pendientes. Si la lectura falla, los trazos y lo que había en el
- *       campo se quedan, y "Reintentar" vuelve a leer.</li>
- *   <li>{@link #alTerminar}: "Resolver" justo después del último trazo espera la lectura de lo último
- *       escrito y recién entonces resuelve.</li>
- * </ol>
- */
 public final class PanelEscritura extends VBox {
 
-    /** Adónde va lo reconocido: el campo de arriba. */
     public interface Destino {
 
-        /** Cambia cada vez que el estudiante edita el campo por su cuenta (teclado, borrar…). */
         long generacion();
 
-        /**
-         * Pone en el campo el LaTeX que leyó el reconocedor.
-         *
-         * @return null si quedó bien, o un aviso breve si MathNova no lo entiende del todo
-         */
         String poner(String latex);
     }
 
@@ -86,23 +61,17 @@ public final class PanelEscritura extends VBox {
     private final PauseTransition espera;
 
     private Task<ResultadoReconocimiento> lectura;
-    /** Cambia con cada cambio del lienzo: una lectura de trazos anteriores se descarta. */
     private long version;
-    /** La versión del lienzo que ya está en el campo de arriba (o que ya se intentó leer y falló). */
     private long resuelta = -1;
     private boolean fallo;
     private ResultadoReconocimiento resultado;
     private boolean preparando;
-    /** Lo que espera "Resolver": se corre cuando se lee la versión actual (o se descarta si falla). */
     private final List<Runnable> alLeer = new ArrayList<>();
     private final List<Runnable> alFallar = new ArrayList<>();
-    /** Solo en desarrollo; null si no se pidió. */
     private final BarraMuestras muestras;
-    /** Hay escritura que todavía no llegó al campo de arriba (esperando la pausa o leyendo). */
     private final javafx.beans.property.ReadOnlyBooleanWrapper pendiente =
             new javafx.beans.property.ReadOnlyBooleanWrapper(this, "pendiente", false);
 
-    /** Un destino sin ediciones propias: recibe cada lectura (pruebas y herramientas de desarrollo). */
     public static Destino destino(java.util.function.Consumer<String> usar) {
         return new Destino() {
             @Override
@@ -127,16 +96,11 @@ public final class PanelEscritura extends VBox {
         this(reconocedor, destino(usar), ESPERA, carpetaMuestras);
     }
 
-    /** Con {@code -Dmathnova.muestras=true} aparece además la barra de muestras para desarrollo. */
     public PanelEscritura(ReconocedorEscritura reconocedor, Destino destino) {
         this(reconocedor, destino, ESPERA,
                 Boolean.getBoolean(BarraMuestras.PROPIEDAD) ? ArchivoMuestras.carpetaPorDefecto() : null);
     }
 
-    /**
-     * @param pausa           cuánto se espera sin escribir antes de leer
-     * @param carpetaMuestras dónde guarda la barra de muestras de desarrollo; null, sin barra
-     */
     public PanelEscritura(ReconocedorEscritura reconocedor, Destino destino, Duration pausa, Path carpetaMuestras) {
         this.reconocedor = reconocedor;
         this.destino = destino;
@@ -153,7 +117,7 @@ public final class PanelEscritura extends VBox {
         lapiz.setSelected(true);
         grupo.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
-                antes.setSelected(true); // siempre hay una herramienta
+                antes.setSelected(true);
                 return;
             }
             lienzo.setHerramienta(ahora == lapiz ? LienzoEscritura.Herramienta.LAPIZ
@@ -200,14 +164,10 @@ public final class PanelEscritura extends VBox {
         }
     }
 
-    // ------------------------------------------------------------------ API
-
-    /** "Revisa la expresión: …", con el motivo si lo hay. */
     public static String revisa(String motivo) {
         return motivo == null || motivo.isBlank() ? REVISA : REVISA + ": " + motivo;
     }
 
-    /** Al abrir la pestaña: si el modelo no está cargado, se carga ya, en segundo plano. */
     public void alMostrar() {
         if (preparando || reconocedor.listo()) {
             return;
@@ -241,11 +201,6 @@ public final class PanelEscritura extends VBox {
         hilo.start();
     }
 
-    /**
-     * Corre {@code listo} cuando lo que está en el lienzo ya está en el campo de arriba: enseguida si no
-     * hay nada pendiente, o al terminar la lectura de lo último escrito (si estaba esperando la pausa, se
-     * lee ya). Si esa lectura falla o el lienzo cambia antes, corre {@code siFalla}.
-     */
     public void alTerminar(Runnable listo, Runnable siFalla) {
         boolean pendiente = espera.getStatus() == javafx.animation.Animation.Status.RUNNING || lectura != null
                 || (!lienzo.isVacio() && resuelta != version);
@@ -261,27 +216,20 @@ public final class PanelEscritura extends VBox {
         }
     }
 
-    /**
-     * Pone en el lienzo los trazos de una muestra grabada, como si se acabaran de dibujar (se leen tras la
-     * pausa). Lo usa la autoprueba para comprobar una instalación.
-     */
     public void cargarMuestra(pe.mathnova.domain.escritura.Muestra m) {
         cancelarLectura();
         lienzo.cargar(m);
         despuesDeCambiar();
     }
 
-    /** Lo último que devolvió el reconocedor, tal cual (antes de adaptarlo al editor); null si nada. */
     public String ultimaLectura() {
         return resultado == null ? null : resultado.latex();
     }
 
-    /** true si hay una lectura en curso o esperando la pausa. */
     public boolean leyendo() {
         return lectura != null || espera.getStatus() == javafx.animation.Animation.Status.RUNNING;
     }
 
-    /** true mientras haya escritura que todavía no llegó al campo de arriba ("Resolver" la espera). */
     public javafx.beans.property.ReadOnlyBooleanProperty pendienteProperty() {
         return pendiente.getReadOnlyProperty();
     }
@@ -290,9 +238,6 @@ public final class PanelEscritura extends VBox {
         pendiente.set(leyendo());
     }
 
-    // ------------------------------------------------------------------ lectura
-
-    /** Después de un trazo, de deshacer o de borrar: tras la pausa se lee lo que haya. */
     private void despuesDeCambiar() {
         cancelarLectura();
         if (lienzo.isVacio()) {
@@ -301,7 +246,7 @@ public final class PanelEscritura extends VBox {
             resuelta = version;
             mostrarNodo(filaEstado, false);
             mostrarNodo(preguntas, false);
-            fallaron(); // lo que esperaba la lectura ya no tiene qué leer
+            fallaron();
             marcarPendiente();
             return;
         }
@@ -349,17 +294,16 @@ public final class PanelEscritura extends VBox {
                 return reconocedor.reconocer(trazos);
             }
         };
-        // Los manejadores del Task corren en el hilo de JavaFX.
         tarea.setOnSucceeded(e -> {
             if (esta != version) {
-                return; // el lienzo cambió: lectura vieja
+                return;
             }
             lectura = null;
             resuelta = esta;
             marcarPendiente();
             if (generacion != destino.generacion()) {
-                estado(CONSERVA, false); // el estudiante editó el campo mientras se leía
-                terminaron(); // "Resolver" resuelve lo que él dejó en el campo
+                estado(CONSERVA, false);
+                terminaron();
                 return;
             }
             mostrarResultado(tarea.getValue());
@@ -408,7 +352,6 @@ public final class PanelEscritura extends VBox {
         listos.forEach(Runnable::run);
     }
 
-    /** El motivo, si dice algo útil para el estudiante (por ejemplo, que falta el reconocedor). */
     static String detalle(Throwable e) {
         for (Throwable t = e; t != null; t = t.getCause()) {
             String m = t.getMessage();
@@ -426,7 +369,6 @@ public final class PanelEscritura extends VBox {
         fallos.forEach(Runnable::run);
     }
 
-    /** Los símbolos dudosos, si el reconocedor los da: "¿El símbolo es x ×?". */
     private void mostrarPreguntas(ResultadoReconocimiento r) {
         preguntas.getChildren().clear();
         for (SimboloDudoso d : r.dudosos()) {
@@ -460,8 +402,6 @@ public final class PanelEscritura extends VBox {
         mostrarNodo(filaEstado, true);
     }
 
-    // ------------------------------------------------------------------ apoyo
-
     private static ToggleButton herramienta(String icono, String nombre, ToggleGroup grupo) {
         ToggleButton b = new ToggleButton(null, svg(icono));
         b.setToggleGroup(grupo);
@@ -492,8 +432,6 @@ public final class PanelEscritura extends VBox {
         n.setVisible(si);
         n.setManaged(si);
     }
-
-    // ------------------------------------------------------------------ para las pruebas
 
     LienzoEscritura lienzo() {
         return lienzo;

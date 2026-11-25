@@ -21,11 +21,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.expresion.Visitante;
 
-/**
- * Una expresión con funciones (sen, ln, eˣ…) evaluada con double, SOLO para trazar la curva (HU23).
- * Como {@link FuncionReal}, vive en presentation: el dominio no usa double. Fuera del dominio (ln de un
- * negativo, una asíntota de tan) devuelve NaN o infinito y {@link TrazadoCurva} corta el trazo.
- */
 public final class CurvaExpresion implements DoubleUnaryOperator {
 
     private final Expresion expresion;
@@ -45,9 +40,6 @@ public final class CurvaExpresion implements DoubleUnaryOperator {
         }
     }
 
-    /**
-     * f con varias letras (Sprint 8: las curvas de nivel de f(x, y)); NaN fuera del dominio o con otra letra.
-     */
     public static double evaluar(Expresion e, java.util.Map<Character, Double> valores) {
         try {
             return e.aceptar(new Evaluador(valores));

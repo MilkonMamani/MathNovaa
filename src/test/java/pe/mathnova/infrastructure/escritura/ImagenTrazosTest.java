@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import pe.mathnova.domain.escritura.Punto;
 import pe.mathnova.domain.escritura.Trazo;
 
-/** La imagen que va al modelo sale solo de los trazos: negro sobre blanco, recortada, con margen y sin deformar. */
 class ImagenTrazosTest {
 
     private static Trazo raya(double x0, double y0, double x1, double y1) {
@@ -24,7 +23,6 @@ class ImagenTrazosTest {
         return new Trazo(ps);
     }
 
-    /** Caja de la tinta: minX, minY, maxX, maxY (píxeles no blancos). */
     private static int[] caja(BufferedImage img) {
         int[] c = {Integer.MAX_VALUE, Integer.MAX_VALUE, -1, -1};
         for (int y = 0; y < img.getHeight(); y++) {
@@ -54,7 +52,6 @@ class ImagenTrazosTest {
 
     @Test
     void recortaALoEscritoConMargenYConservaLaProporcion() {
-        // Un rectángulo de 300 × 100 dibujado lejos del origen del lienzo (en 400, 50).
         List<Trazo> trazos = List.of(raya(400, 50, 700, 50), raya(700, 50, 700, 150), raya(700, 150, 400, 150),
                 raya(400, 150, 400, 50));
         BufferedImage img = ImagenTrazos.dibujar(trazos);
@@ -63,7 +60,6 @@ class ImagenTrazosTest {
         double altoTinta = c[3] - c[1];
         assertEquals(3.0, anchoTinta / altoTinta, 0.12, "la misma escala en x e y");
         assertEquals(ImagenTrazos.ALTO_TINTA, altoTinta, 12, "la tinta ocupa el alto previsto");
-        // Margen blanco alrededor, igual a los dos lados.
         int izq = c[0];
         int der = img.getWidth() - 1 - c[2];
         int arriba = c[1];
@@ -71,9 +67,7 @@ class ImagenTrazosTest {
         assertTrue(izq >= ImagenTrazos.MARGEN_MINIMO && arriba >= ImagenTrazos.MARGEN_MINIMO, izq + " " + arriba);
         assertEquals(izq, der, 2);
         assertEquals(arriba, abajo, 2);
-        // Esquina de la imagen: fondo blanco.
         assertEquals(0xFFFFFF, img.getRGB(0, 0) & 0xFFFFFF);
-        // Tinta negra en el borde del rectángulo.
         assertEquals(0x000000, img.getRGB(c[0] + 1, (c[1] + c[3]) / 2) & 0xFFFFFF);
     }
 

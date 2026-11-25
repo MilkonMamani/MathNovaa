@@ -4,10 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
-/**
- * Funciones reales con BigDecimal para la verificación numérica: raíz n-ésima, exp, ln, sen, cos,
- * arctan, arcsen, arccos y π. Se calcula con algunas cifras de guarda y se redondea al final.
- */
 final class Decimales {
 
     private Decimales() {
@@ -18,14 +14,12 @@ final class Decimales {
     }
 
     static BigDecimal pi(MathContext mc) {
-        // Machin: π/4 = 4·arctan(1/5) − arctan(1/239)
         MathContext g = guarda(mc);
         BigDecimal a = arctanSerie(BigDecimal.ONE.divide(BigDecimal.valueOf(5), g), g);
         BigDecimal b = arctanSerie(BigDecimal.ONE.divide(BigDecimal.valueOf(239), g), g);
         return a.multiply(BigDecimal.valueOf(16)).subtract(b.multiply(BigDecimal.valueOf(4))).round(mc);
     }
 
-    /** Serie de arctan para |x| pequeño. */
     private static BigDecimal arctanSerie(BigDecimal x, MathContext mc) {
         BigDecimal x2 = x.multiply(x, mc);
         BigDecimal termino = x;
@@ -46,7 +40,6 @@ final class Decimales {
         if (x.compareTo(BigDecimal.ONE) > 0) {
             return pi(g).divide(BigDecimal.valueOf(2), g).subtract(arctan(BigDecimal.ONE.divide(x, g), g)).round(mc);
         }
-        // Reducción: arctan x = 2·arctan(x / (1 + √(1 + x²))), dos veces.
         BigDecimal y = x;
         int veces = 0;
         while (y.compareTo(new BigDecimal("0.2")) > 0) {
@@ -76,7 +69,6 @@ final class Decimales {
         return pi(g).divide(BigDecimal.valueOf(2), g).subtract(arcsen(x, g), g).round(mc);
     }
 
-    /** Lleva x a [−π, π]. */
     private static BigDecimal reducir(BigDecimal x, MathContext g) {
         BigDecimal dosPi = pi(g).multiply(BigDecimal.valueOf(2), g);
         BigDecimal k = x.divide(dosPi, 0, java.math.RoundingMode.HALF_EVEN);
@@ -113,7 +105,6 @@ final class Decimales {
 
     static BigDecimal exp(BigDecimal x, MathContext mc) {
         MathContext g = guarda(mc);
-        // e^x = (e^(x/2^k))^(2^k) con |x/2^k| < 1/2.
         int k = 0;
         BigDecimal y = x;
         while (y.abs().compareTo(new BigDecimal("0.5")) > 0) {
@@ -139,7 +130,6 @@ final class Decimales {
             throw new ArithmeticException("ln de un número no positivo");
         }
         MathContext g = guarda(mc);
-        // ln x = ln(m · 2^k) = ln m + k ln 2, y ln m = 2·atanh((m − 1)/(m + 1)).
         int k = 0;
         BigDecimal m = x;
         BigDecimal dos = BigDecimal.valueOf(2);
@@ -167,7 +157,6 @@ final class Decimales {
         return suma.multiply(BigDecimal.valueOf(2), g);
     }
 
-    /** ⁿ√x real; para x < 0 solo con n impar. */
     static BigDecimal raiz(BigDecimal x, int n, MathContext mc) {
         if (x.signum() == 0) {
             return BigDecimal.ZERO;
@@ -182,7 +171,6 @@ final class Decimales {
             return x.sqrt(mc);
         }
         MathContext g = guarda(mc);
-        // Arranque con la raíz entera de la parte escalada; luego Newton.
         int escala = g.getPrecision();
         BigInteger entero = x.movePointRight(n * escala).toBigInteger();
         BigDecimal y = new BigDecimal(Primos.raizEntera(entero, n).max(BigInteger.ONE)).movePointLeft(escala);

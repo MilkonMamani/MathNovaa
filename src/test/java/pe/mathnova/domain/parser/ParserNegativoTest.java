@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** RF04: las entradas inválidas se rechazan con mensaje en español y posición base 1. */
 class ParserNegativoTest {
 
     private static final String RF62 = "Las sumatorias, productorias, integrales de línea y el valor absoluto "
@@ -42,7 +41,6 @@ class ParserNegativoTest {
                 () -> assertEquals(posicion, error.getPosicion()));
     }
 
-    /** RF62. */
     @ParameterizedTest(name = "[{0}] fuera de alcance (posición {1})")
     @CsvSource(delimiter = ';', quoteCharacter = '`', value = {
             "`Σ(x)`  ; 1",

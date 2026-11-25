@@ -6,17 +6,6 @@ import java.util.Objects;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Un método aplicado (HU04) o probado sin éxito (HU05).
- *
- * @param orden          1, 2, 3… dentro de su lista (pasos o descartados)
- * @param codigoTecnica  "F01"…"F13"
- * @param justificacion  por qué aplica, con valores concretos; en un descartado es el motivo
- * @param antes          el polinomio sobre el que se aplicó
- * @param despues        los factores que deja, en el orden en que salen; vacío en un descartado
- * @param trabajo        trabajo intermedio, o null
- * @param motivoDescarte por qué no aplicó; null si se aplicó
- */
 public record Paso(int orden, String codigoTecnica, String justificacion, Polinomio antes, List<Factor> despues,
                    TrabajoIntermedio trabajo, boolean descartado, String motivoDescarte) {
 
@@ -46,15 +35,10 @@ public record Paso(int orden, String codigoTecnica, String justificacion, Polino
         return new Paso(nuevo, codigoTecnica, justificacion, antes, despues, trabajo, descartado, motivoDescarte);
     }
 
-    /** Nombre de la técnica ("Agrupación de términos"). */
     public String nombreTecnica() {
         return Tecnicas.nombre(codigoTecnica);
     }
 
-    /**
-     * Los factores tal como salen del método, sin reordenar: "2(x^2 - 5x + 6)", "(x - 2)(x^2 - 1)".
-     * Null en un descartado.
-     */
     public FormaFactorizada despuesComoForma() {
         if (descartado) {
             return null;

@@ -20,16 +20,6 @@ import pe.mathnova.domain.factorizacion.FormaFactorizada;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.Resolucion;
 
-/**
- * Resuelve en Q una ecuación polinómica de una incógnita (HU38, RF73):
- * <ol>
- *   <li>"Pasar todo a un lado": P(x) − Q(x) = 0, solo si Q no es 0.</li>
- *   <li>"Factorizar", con los pasos de siempre del orquestador.</li>
- *   <li>"Igualar cada factor a cero".</li>
- *   <li>"Despejar": las raíces racionales de menor a mayor; una raíz doble se muestra una vez,
- *       marcada "doble". Un factor sin raíz en Q se informa: "x^2 + 1 = 0 no tiene solución en Q".</li>
- * </ol>
- */
 public final class ResolvedorEcuaciones {
 
     private final OrquestadorFactorizacion orquestador;
@@ -38,17 +28,10 @@ public final class ResolvedorEcuaciones {
         this.orquestador = orquestador;
     }
 
-    /**
-     * @throws NoEsPolinomioException si algún lado no es un polinomio, o si hay más de una incógnita
-     */
     public ResolucionEcuacion resolver(Ecuacion ecuacion) {
         return resolver(ecuacion, null);
     }
 
-    /**
-     * @param forzado el método con que empieza la factorización (HU08), o null en automático
-     * @throws pe.mathnova.domain.factorizacion.MetodoNoAplicable si el método forzado no aplica
-     */
     public ResolucionEcuacion resolver(Ecuacion ecuacion, String forzado) {
         Polinomio izquierda = Polinomio.desde(ecuacion.izquierda());
         Polinomio derecha = Polinomio.desde(ecuacion.derecha());
@@ -88,7 +71,6 @@ public final class ResolvedorEcuaciones {
                 "Se factoriza " + p + " con los métodos de siempre.",
                 List.of(forma.aTexto() + " = 0")));
 
-        // Igualar cada factor a cero.
         List<String> igualados = new ArrayList<>();
         for (Factor f : forma.factores()) {
             String linea = f.polinomio() + " = 0";
@@ -103,7 +85,6 @@ public final class ResolvedorEcuaciones {
                         + " no puede ser cero.";
         pasos.add(new PasoEcuacion(PasoEcuacion.Tipo.IGUALAR_A_CERO, "Igualar cada factor a cero", porque, igualados));
 
-        // Despejar.
         List<Solucion> soluciones = new ArrayList<>();
         List<Polinomio> sinSolucion = new ArrayList<>();
         List<String> despejes = new ArrayList<>();
@@ -138,7 +119,6 @@ public final class ResolvedorEcuaciones {
         return restando.equals(reducido) ? List.of(reducido) : List.of(restando, reducido);
     }
 
-    /** "x" o "(3x + 2)": entre paréntesis si tiene más de un término o empieza con signo. */
     private static String restado(Polinomio q) {
         String t = q.toString();
         return q.terminos().size() > 1 || t.startsWith("-") ? "(" + t + ")" : t;

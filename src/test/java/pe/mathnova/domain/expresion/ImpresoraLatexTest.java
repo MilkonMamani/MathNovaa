@@ -30,7 +30,6 @@ class ImpresoraLatexTest {
         assertEquals(esperado, ImpresoraLatex.imprimir(Parser.parse(entrada)));
     }
 
-    /** HU34: las operaciones se dibujan como en la pizarra. */
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '`', value = {
             "lim(x→2, (x^2 - 4)/(x - 2))     | \\lim_{x \\to 2} \\frac{x^{2} - 4}{x - 2}",

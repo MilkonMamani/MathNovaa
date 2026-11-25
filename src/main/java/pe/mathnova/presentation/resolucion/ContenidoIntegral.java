@@ -20,21 +20,9 @@ import pe.mathnova.presentation.grafica.CurvaExpresion;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.grafica.FuncionReal;
 
-/**
- * Una integral (Sprint 6).
- * <ul>
- *   <li>Gráfica: el integrando. En una definida, el área entre a y b sombreada (azul donde es positiva, roja
- *       donde es negativa) con el valor escrito encima; en una indefinida, también una antiderivada (C = 0) en
- *       naranja.</li>
- *   <li>Análisis: la verificación (derivada del resultado = integrando) y, en una definida, la regla de
- *       Simpson con n = 100 para comparar.</li>
- *   <li>Exploración: los otros métodos que también sirven y los que no aplican con su motivo.</li>
- * </ul>
- */
 public record ContenidoIntegral(String latexSolucion, Optional<DatosGrafica> grafica, List<SeccionAnalisis> secciones,
                                 VistaExploracion exploracion) implements ContenidoPestanas {
 
-    /** RF32: subintervalos de la regla de Simpson. */
     public static final int SIMPSON = 100;
 
     public ContenidoIntegral {
@@ -54,8 +42,6 @@ public record ContenidoIntegral(String latexSolucion, Optional<DatosGrafica> gra
     private static String p(Expresion e) {
         return ImpresoraPizarra.imprimir(e);
     }
-
-    // ------------------------------------------------------------------ Gráfica
 
     static Optional<DatosGrafica> grafica(ResolucionIntegral r) {
         char x = r.variable();
@@ -86,7 +72,6 @@ public record ContenidoIntegral(String latexSolucion, Optional<DatosGrafica> gra
         }
     }
 
-    /** "= 1/3" si es racional; "≈ 0.6931" si no. El coeficiente de delante ya está en el valor. */
     private static String etiquetaValor(ResolucionIntegral r) {
         String k = r.coeficiente().equals(pe.mathnova.domain.algebra.Racional.UNO) ? ""
                 : " (por " + FormateadorTexto.numero(r.coeficiente()) + ")";
@@ -100,8 +85,6 @@ public record ContenidoIntegral(String latexSolucion, Optional<DatosGrafica> gra
         String s = d.setScale(cifras, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
         return s.startsWith("-") ? FormateadorTexto.MENOS + s.substring(1) : s;
     }
-
-    // ------------------------------------------------------------------ Análisis
 
     static List<SeccionAnalisis> secciones(ResolucionIntegral r) {
         if (!r.resuelta()) {

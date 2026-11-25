@@ -17,18 +17,8 @@ import pe.mathnova.domain.numeros.NumeroAlgebraico;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Lee una factorización escrita ("2(x + 7)(x - 3)", la del banco o la del motor) y la deja como
- * constante × multiconjunto de factores primitivos con principal positivo. Dos formas con los
- * mismos factores en otro orden son iguales; una forma sin terminar de factorizar no lo es.
- *
- * <p>En R y C (Parte E) los factores llevan radicales e i: {@link #leerEnCampo} los deja mónicos y
- * {@link #igualesEnCampo} los empareja. Si ambos son exactos se comparan tal cual; si alguno tiene
- * radicales anidados, se evalúan en cinco puntos con 40 cifras y deben coincidir en 30.
- */
 public final class ComparadorFactorizacion {
 
-    /** constante y factor primitivo → multiplicidad. */
     public record Forma(Racional constante, Map<Polinomio, Integer> factores) {
     }
 
@@ -45,12 +35,10 @@ public final class ComparadorFactorizacion {
         return new Forma(s.constante, s.factores);
     }
 
-    /** Una fracción num/den: constante total y factores de arriba y de abajo. */
     public record FormaFraccion(Racional constante, Map<Polinomio, Integer> numerador,
                                 Map<Polinomio, Integer> denominador) {
     }
 
-    /** Lee "(x + 2)/(x + 3)", "3/(x + 2)", "-(x + 1)/(x - 2)" o un polinomio (denominador 1). */
     public static FormaFraccion leerFraccion(String texto) {
         Expresion e = Parser.parse(texto);
         Racional signo = Racional.UNO;
@@ -104,9 +92,6 @@ public final class ComparadorFactorizacion {
         s.factores.merge(Contenido.dividir(q, c, pe.mathnova.domain.algebra.Monomio.UNO), exponente, Integer::sum);
     }
 
-    // ------------------------------------------------------------------ R y C
-
-    /** constante × factores mónicos (repetidos según su multiplicidad). */
     public record FormaCampo(NumeroAlgebraico constante, List<PolinomioAlgebraico> factores) {
     }
 
@@ -142,7 +127,6 @@ public final class ComparadorFactorizacion {
         }
     }
 
-    /** Las mismas constantes y los mismos factores (en cualquier orden). */
     public static boolean igualesEnCampo(FormaCampo a, FormaCampo b) {
         if (!mismoNumero(a.constante(), b.constante()) || a.factores().size() != b.factores().size()) {
             return false;

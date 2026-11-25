@@ -40,22 +40,6 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * HU13: resuelve ∫(f, x) y ∫(f, x, a, b) con los métodos en este orden (RF29–RF32):
- * <ol>
- *   <li>I01: inmediata o término a término, con la tabla de integrales básicas;</li>
- *   <li>I02: sustitución u = g(x) si el integrando es f(g(x))·g′(x) salvo una constante;</li>
- *   <li>un polinomio escrito como producto o potencia se expande y se integra término a término;</li>
- *   <li>P02 + I06: si es racional impropia se divide primero (RN17) y después fracciones parciales, con
- *       el denominador factorizado por el orquestador;</li>
- *   <li>I04: integrales trigonométricas (senᵐ·cosⁿ, tanⁿ, secⁿ) y I05: sustitución trigonométrica, con el
- *       triángulo para regresar a x (Sprint 7);</li>
- *   <li>I03: por partes con ILATE, repetida hasta cuatro veces y con la integral cíclica (Sprint 7);</li>
- *   <li>I07: en una definida, la regla de Barrow F(b) − F(a).</li>
- * </ol>
- * Si ninguno aplica no se inventa nada: se dice que hace falta otro método. El resultado se verifica
- * derivándolo (exacto si se puede, si no en cinco puntos).
- */
 public final class MotorIntegrales {
 
     public static final String SIN_METODO = "Ninguno de los métodos de MathNova (inmediata, sustitución, fracciones "
@@ -69,7 +53,6 @@ public final class MotorIntegrales {
     public static final String PARTES = IntegracionAvanzada.PARTES;
     public static final String TRIGONOMETRICA = IntegracionAvanzada.TRIGONOMETRICA;
     public static final String SUSTITUCION_TRIG = IntegracionAvanzada.SUSTITUCION_TRIG;
-    /** El paso que multiplica por el número de delante: k∫f = k·F. */
     public static final String CONSTANTE = "K";
 
     private static final List<String> ORDEN = List.of(INMEDIATA, SUSTITUCION, EXPANDIR, FRACCIONES, TRIGONOMETRICA,
@@ -82,7 +65,6 @@ public final class MotorIntegrales {
         this.orquestador = orquestador;
     }
 
-    /** Lo que da un método: F sin + C, sus pasos y el código. */
     record Integracion(Expresion antiderivada, List<PasoLimite> pasos, String metodo) {
     }
 
@@ -90,10 +72,6 @@ public final class MotorIntegrales {
         return resolver(entrada, null);
     }
 
-    /**
-     * @param entrada ∫(…) o k·∫(…)
-     * @param forzado el método que se prueba primero ("Probar" en Exploración), o null
-     */
     public ResolucionIntegral resolver(Expresion entrada, String forzado) {
         Racional k = Racional.UNO;
         Integral in;
@@ -108,9 +86,6 @@ public final class MotorIntegrales {
         }
         char x = in.variable();
         Expresion f = in.cuerpo();
-        // Un cociente de polinomios con un factor común se simplifica antes de integrar: ∫(x² − 9)/(x − 3) dx es
-        // ∫(x + 3) dx en cada intervalo del dominio, sin dividir polinomios (FactorComun). Si el alumno eligió un
-        // método para practicarlo, se respeta.
         Optional<FactorComun.Cancelacion> cancelacion = forzado != null || orquestador == null ? Optional.empty()
                 : FactorComun.cancelar(f, orquestador);
         Expresion aIntegrar = cancelacion.map(FactorComun.Cancelacion::simplificada).orElse(f);
@@ -156,7 +131,6 @@ public final class MotorIntegrales {
         return ImpresoraPizarra.imprimir(e);
     }
 
-    /** "(x² + 1)" si es una suma, para escribir ∫(…) dx. */
     private static String integrando(Expresion f) {
         return f instanceof Suma ? "(" + p(f) + ")" : p(f);
     }
@@ -169,13 +143,10 @@ public final class MotorIntegrales {
                 new TrabajoIntermedio.Agrupacion(List.of(kt + "·" + antesT + " = " + p(despues))));
     }
 
-    // ------------------------------------------------------------------ la cascada
-
     private Optional<Integracion> integrar(Expresion f, char x, String forzado) {
         return integrar(f, x, forzado, false);
     }
 
-    /** @param sinPartes true dentro de por partes: para v = ∫dv y ∫v du (por partes se repite por su cuenta) */
     private Optional<Integracion> integrar(Expresion f, char x, String forzado, boolean sinPartes) {
         List<String> orden = new ArrayList<>(ORDEN);
         if (sinPartes) {
@@ -211,8 +182,6 @@ public final class MotorIntegrales {
         };
     }
 
-    // ------------------------------------------------------------------ I01
-
     private static Optional<PasoLimite> inmediata(Expresion f, char x) {
         return TablaIntegrales.integrar(f, x).map(ts -> {
             Expresion integral = TablaIntegrales.suma(ts);
@@ -227,8 +196,6 @@ public final class MotorIntegrales {
                     new Integral(f, x), integral, new TrabajoIntermedio.Agrupacion(lineas));
         });
     }
-
-    // ------------------------------------------------------------------ I02
 
     private static Optional<Integracion> sustitucion(Expresion f, char x) {
         Expresion s = Simplificador.simplificar(f);
@@ -277,7 +244,6 @@ public final class MotorIntegrales {
         return 'u';
     }
 
-    /** Lo que puede ser u: bases de potencias, exponentes, argumentos, radicandos y denominadores. */
     private static List<Expresion> candidatos(Expresion f, char x) {
         List<Expresion> r = new ArrayList<>();
         recolectar(f, x, r);
@@ -323,11 +289,9 @@ public final class MotorIntegrales {
         }
     }
 
-    // ------------------------------------------------------------------ expandir
-
     private static Optional<Integracion> expandir(Expresion f, char x) {
         if (TablaIntegrales.integrar(f, x).isPresent()) {
-            return Optional.empty(); // ya es término a término
+            return Optional.empty();
         }
         Polinomio p;
         try {
@@ -348,8 +312,6 @@ public final class MotorIntegrales {
                 new TrabajoIntermedio.Agrupacion(List.of(p(f) + " = " + p(expandido))));
         return Optional.of(new Integracion(i.get().despues(), List.of(paso, i.get()), EXPANDIR));
     }
-
-    // ------------------------------------------------------------------ P02 + I06
 
     private Optional<Integracion> racional(Expresion f, char x) {
         var letras = Expresiones.variables(f);
@@ -387,7 +349,6 @@ public final class MotorIntegrales {
             List<Factor> conX = forma.factores().stream().filter(fa -> fa.polinomio().gradoEn(x) > 0).toList();
             if (conX.size() == 1 && conX.getFirst().polinomio().gradoEn(x) == 1 && conX.getFirst().multiplicidad() == 1
                     && resto.esConstante()) {
-                // c/(αx + β): inmediata, ln|αx + β|
                 Racional c = resto.constante().dividir(forma.constante());
                 Expresion i = FraccionesParciales.lineal(c, conX.getFirst().polinomio(), 1, x);
                 Expresion propia = fraccion(resto, d);
@@ -457,8 +418,6 @@ public final class MotorIntegrales {
         return pasos;
     }
 
-    // ------------------------------------------------------------------ I07
-
     private static Expresion barrow(Expresion antiderivada, Integral in, List<PasoLimite> pasos) {
         Variable x = new Variable(in.variable());
         Expresion a = in.inferior();
@@ -488,7 +447,6 @@ public final class MotorIntegrales {
         return a.equals(b) ? "" : " = " + b;
     }
 
-    /** El integrando no está definido en algún punto de [a, b]: es una impropia. */
     private Optional<String> impropia(Expresion f, char x, Expresion a, Expresion b) {
         BigDecimal ia;
         BigDecimal ib;
@@ -515,7 +473,6 @@ public final class MotorIntegrales {
                 }
             }
         }
-        // en lo demás (y en raíces no racionales), se mira el integrando en 200 puntos
         BigDecimal paso = hasta.subtract(desde).divide(BigDecimal.valueOf(200), MC);
         for (int i = 0; i <= 200; i++) {
             BigDecimal v = desde.add(paso.multiply(BigDecimal.valueOf(i)));
@@ -546,14 +503,11 @@ public final class MotorIntegrales {
         }
     }
 
-    // ------------------------------------------------------------------ verificación
-
     private static final List<Racional> PUNTOS = List.of(Racional.de(1, 3), Racional.de(13, 11), Racional.de(17, 9),
             Racional.de(5, 2), Racional.de(-5, 7), Racional.de(-29, 13), Racional.de(3, 5), Racional.de(11, 4),
             Racional.de(-7, 3), Racional.de(1, 7), Racional.de(-2, 9), Racional.de(4, 5), Racional.de(-1, 2),
             Racional.de(7, 2), Racional.de(-10, 3), Racional.de(4), Racional.de(-5), Racional.de(13, 3));
 
-    /** La derivada de F debe dar el integrando: exacto si se puede, si no en cinco puntos. */
     static ResolucionIntegral.Verificacion verificar(Expresion antiderivada, Expresion f, char x) {
         Expresion derivada;
         try {
@@ -588,7 +542,6 @@ public final class MotorIntegrales {
                 }
                 buenos++;
             } catch (ArithmeticException fuera) {
-                // fuera del dominio
             }
             if (buenos == 5) {
                 break;
@@ -597,9 +550,6 @@ public final class MotorIntegrales {
         return new ResolucionIntegral.Verificacion(buenos == 5, false, derivada);
     }
 
-    // ------------------------------------------------------------------ Simpson
-
-    /** Regla de Simpson con n subintervalos (n par), para comparar con el valor exacto en Análisis. */
     public static Optional<BigDecimal> simpson(ResolucionIntegral r, int n) {
         Integral in = r.integral();
         if (!in.esDefinida()) {
@@ -625,8 +575,6 @@ public final class MotorIntegrales {
         }
     }
 
-    // ------------------------------------------------------------------ Exploración
-
     public static String nombre(String codigo) {
         return switch (codigo) {
             case INMEDIATA -> "Inmediata o término a término";
@@ -641,10 +589,6 @@ public final class MotorIntegrales {
         };
     }
 
-    /**
-     * El método usado, los otros que también llegan a una antiderivada correcta (con lo que dan) y los que
-     * no aplican, con su motivo. En por partes se ve la elección de u por ILATE.
-     */
     public List<CaminoCalculo> caminos(ResolucionIntegral r) {
         char x = r.variable();
         Expresion f = r.integral().cuerpo();
@@ -676,7 +620,6 @@ public final class MotorIntegrales {
         return caminos;
     }
 
-    /** "ILATE: u = ln x es logarítmica (L) y va antes que x, algebraica (A)", o null si no hay elección. */
     private String eleccionIlate(Expresion f, char x) {
         try {
             return IntegracionAvanzada.elegir(Simplificador.simplificar(f), x, (g, y) -> integrar(g, y, null, true))

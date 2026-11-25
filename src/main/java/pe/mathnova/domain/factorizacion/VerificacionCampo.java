@@ -4,13 +4,6 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 
-/**
- * Parte E: si la forma en R o C es igual a la entrada. Con coeficientes exactos (sin radicales
- * anidados) se expande y se compara; si no, se evalúan entrada y resultado en cinco puntos con
- * {@value EvaluacionNumerica#CIFRAS} cifras y deben coincidir en {@value EvaluacionNumerica#CIFRAS_IGUALES}.
- *
- * @param numerica true si se comparó con números y no expandiendo
- */
 public record VerificacionCampo(boolean coincide, boolean numerica) {
 
     public static VerificacionCampo de(Resolucion r) {

@@ -9,11 +9,6 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * F01 (coeficientes enteros) y F02 (coeficientes fraccionarios): saca el contenido y la menor
- * potencia de cada letra. Si el coeficiente principal es negativo, el signo sale junto con el
- * MCD (RN05, RN06): −x² + 36 = −(x² − 36).
- */
 public final class FactorComun extends MetodoBase {
 
     private final boolean fraccionario;
@@ -23,12 +18,10 @@ public final class FactorComun extends MetodoBase {
         this.fraccionario = fraccionario;
     }
 
-    /** F01. */
     public static FactorComun monomio() {
         return new FactorComun(false);
     }
 
-    /** F02. */
     public static FactorComun fraccionario() {
         return new FactorComun(true);
     }
@@ -71,13 +64,11 @@ public final class FactorComun extends MetodoBase {
         return resultado(justificacion, p, factores, null);
     }
 
-    /** "MCD(6, 9) = 3". */
     private static String textoMcd(Polinomio p, Racional mcd) {
         List<BigInteger> valores = p.terminos().values().stream().map(r -> r.num().abs()).toList();
         return "MCD(" + Formato.lista(valores) + ") = " + mcd;
     }
 
-    /** "Contenido = MCD(3, 1)/MCM(5, 1) = 1/5". */
     private static String textoContenido(Polinomio p, Racional contenido) {
         List<BigInteger> numeradores = p.terminos().values().stream().map(r -> r.num().abs()).toList();
         List<BigInteger> denominadores = p.terminos().values().stream().map(Racional::den).toList();
@@ -85,7 +76,6 @@ public final class FactorComun extends MetodoBase {
                 + ") = " + contenido;
     }
 
-    /** "la menor potencia de x es x²", "no todos los términos tienen x". */
     private static String textoLetras(Polinomio p, Monomio comun) {
         SortedSet<Character> letras = p.variables();
         if (comun.equals(Monomio.UNO)) {
@@ -98,7 +88,6 @@ public final class FactorComun extends MetodoBase {
                 : "el monomio común es " + Formato.monomio(comun);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return codigo().equals("F02")

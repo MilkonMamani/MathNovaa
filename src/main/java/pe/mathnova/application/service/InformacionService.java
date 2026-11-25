@@ -6,16 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-/**
- * Configuración · Datos y Acerca de (Sprint 9, parte E): dónde está la base, las versiones de la app, del motor,
- * de Java, de JavaFX y de SQLite.
- */
 @Service
 public class InformacionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(InformacionService.class);
 
-    /** Una línea de "Acerca de". */
     public record Version(String nombre, String valor) {
     }
 
@@ -33,7 +28,6 @@ public class InformacionService {
         this.versionMotor = versionMotor;
     }
 
-    /** "~/.mathnova/mathnova.db": la ruta del archivo, con la carpeta del usuario abreviada. */
     public String rutaBase() {
         return rutaCorta(url, System.getProperty("user.home"));
     }

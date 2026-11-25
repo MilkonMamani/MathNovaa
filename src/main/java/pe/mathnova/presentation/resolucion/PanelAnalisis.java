@@ -12,16 +12,11 @@ import pe.mathnova.domain.calculo.limites.Asintotas;
 import pe.mathnova.domain.calculo.limites.TablaValores;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * Sprint 5, pestaña Análisis: la tabla de valores de un límite (la forma numérica de "verlo") y las
- * asíntotas de una función racional (RF26).
- */
 public final class PanelAnalisis {
 
     private PanelAnalisis() {
     }
 
-    /** Dos tablas, x | f(x), que se acercan por la izquierda y por la derecha (o hacia ±∞). */
     public static Node tabla(TablaValores t, String conclusion) {
         VBox caja = new VBox(8);
         caja.getChildren().add(rotulo("Tabla de valores"));
@@ -36,10 +31,6 @@ public final class PanelAnalisis {
         return caja;
     }
 
-    /**
-     * Parte F: las dos columnas lado a lado, "Por la izquierda" y "Por la derecha" (x | f(x) cada una),
-     * acercándose hacia abajo, y la fila final "→ 4" en verde. Al infinito, una sola columna.
-     */
     public static Node tabla(TablaLimite t) {
         VBox caja = new VBox(8);
         caja.getChildren().add(rotulo("Tabla de valores"));
@@ -105,7 +96,6 @@ public final class PanelAnalisis {
         return g;
     }
 
-    /** "Verticales: x = 1", "Oblicua: y = x + 1"…; "No tiene asíntotas" si no hay. */
     public static Node asintotas(Asintotas a) {
         VBox caja = new VBox(4);
         caja.getChildren().add(rotulo("Asíntotas"));
@@ -126,7 +116,6 @@ public final class PanelAnalisis {
         return caja;
     }
 
-    /** Sprint 6: título, tabla pequeña y, si hay, la recta de signos con su rótulo. */
     public static Node seccion(SeccionAnalisis s) {
         VBox caja = new VBox(6);
         caja.getChildren().add(rotulo(s.titulo()));
@@ -159,13 +148,6 @@ public final class PanelAnalisis {
         return caja;
     }
 
-    // ------------------------------------------------------------------ rediseño: una sola tabla compacta
-
-    /**
-     * La factorización de un polinomio: las propiedades, la frase de las raíces repetidas y, si se puede
-     * resolver sobre la recta real, el "Conjunto solución" con su selector (f(x) &gt; 0 al empezar), la recta y
-     * "C.S. = …". Cambiar la condición solo cambia la recta y el conjunto.
-     */
     public static void factorizacion(TablaAnalisis t, AnalisisFactorizacion a) {
         for (AnalisisFactorizacion.Fila f : a.filas()) {
             if (f.latex() != null) {
@@ -197,7 +179,6 @@ public final class PanelAnalisis {
             }
             grupo.selectedToggleProperty().addListener((obs, antes, ahora) -> {
                 if (ahora == null) {
-                    // Siempre hay una condición elegida
                     grupo.selectToggle(antes);
                     return;
                 }
@@ -210,14 +191,12 @@ public final class PanelAnalisis {
         });
     }
 
-    /** La tabla de valores de un límite, como sección de la tabla. */
     public static void tabla(TablaAnalisis t, TablaLimite tabla) {
         VBox caja = (VBox) tabla(tabla);
         caja.getChildren().removeFirst();
         t.seccion("Tabla de valores").bloque(caja);
     }
 
-    /** Una sección de derivadas, integrales y demás: filas con fórmulas y, si hay, la recta de signos. */
     public static void seccion(TablaAnalisis t, SeccionAnalisis s) {
         t.seccion(s.titulo());
         for (VistaPropiedades.Fila f : s.filas()) {
@@ -232,7 +211,6 @@ public final class PanelAnalisis {
         }
     }
 
-    /** Las propiedades de una ecuación o una fracción (las de siempre, con el formato nuevo). */
     public static void propiedades(TablaAnalisis t, VistaPropiedades v) {
         for (VistaPropiedades.Fila f : v.filas()) {
             t.valor(f.nombre(), f.valor());
@@ -245,7 +223,6 @@ public final class PanelAnalisis {
         }
     }
 
-    /** RF26: las asíntotas como filas. */
     public static void asintotas(TablaAnalisis t, Asintotas a) {
         t.seccion("Asíntotas");
         boolean alguna = false;

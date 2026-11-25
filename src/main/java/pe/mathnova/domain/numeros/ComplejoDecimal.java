@@ -7,10 +7,6 @@ import java.util.Objects;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Complejo aproximado con BigDecimal. Solo lo usan la verificación numérica (Parte E) y la
- * aproximación de raíces de A5; el resto del dominio es exacto.
- */
 public record ComplejoDecimal(BigDecimal re, BigDecimal im) {
 
     public static final ComplejoDecimal CERO = new ComplejoDecimal(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -87,7 +83,6 @@ public record ComplejoDecimal(BigDecimal re, BigDecimal im) {
         return re.multiply(re, mc).add(im.multiply(im, mc), mc).sqrt(mc);
     }
 
-    /** Raíz cuadrada principal. */
     public ComplejoDecimal raizCuadrada(MathContext mc) {
         if (im.signum() == 0) {
             return re.signum() >= 0 ? real(re.sqrt(mc)) : new ComplejoDecimal(BigDecimal.ZERO, re.negate().sqrt(mc));
@@ -103,14 +98,12 @@ public record ComplejoDecimal(BigDecimal re, BigDecimal im) {
         return im.abs().compareTo(BigDecimal.ONE.movePointLeft(digitos)) < 0;
     }
 
-    /** |this − o| ≤ 10⁻ᵈ · max(1, |o|). */
     public boolean cercano(ComplejoDecimal o, int digitos, MathContext mc) {
         BigDecimal escala = o.modulo(mc).max(BigDecimal.ONE);
         BigDecimal tolerancia = escala.multiply(BigDecimal.ONE.movePointLeft(digitos), mc);
         return restar(o, mc).modulo(mc).compareTo(tolerancia) <= 0;
     }
 
-    /** "1.1673039783", "-1 + 2i" con los decimales dados. */
     public String texto(int decimales) {
         String a = re.setScale(decimales, RoundingMode.HALF_EVEN).toPlainString();
         if (esReal(decimales + 2)) {

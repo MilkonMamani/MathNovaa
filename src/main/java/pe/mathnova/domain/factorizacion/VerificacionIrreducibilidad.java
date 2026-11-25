@@ -4,10 +4,6 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * A4 al final de la cadena: si ningún método partió el polinomio, Kronecker busca un factor. Si lo
- * encuentra, es un paso más; si no, el motivo es la certificación de que no se factoriza en Q.
- */
 public final class VerificacionIrreducibilidad extends MetodoBase {
 
     static final String IRREDUCIBLE = "No se puede factorizar en Q: no tiene raíces racionales y no se parte "
@@ -18,7 +14,6 @@ public final class VerificacionIrreducibilidad extends MetodoBase {
         super("A4");
     }
 
-    /** Solo desde grado 4, en una letra (en grado 2 y 3 bastan Δ y las raíces). */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 4;
@@ -43,7 +38,6 @@ public final class VerificacionIrreducibilidad extends MetodoBase {
         return resultado(justificacion, p, List.of(Factor.de(g.aPolinomio()), Factor.de(q.aPolinomio())), trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "¿Queda algún factor que se pueda partir, o ya ningún método funciona con ninguno?";

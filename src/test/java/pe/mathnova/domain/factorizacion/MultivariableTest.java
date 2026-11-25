@@ -16,7 +16,6 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.pizarra.ModeloAspaDobleXY;
 
-/** Sprint 7, Parte B (HU27, RF50, RF51): factorizar en varias variables, con los ejemplos del enunciado. */
 class MultivariableTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -106,7 +105,6 @@ class MultivariableTest {
 
     @Test
     void coeficientesIndeterminadosDeRespaldo() {
-        // (x² + y + 1)(x + y² + 2): ningún método anterior lo parte
         Resolucion r = resolver("(x^2 + y + 1)(x + y^2 + 2)");
         assertEquals(ComparadorFactorizacion.leer("(x^2 + y + 1)(x + y^2 + 2)"), ComparadorFactorizacion.leer(r.texto()));
         assertTrue(r.pasos().stream().anyMatch(p -> p.codigoTecnica().equals("M08")),

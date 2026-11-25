@@ -17,26 +17,10 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 import pe.mathnova.presentation.FormateadorTexto;
 import pe.mathnova.presentation.latex.TextoLatex;
 
-/**
- * Renglones de operaciones escritos directamente sobre la pizarra, sin recuadro de fondo.
- *
- * <p>Si todos son igualdades y caben, los "=" quedan uno debajo del otro (un solo bloque {@code aligned}).
- * Si la pizarra se angosta, cada renglón va por su cuenta y, si hace falta, se parte en un "=", un + o −
- * de afuera o entre factores (ver {@link FormulaAjustable}); nunca se cortan exponentes, fracciones,
- * radicales ni paréntesis. Lo que no es matemática (una frase) queda como texto.
- */
 public final class Igualdades extends Region {
 
-    /**
-     * Un renglón.
-     *
-     * @param latex la fórmula; null si es una frase
-     * @param texto la frase (cuando no hay fórmula)
-     * @param marca "✓" o "✗" al final, o null
-     */
     public record Renglon(String latex, String texto, String marca) {
 
-        /** Un renglón del motor en escritura de pizarra ("(x + 1)² = x² + 2x + 1"). */
         public static Renglon deTexto(String t) {
             String s = t == null ? "" : t.strip();
             String marca = null;
@@ -51,14 +35,8 @@ public final class Igualdades extends Region {
             return new Renglon(latex, FormateadorTexto.pizarra(s), marca);
         }
 
-        /**
-         * Como {@link #deTexto}, pero si el renglón mezcla una frase con matemática ("Δ = 12256/2187 > 0: una
-         * raíz real y dos complejas conjugadas") se separa en un renglón de fórmula y otro de texto; dos
-         * igualdades separadas por ",  " van cada una en su renglón.
-         */
         public static List<Renglon> partidos(String t) {
             String s = t == null ? "" : t.strip();
-            // "Se regresa a x: (x² + 1)⁶/6": la frase como texto y la fórmula aparte.
             int dos = s.indexOf(": ");
             if (dos > 0 && s.substring(0, dos).strip().matches("[A-ZÁÉÍÓÚ][a-záéíóúñ]+( [a-záéíóúñ]+)+( [a-zA-Zθ][²³]?)?")) {
                 Renglon der = deTexto(s.substring(dos + 2));
@@ -79,7 +57,6 @@ public final class Igualdades extends Region {
                 boolean hayFormula = a.latex() != null || b.stream().anyMatch(x -> x.latex() != null);
                 if (hayFormula) {
                     List<Renglon> l = new ArrayList<>();
-                    // Un rótulo corto ("y = mx:") queda como texto: nombra lo que sigue.
                     boolean rotulo = izq.length() <= 10;
                     l.add(a.latex() != null && !rotulo ? a : new Renglon(null, a.texto() + ":", null));
                     l.addAll(b);
@@ -103,7 +80,6 @@ public final class Igualdades extends Region {
             return new Renglon(latex, null, null);
         }
 
-        /** Una igualdad, o la continuación de la anterior ("= x + 3"). */
         boolean igualdad() {
             return latex != null && marca == null && TextoLatex.igualDeAfuera(latex) >= 0;
         }
@@ -139,10 +115,6 @@ public final class Igualdades extends Region {
         return new Igualdades(lineas.stream().flatMap(l -> Renglon.partidos(l).stream()).toList(), maximo, minimo);
     }
 
-    /**
-     * Todas son igualdades (la primera con lado izquierdo) o la primera es una expresión sola y las demás la
-     * continúan: "\lim (x − 2)(x + 1)²/(x − 2)" y debajo "= \lim (x + 1)²".
-     */
     private static boolean alineables(List<Renglon> renglones) {
         Renglon primero = renglones.getFirst();
         if (primero.latex() == null || primero.marca() != null) {
@@ -156,7 +128,6 @@ public final class Igualdades extends Region {
         return k < 0 && resto.stream().allMatch(r -> r.igualdad() && TextoLatex.igualDeAfuera(r.latex()) == 0);
     }
 
-    /** {@code \begin{aligned} izq &= der \\ … \end{aligned}}. */
     static String aligned(List<Renglon> renglones) {
         List<String> filas = new ArrayList<>();
         for (Renglon r : renglones) {
@@ -192,7 +163,6 @@ public final class Igualdades extends Region {
         return fila;
     }
 
-    /** Una fórmula de la Pizarra: se reparte en renglones antes de achicar la letra. */
     static FormulaAjustable formula(double maximo, double minimo) {
         FormulaAjustable f = new FormulaAjustable(maximo, minimo);
         f.setRenglonesPrimero(true);
@@ -208,9 +178,6 @@ public final class Igualdades extends Region {
         }
     }
 
-    // ------------------------------------------------------------------ disposición
-
-    /** Alineados si caben a su tamaño; si no, cada renglón por su cuenta (se reparte antes de achicar). */
     boolean alineados(double ancho) {
         return alineado != null && (ancho < 0 || alineado.anchoNatural() <= ancho - snappedLeftInset()
                 - snappedRightInset());
@@ -259,7 +226,6 @@ public final class Igualdades extends Region {
         a.resizeRelocate(x, y, w, a.prefHeight(w));
     }
 
-    /** Los "=" van alineados ahora (pruebas). */
     public boolean alineadosAhora() {
         return alineado != null && alineado.isVisible();
     }

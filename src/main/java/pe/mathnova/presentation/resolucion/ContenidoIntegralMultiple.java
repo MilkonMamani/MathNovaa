@@ -21,19 +21,9 @@ import pe.mathnova.presentation.grafica.DatosCurvasNivel;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.grafica.VentanaGrafica;
 
-/**
- * Una integral doble o triple (Sprint 8, HU31).
- * <ul>
- *   <li>Gráfica: la región de integración en el plano, sombreada, con las curvas que la limitan rotuladas (en polares,
- *       la región en el plano xy; en una triple, la región de las dos variables de afuera).</li>
- *   <li>Análisis: el valor exacto, su decimal y la comprobación con Simpson en 2D o 3D.</li>
- *   <li>Exploración: la iterada, el cambio de orden y el cambio de coordenadas, con "Probar".</li>
- * </ul>
- */
 public record ContenidoIntegralMultiple(String latexSolucion, List<SeccionAnalisis> secciones, DatosCurvasNivel curvas,
                                         VistaExploracion exploracion) implements ContenidoPestanas {
 
-    /** Subintervalos por variable de la regla de Simpson. */
     static final int SIMPSON_DOBLE = 40;
     static final int SIMPSON_TRIPLE = 16;
 
@@ -64,8 +54,6 @@ public record ContenidoIntegralMultiple(String latexSolucion, List<SeccionAnalis
     public Optional<String> comparacion() {
         return Optional.empty();
     }
-
-    // ------------------------------------------------------------------ Análisis
 
     private static String decimal(BigDecimal d) {
         return FormateadorTexto.pizarraConNegativos(d.setScale(6, RoundingMode.HALF_UP).stripTrailingZeros()
@@ -101,8 +89,6 @@ public record ContenidoIntegralMultiple(String latexSolucion, List<SeccionAnalis
         return List.of(new SeccionAnalisis("Valor", filas, List.of(), List.of(), null, aviso));
     }
 
-    // ------------------------------------------------------------------ Exploración
-
     static VistaExploracion exploracion(List<CaminoCalculo> caminos, boolean codigos) {
         List<VistaExploracion.Tarjeta> t = new ArrayList<>();
         for (CaminoCalculo c : caminos) {
@@ -121,8 +107,6 @@ public record ContenidoIntegralMultiple(String latexSolucion, List<SeccionAnalis
         }
         return new VistaExploracion(t, true);
     }
-
-    // ------------------------------------------------------------------ Gráfica
 
     private static double d(Expresion e, Map<Character, Double> v) {
         return CurvaExpresion.evaluar(e, v);
@@ -228,7 +212,6 @@ public record ContenidoIntegralMultiple(String latexSolucion, List<SeccionAnalis
                 new DatosCurvasNivel.RegionPolar(a, b, radio.inferior(), radio.superior()), null);
     }
 
-    /** La proyección de la región esférica sobre el plano xy: un disco de radio ρ máximo. */
     private static DatosCurvasNivel esferica(IntegralMultiple in) {
         Rango rho = in.rangos().get(0);
         Rango theta = in.rangos().get(2);

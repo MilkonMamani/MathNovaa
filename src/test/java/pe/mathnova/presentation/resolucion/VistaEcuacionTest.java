@@ -15,7 +15,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.parser.Parser;
 
-/** HU38 en la pantalla: los cuatro pasos, las soluciones en LaTeX y la verificación. */
 class VistaEcuacionTest {
 
     private static final ResolvedorEcuaciones RESOLVEDOR = new ResolvedorEcuaciones(new OrquestadorFactorizacion());
@@ -31,7 +30,6 @@ class VistaEcuacionTest {
         List<String> titulos = v.pasos().stream().map(VistaPaso::titulo).toList();
         assertEquals("Pasar todo a un lado", titulos.getFirst());
         assertEquals(List.of("Igualar cada factor a cero", "Despejar"), titulos.subList(titulos.size() - 2, titulos.size()));
-        // En medio, los pasos de siempre de la factorización.
         assertTrue(titulos.size() >= 4, titulos.toString());
         for (int i = 0; i < v.pasos().size(); i++) {
             assertEquals(i + 1, v.pasos().get(i).orden());

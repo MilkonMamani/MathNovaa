@@ -8,11 +8,6 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * M05: aspa doble, Ax² + Bxy + Cy² + Dx + Ey + F = (a1x + c1y + f1)(a2x + c2y + f2). Se buscan los
- * extremos (a1·a2 = A, c1·c2 = C, f1·f2 = F) que cumplen las tres aspas: xy (a1c2 + a2c1 = B),
- * y (c1f2 + c2f1 = E) y la de los extremos, x (a1f2 + a2f1 = D).
- */
 final class AspaDobleVariables extends MetodoBase {
 
     AspaDobleVariables() {
@@ -85,7 +80,6 @@ final class AspaDobleVariables extends MetodoBase {
                 .sumar(Polinomio.constante(Racional.de(f)));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Hay términos en x², xy, y², x, y y un número: prueba a cruzar los productos dos veces.";

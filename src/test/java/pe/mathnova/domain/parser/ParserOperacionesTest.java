@@ -28,7 +28,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/** HU32 y HU34: operaciones y letras nuevas; se compara el árbol completo. */
 class ParserOperacionesTest {
 
     private static final Variable X = new Variable('x');
@@ -63,8 +62,6 @@ class ParserOperacionesTest {
         assertEquals(esperado, Parser.parse(texto), texto);
     }
 
-    // ------------------------------------------------------------------ límites
-
     @Test
     void limiteBilateral() {
         lee("lim(x→2, (x^2 - 4)/(x - 2))", new Limite('x', en(n(2)), Limite.Lado.AMBOS,
@@ -94,8 +91,6 @@ class ParserOperacionesTest {
         lee("lim(x→1/2, x)", new Limite('x', en(new Cociente(n(1), n(2))), Limite.Lado.AMBOS, X));
     }
 
-    // ------------------------------------------------------------------ derivadas
-
     @Test
     void derivadas() {
         lee("d/dx(x^2 sen x)", new Derivada(1, 'x', new Producto(pot(X, 2), new Funcion(TipoFuncion.SEN, X))));
@@ -112,8 +107,6 @@ class ParserOperacionesTest {
         lee("∂2/∂x2(x^2 y^3)", new DerivadaParcial(List.of('x', 'x'), new Producto(pot(X, 2), pot(Y, 3))));
     }
 
-    // ------------------------------------------------------------------ integrales
-
     @Test
     void integrales() {
         lee("∫(x e^x, x)", new Integral(new Producto(X, new Potencia(E, X)), 'x'));
@@ -126,8 +119,6 @@ class ParserOperacionesTest {
         lee("∬(x^2 + y^2, x, 0, 1, y, 0, 2)", new IntegralMultiple(new Suma(pot(X, 2), pot(Y, 2)),
                 List.of(new Rango('x', n(0), n(1)), new Rango('y', n(0), n(2)))));
     }
-
-    // ------------------------------------------------------------------ letras (HU32)
 
     @Test
     void cualquierLetra() {
@@ -151,7 +142,6 @@ class ParserOperacionesTest {
 
     @Test
     void losNombresDeFuncionGananALasLetras() {
-        // RN45
         lee("ln x", new Funcion(TipoFuncion.LN, X));
         lee("l n", new Producto(L, N));
         lee("l·n", new Producto(L, N));

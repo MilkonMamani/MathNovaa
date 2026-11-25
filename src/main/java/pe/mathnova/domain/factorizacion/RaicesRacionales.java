@@ -8,20 +8,13 @@ import java.util.TreeSet;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Teorema de las raíces racionales: los candidatos p/q, con p divisor del término independiente y
- * q del coeficiente principal, en el orden de RN09: enteros positivos de menor a mayor, luego los
- * negativos, luego las fracciones positivas y las negativas.
- */
 final class RaicesRacionales {
 
-    /** Más allá de esto no se enumeran divisores (el banco no pasa de tres cifras). */
     static final BigInteger LIMITE = BigInteger.valueOf(1_000_000_000_000L);
 
     private RaicesRacionales() {
     }
 
-    /** Vacío si los coeficientes son demasiado grandes. El polinomio se pasa a enteros primitivos. */
     static Optional<List<Racional>> candidatos(Univariado u) {
         Univariado e = u.primitivo();
         BigInteger a0 = e.coef(0).num().abs();
@@ -46,7 +39,6 @@ final class RaicesRacionales {
         return Optional.of(r);
     }
 
-    /** "±1, ±2, ±1/2" (a lo más {@code maximo}, luego "…"). */
     static String texto(List<Racional> candidatos, int maximo) {
         List<String> textos = new ArrayList<>();
         candidatos.stream().filter(c -> c.signo() > 0).forEach(c -> textos.add("±" + c));

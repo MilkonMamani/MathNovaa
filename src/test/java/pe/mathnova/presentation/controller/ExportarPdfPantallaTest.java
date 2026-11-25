@@ -40,11 +40,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.Navegador;
 
-/**
- * Sprint 9, parte C: "Exportar PDF" desde la Pizarra y desde la hoja del Historial, con el diálogo y el
- * FileChooser reemplazados por respuestas fijas. El PDF se escribe de verdad. La pantalla escribe en su propio
- * hilo (sin la transacción de la prueba): el historial se vacía antes y después.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class ExportarPdfPantallaTest {
 
@@ -66,7 +61,6 @@ class ExportarPdfPantallaTest {
 
     private Stage ventana;
 
-    /** El diálogo y el FileChooser: anotan lo que se les pidió y responden lo que diga la prueba. */
     private static final class Respuestas implements ExportarPdf.Preguntas {
         final List<String> pedidos = new ArrayList<>();
         Boolean grafica;
@@ -154,8 +148,6 @@ class ExportarPdfPantallaTest {
         }
     }
 
-    // ---------------------------------------------------------------- Resolver
-
     @Test
     void desdeLaPizarraConLaGrafica() throws Exception {
         ResolucionController[] c = new ResolucionController[1];
@@ -207,7 +199,6 @@ class ExportarPdfPantallaTest {
         capturar(pdf, "pdf-resolver");
     }
 
-    /** Cada página del PDF en target/capturas, para revisarlo a ojo. */
     private static void capturar(Path pdf, String nombre) throws Exception {
         java.io.File salida = new java.io.File("target/capturas");
         salida.mkdirs();
@@ -223,14 +214,13 @@ class ExportarPdfPantallaTest {
     @Test
     void cancelarElDialogoNoGuardaNada() throws Exception {
         Respuestas r = new Respuestas();
-        r.grafica = null; // Cancelar
+        r.grafica = null;
         ExportarPdf e = preparar(new ExportarPdf(exportacion), r);
         Fx.enFx(() -> {
             Button b = new Button();
             ventana = Fx.ventana(new javafx.scene.layout.StackPane(b), 300, 200);
             e.exportar(b, hoy -> exportacion.desdeResolver("x^2 - 4", Campo.Q, null, hoy), null);
         });
-        // El documento se arma en una tarea: el diálogo llega en un pulso posterior
         Fx.esperar(() -> !r.pedidos.isEmpty(), "no se abrió el diálogo");
         assertEquals(List.of("gráfica disponible: false"), r.pedidos);
         assertNull(Fx.enFx(e::ultimoAviso));
@@ -238,8 +228,6 @@ class ExportarPdfPantallaTest {
             assertEquals(0, archivos.count());
         }
     }
-
-    // ---------------------------------------------------------------- Historial
 
     @Test
     void desdeLaHojaDelHistorialSinGrafica() throws Exception {

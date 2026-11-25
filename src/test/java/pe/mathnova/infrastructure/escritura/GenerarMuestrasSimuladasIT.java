@@ -10,11 +10,6 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import pe.mathnova.domain.escritura.Muestra;
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * Escribe reconocedor/pruebas/*.json con los trazos SIMULADOS de los casos A-E, para la autoprueba del
- * paquete ({@code MathNova.exe --mathnova.autoprueba=reconocedor\pruebas}). No son escritura de una persona.
- * Se corre con {@code -Dmathnova.generar.muestras=true}.
- */
 @EnabledIfSystemProperty(named = "mathnova.generar.muestras", matches = "true")
 class GenerarMuestrasSimuladasIT {
 

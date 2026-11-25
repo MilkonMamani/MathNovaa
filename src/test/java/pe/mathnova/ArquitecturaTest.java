@@ -8,7 +8,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** RNF15: el dominio es Java puro. */
 class ArquitecturaTest {
 
     private static JavaClasses clases;

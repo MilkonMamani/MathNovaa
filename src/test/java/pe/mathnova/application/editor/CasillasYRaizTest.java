@@ -13,10 +13,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import pe.mathnova.domain.parser.Parser;
 
-/** \surd y √ pegados, las casillas opcionales de la integral (RF69) y qué casilla falta. */
 class CasillasYRaizTest {
-
-    // ------------------------------------------------------------------ \surd
 
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
@@ -39,8 +36,6 @@ class CasillasYRaizTest {
         assertEquals(TraductorLatex.RAIZ_SUELTA, e.getMessage());
         assertFalse(e.getMessage().contains("no reconoce"));
     }
-
-    // ------------------------------------------------------------------ casillas
 
     @ParameterizedTest(name = "{0} → {2}")
     @CsvSource(delimiter = '|', value = {
@@ -66,17 +61,14 @@ class CasillasYRaizTest {
         assertFalse(mensaje.contains("posición"));
     }
 
-    /** El índice cuenta todas las casillas del LaTeX, también las opcionales que se saltan. */
     @Test
     void elIndiceCuentaLasCasillasOpcionales() {
         String latex = "\\int_{\\placeholder{}}^{\\placeholder{}}x^{\\placeholder{}}\\,dx";
         assertEquals(Optional.of(new TraductorLatex.CasillaVacia(2, "Completa el exponente")),
                 TraductorLatex.casillaVacia(latex));
-        // ∫₁^□: el 1 ya no es casilla; la única que queda, el límite superior, es la número 0
         assertEquals(0,TraductorLatex.casillaVacia("\\int_{1}^{\\placeholder{}}x\\,dx").orElseThrow().indice());
     }
 
-    /** RF69: los dos límites vacíos se borran antes de traducir; la integral es indefinida y sin aviso. */
     @Test
     void integralConLimitesVaciosEsIndefinida() {
         String latex = "\\int_{\\placeholder{}}^{\\placeholder{}}e^{x}\\operatorname{\\mathrm{sen}}\\left(x\\right)\\,dx";

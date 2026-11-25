@@ -14,7 +14,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.Parser;
 
-/** RF66: propiedades exactas de la función. */
 class AnalisisPolinomioTest {
 
     private final OrquestadorFactorizacion motor = new OrquestadorFactorizacion();
@@ -34,7 +33,6 @@ class AnalisisPolinomioTest {
                 () -> assertTrue(a.raices().stream().allMatch(r -> r.multiplicidad() == 1)),
                 () -> assertEquals(Racional.de(-2), a.corteY(), "f(0) = −2"),
                 () -> assertTrue(a.signosCompletos()),
-                // (−∞, −1), (−1, 1/2), (1/2, 1), (1, 2), (2, +∞)
                 () -> assertEquals(List.of(1, -1, 1, -1, 1),
                         a.signos().stream().map(AnalisisPolinomio.Tramo::signo).toList()),
                 () -> assertEquals(null, a.signos().getFirst().desde()),
@@ -57,13 +55,13 @@ class AnalisisPolinomioTest {
 
     @Test
     void multiplicidadYFactoresSinRaicesReales() {
-        AnalisisPolinomio doble = analizar("x^3 - 3x + 2"); // (x − 1)²(x + 2)
+        AnalisisPolinomio doble = analizar("x^3 - 3x + 2");
         assertEquals(List.of(new AnalisisPolinomio.Raiz(Racional.de(-2), 1), new AnalisisPolinomio.Raiz(Racional.de(1), 2)),
                 doble.raices());
         assertEquals(List.of(-1, 1, 1), doble.signos().stream().map(AnalisisPolinomio.Tramo::signo).toList(),
                 "en la raíz doble no cambia el signo");
 
-        AnalisisPolinomio conCuadratico = analizar("x^4 - 16"); // (x + 2)(x − 2)(x² + 4)
+        AnalisisPolinomio conCuadratico = analizar("x^4 - 16");
         assertTrue(conCuadratico.signosCompletos(), "x² + 4 nunca se anula");
         assertEquals(List.of(1, -1, 1), conCuadratico.signos().stream().map(AnalisisPolinomio.Tramo::signo).toList());
 
@@ -71,7 +69,6 @@ class AnalisisPolinomioTest {
         assertEquals(List.of(1), sinRaices.signos().stream().map(AnalisisPolinomio.Tramo::signo).toList());
     }
 
-    /** x² − 2 tiene raíces reales que no son racionales: la tabla de signos no se puede dar exacta. */
     @Test
     void conRaicesIrracionalesNoHayTablaDeSignos() {
         AnalisisPolinomio a = analizar("x^3 - 2x");

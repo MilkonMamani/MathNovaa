@@ -1,6 +1,5 @@
 package pe.mathnova.domain.expresion;
 
-/** Recorre el árbol de una Expresion y devuelve un resultado de tipo R. */
 public interface Visitante<R> {
 
     R visitar(Constante c);
@@ -35,15 +34,11 @@ public interface Visitante<R> {
 
     R visitar(Ecuacion e);
 
-    /** ∇f (Sprint 7). */
     R visitar(Gradiente g);
 
-    /** D_u f(P) (Sprint 7). */
     R visitar(Direccional d);
 
-    /** lim((x, y) → (a, b), f) (Sprint 8). */
     R visitar(LimiteDoble l);
 
-    /** extremos(f) o extremos(f; g = c) (Sprint 8). */
     R visitar(Extremos x);
 }

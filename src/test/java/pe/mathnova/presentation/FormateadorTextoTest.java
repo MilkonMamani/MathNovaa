@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** A.4: del texto del dominio a escritura de pizarra. */
 class FormateadorTextoTest {
 
     @ParameterizedTest(name = "{0} → {1}")
@@ -23,7 +22,6 @@ class FormateadorTextoTest {
         assertEquals(esperado, FormateadorTexto.pizarra(entrada));
     }
 
-    /** HU37, HU38: el signo de un número negativo en soluciones y resultados. */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
             "x₁ = -1/2 ≈ -0.5, x₂ = 2   | x₁ = −1/2 ≈ −0.5, x₂ = 2",

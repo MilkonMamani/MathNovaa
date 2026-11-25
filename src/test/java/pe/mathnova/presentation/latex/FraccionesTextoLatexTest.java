@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.scilab.forge.jlatexmath.TeXFormula;
 
-/** En la Pizarra, "a/b" del motor se escribe como fracción vertical; nada se corta ni cambia de valor. */
 class FraccionesTextoLatexTest {
 
     private static String lx(String s) {

@@ -3,10 +3,6 @@ package pe.mathnova.domain.expresion;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * ∂ⁿ/∂x∂y…(cuerpo) (HU34). Las variables van en el orden en que se escribieron; el orden de la
- * derivada es la cantidad de variables (∂2/∂x∂x tiene [x, x]).
- */
 public record DerivadaParcial(List<Character> variables, Expresion cuerpo) implements Expresion {
 
     public DerivadaParcial {

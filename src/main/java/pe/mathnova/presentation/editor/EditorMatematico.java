@@ -34,23 +34,6 @@ import netscape.javascript.JSObject;
 
 import pe.mathnova.application.editor.TraductorLatex;
 
-/**
- * Editor visual de fórmulas (HU36, RF67 a RF70): un WebView con MathLive (resources/editor).
- *
- * <ul>
- *   <li>{@link #insertar(String)} pone una plantilla y deja el cursor en su primera casilla.</li>
- *   <li>{@link #completoProperty()} es false mientras quede una casilla obligatoria vacía; entonces se
- *       ve ⚠ a la izquierda. {@link #casillaVaciaProperty()} dice cuál falta ("Completa el exponente");
- *       el mensaje lo muestra la pantalla, y {@link #resaltarCasilla(int)} lleva el cursor a esa casilla
- *       y la marca con borde naranja.</li>
- *   <li>{@link EventoEditor#CAMBIO} y {@link EventoEditor#ENTER} avisan de cada cambio y de Enter.</li>
- *   <li>Al escribir lim, der, int, sen, cos, tan, ln, log, raiz o frac aparece una lista con la
- *       plantilla (RF70); Enter la inserta y Esc la cierra.</li>
- * </ul>
- *
- * <p>El WebView de JavaFX no decodifica WOFF2 y entrega las teclas sin {@code key}; editor.html trae
- * los dos arreglos (ver su comentario).
- */
 public class EditorMatematico extends BorderPane {
 
     private static final String RECURSOS = "/editor/";
@@ -115,15 +98,11 @@ public class EditorMatematico extends BorderPane {
         engine.load(urlDelEditor());
     }
 
-    // ------------------------------------------------------------------ API
-
-    /** Inserta una plantilla LaTeX ({@code #?} = casilla) y lleva el cursor a la primera casilla. */
     public void insertar(String plantillaLatex) {
         js("window.editor.insertar(" + Js.cadena(plantillaLatex) + ")");
         enfocar();
     }
 
-    /** Escribe texto como si se tecleara ("7", "+", "x"). */
     public void escribir(String texto) {
         js("window.editor.escribir(" + Js.cadena(texto) + ")");
         enfocar();
@@ -149,7 +128,6 @@ public class EditorMatematico extends BorderPane {
         enfocar();
     }
 
-    /** La tecla Enter del teclado en pantalla: lo mismo que pulsar Enter en el campo. */
     public void pulsarEnter() {
         sugerencias.hide();
         js("window.editor.cerrarSugerencias()");
@@ -157,12 +135,10 @@ public class EditorMatematico extends BorderPane {
         enfocar();
     }
 
-    /** Reemplaza todo el contenido (por ejemplo, al volver a una expresión del historial). */
     public void setLatex(String nuevo) {
         js("window.editor.poner(" + Js.cadena(nuevo == null ? "" : nuevo) + ")");
     }
 
-    /** El LaTeX actual, tal como lo da MathLive. */
     public String getLatex() {
         if (listo) {
             Object v = engine.executeScript("window.editor.valor()");
@@ -173,7 +149,6 @@ public class EditorMatematico extends BorderPane {
         return latex.get();
     }
 
-    /** El texto para el parser (sección 9). */
     public String getTexto() {
         return TraductorLatex.traducir(getLatex());
     }
@@ -190,23 +165,19 @@ public class EditorMatematico extends BorderPane {
         return completo.get();
     }
 
-    /** La casilla obligatoria que falta, con su mensaje; null si no falta ninguna. */
     public ReadOnlyObjectProperty<TraductorLatex.CasillaVacia> casillaVaciaProperty() {
         return casillaVacia.getReadOnlyProperty();
     }
 
-    /** Lleva el cursor a la casilla número {@code indice} (ver CasillaVacia) y la marca con borde naranja. */
     public void resaltarCasilla(int indice) {
         js("window.editor.resaltarCasilla(" + indice + ")");
         web.requestFocus();
     }
 
-    /** Borde naranja en todo el campo: falta una casilla (o se quita con false). */
     public void marcarFalta(boolean si) {
         fila.pseudoClassStateChanged(FALTA, si);
     }
 
-    /** Devuelve el foco al campo; el teclado lo llama después de cada tecla. */
     public void enfocar() {
         web.requestFocus();
         js("window.editor.enfocar()");
@@ -228,7 +199,6 @@ public class EditorMatematico extends BorderPane {
         onEnter.set(h);
     }
 
-    /** Para las pruebas: el WebView de dentro. */
     WebView webView() {
         return web;
     }
@@ -236,8 +206,6 @@ public class EditorMatematico extends BorderPane {
     boolean estaListo() {
         return listo;
     }
-
-    // ------------------------------------------------------------------ puente con editor.html
 
     private void js(String script) {
         if (listo) {
@@ -263,7 +231,6 @@ public class EditorMatematico extends BorderPane {
         fireEvent(new EventoEditor(EventoEditor.CAMBIO, nuevo));
     }
 
-    /** Lo llama editor.html. Debe ser público para que JavaScript lo vea. */
     public final class Puente {
 
         public void onCambio(String valor) {
@@ -276,7 +243,6 @@ public class EditorMatematico extends BorderPane {
         }
 
         public void onListo(String estado) {
-            // Las fuentes cargaron; nada más que hacer.
         }
 
         public void onAltura(int alto) {
@@ -307,7 +273,6 @@ public class EditorMatematico extends BorderPane {
         }
     }
 
-    /** RF70: la lista que aparece bajo el cursor. No toma el foco; las teclas las maneja editor.html. */
     private final class ListaSugerencias extends Popup {
 
         private final VBox caja = new VBox();
@@ -352,13 +317,6 @@ public class EditorMatematico extends BorderPane {
         }
     }
 
-    // ------------------------------------------------------------------ ubicación de editor.html
-
-    /**
-     * Desde las clases compiladas se usa el archivo tal cual. Desde el .jar de Spring Boot (URL
-     * "jar:nested:"), el WebView no siempre resuelve las rutas relativas, así que se copia la carpeta
-     * a un directorio temporal una sola vez.
-     */
     private static synchronized String urlDelEditor() {
         URL url = Objects.requireNonNull(EditorMatematico.class.getResource(RECURSOS + "editor.html"),
                 "Falta /editor/editor.html");

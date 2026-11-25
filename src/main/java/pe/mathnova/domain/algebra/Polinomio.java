@@ -27,31 +27,18 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.expresion.Visitante;
 
-/**
- * Polinomio con coeficientes racionales exactos en cualquier letra que pueda ser variable
- * (RF57): en factorización todas las letras son variables (RN44), así que a^2 - b^2 es un
- * polinomio en a y b. Inmutable.
- * Nunca guarda términos con coeficiente cero, así que equals compara por contenido.
- */
 public final class Polinomio {
 
-    /**
-     * Grado máximo que acepta desde(). Evita que la vista previa se cuelgue con ((x+1)^100)^100;
-     * el banco no pasa de grado 8.
-     */
     public static final int GRADO_MAXIMO = 100;
 
     public static final Polinomio CERO = new Polinomio(new TreeMap<>(Comparator.reverseOrder()));
     public static final Polinomio UNO = constante(Racional.UNO);
 
-    /** Términos ordenados de mayor a menor monomio. */
     private final SortedMap<Monomio, Racional> terminos;
 
     private Polinomio(TreeMap<Monomio, Racional> terminos) {
         this.terminos = Collections.unmodifiableSortedMap(terminos);
     }
-
-    // ------------------------------------------------------------------ fábricas
 
     public static Polinomio constante(Racional c) {
         return termino(c, Monomio.UNO);
@@ -75,13 +62,6 @@ public final class Polinomio {
         return new Polinomio(t);
     }
 
-    /**
-     * Convierte un árbol en polinomio expandido.
-     *
-     * @throws NoEsPolinomioException si hay funciones, raíces, constantes especiales (e, π, i),
-     *         exponentes negativos o no enteros, o división entre algo que no es constante
-     * @throws ArithmeticException si se divide entre cero
-     */
     public static Polinomio desde(Expresion e) {
         return e.aceptar(CONVERSOR);
     }
@@ -98,8 +78,6 @@ public final class Polinomio {
             t.put(m, nuevo);
         }
     }
-
-    // ------------------------------------------------------------------ operaciones
 
     public Polinomio sumar(Polinomio o) {
         TreeMap<Monomio, Racional> t = new TreeMap<>(terminos);
@@ -127,7 +105,6 @@ public final class Polinomio {
         return multiplicar(constante(c));
     }
 
-    /** Potencia con exponente natural (por cuadrados sucesivos). */
     public Polinomio potencia(int n) {
         if (n < 0) {
             throw new IllegalArgumentException("Exponente negativo: " + n);
@@ -146,17 +123,10 @@ public final class Polinomio {
         return resultado;
     }
 
-    // ------------------------------------------------------------------ consultas
-
-    /** Grado total; el polinomio cero tiene grado -1. */
     public int grado() {
         return terminos.keySet().stream().mapToInt(Monomio::grado).max().orElse(-1);
     }
 
-    /**
-     * Árbol equivalente, para dibujarlo con ImpresoraLatex: "2x^2 - 3x + 1/2" queda como
-     * Suma(2·x², -(3·x), 1/2).
-     */
     public Expresion aExpresion() {
         if (terminos.isEmpty()) {
             return Constante.de(0);
@@ -177,14 +147,12 @@ public final class Polinomio {
         return sumandos.size() == 1 ? sumandos.getFirst() : new Suma(sumandos);
     }
 
-    /** Letras que aparecen, en orden alfabético. */
     public SortedSet<Character> variables() {
         TreeSet<Character> letras = new TreeSet<>();
         terminos.keySet().forEach(m -> letras.addAll(m.variables()));
         return Collections.unmodifiableSortedSet(letras);
     }
 
-    /** Mayor exponente de la variable; -1 para el polinomio cero. */
     public int gradoEn(char variable) {
         return terminos.keySet().stream().mapToInt(m -> m.exponente(variable)).max().orElse(-1);
     }
@@ -201,21 +169,14 @@ public final class Polinomio {
         return terminos.getOrDefault(m, Racional.CERO);
     }
 
-    /** Término independiente. */
     public Racional constante() {
         return coeficiente(Monomio.UNO);
     }
 
-    /** Vista de solo lectura, de mayor a menor monomio. */
     public SortedMap<Monomio, Racional> terminos() {
         return terminos;
     }
 
-    /**
-     * Valor exacto del polinomio.
-     *
-     * @throws IllegalArgumentException si falta el valor de una variable que aparece
-     */
     public Racional evaluar(Map<Character, Racional> valores) {
         Racional total = Racional.CERO;
         for (Map.Entry<Monomio, Racional> t : terminos.entrySet()) {
@@ -249,7 +210,6 @@ public final class Polinomio {
         return terminos.hashCode();
     }
 
-    /** "x^3 + 3x^2 + 3x + 1", "-1/2x^2y + 3", "0". */
     @Override
     public String toString() {
         if (terminos.isEmpty()) {
@@ -272,8 +232,6 @@ public final class Polinomio {
         }
         return sb.toString();
     }
-
-    // ------------------------------------------------------------------ conversión desde el árbol
 
     private static final Visitante<Polinomio> CONVERSOR = new Visitante<>() {
 

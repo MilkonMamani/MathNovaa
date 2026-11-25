@@ -42,23 +42,10 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * HU31 (RF56): integrales dobles y triples.
- * <ul>
- *   <li>V09, integral iterada: de adentro hacia afuera, cada integral es un paso que usa el motor de una variable
- *       (sus pasos van anidados) y Barrow con los límites, que pueden depender de las variables de afuera.</li>
- *   <li>Cambio de orden: si la integral de adentro no es elemental (e^(x²)), se describe la región con el otro
- *       orden y se resuelve así. También se puede pedir desde Exploración.</li>
- *   <li>V10, cambio de coordenadas (polares, cilíndricas, esféricas), con el jacobiano como determinante y
- *       simplificado (RN40). Con "coord=" los rangos ya vienen en r, θ, z, ρ, φ; desde Exploración se reconoce un
- *       disco, un cilindro o una esfera centrados en el origen.</li>
- * </ul>
- */
 public final class MotorIntegralesMultiples {
 
     public static final String ITERADA = "V09";
     public static final String COORDENADAS = "V10";
-    /** Los caminos que se pueden forzar desde Exploración. */
     public static final String ORDEN = "ORDEN";
     public static final String POLARES = "POLARES";
     public static final String CILINDRICAS = "CILINDRICAS";
@@ -89,10 +76,6 @@ public final class MotorIntegralesMultiples {
         return resolver(in, null);
     }
 
-    /**
-     * @param forzado ORDEN, POLARES, CILINDRICAS o ESFERICAS ("Probar" en Exploración), o null
-     * @throws IllegalArgumentException si los límites o las variables no son válidos
-     */
     public ResolucionIntegralMultiple resolver(IntegralMultiple in, String forzado) {
         validar(in);
         List<PasoLimite> pasos = new ArrayList<>();
@@ -152,8 +135,6 @@ public final class MotorIntegralesMultiples {
         };
     }
 
-    // ================================================================== validación
-
     private static void validar(IntegralMultiple in) {
         List<Rango> rs = in.rangos();
         for (int i = 0; i < rs.size(); i++) {
@@ -198,9 +179,6 @@ public final class MotorIntegralesMultiples {
         return String.join(", ", new java.util.TreeSet<>(cs).stream().map(String::valueOf).toList());
     }
 
-    // ================================================================== V09
-
-    /** @param fallo el índice del rango que no se pudo integrar (0 la de adentro), o −1 */
     private record Iterada(Expresion valor, List<PasoLimite> pasos, String motivo, int fallo) {
     }
 
@@ -245,7 +223,6 @@ public final class MotorIntegralesMultiples {
         return new Iterada(actual, pasos, null, -1);
     }
 
-    /** Un polinomio en orden; lo demás, simplificado. */
     static Expresion normalizar(Expresion e) {
         Expresion s = Simplificador.simplificar(e);
         try {
@@ -256,7 +233,6 @@ public final class MotorIntegralesMultiples {
         }
     }
 
-    /** e/2 + (−1/2) como e/2 − 1/2, para que el LaTeX no diga "+ −". */
     private static Expresion conResta(Expresion e) {
         if (!(e instanceof Suma su)) {
             return e;
@@ -268,9 +244,6 @@ public final class MotorIntegralesMultiples {
         return new Suma(ts);
     }
 
-    // ================================================================== cambio de orden
-
-    /** Una función de borde: constante, creciente o decreciente, con su inversa. */
     private record Borde(Expresion e, int sentido, java.util.function.UnaryOperator<Expresion> inversa) {
     }
 
@@ -342,10 +315,6 @@ public final class MotorIntegralesMultiples {
         return Optional.empty();
     }
 
-    /**
-     * ∬ con v₁ entre g₁(v₂) y g₂(v₂), v₂ entre a y b → v₂ entre h₁(v₁) y h₂(v₁), v₁ entre c y d. Se exige que cada
-     * borde sea constante o monótono con inversa, y que la región no haya que partirla.
-     */
     private static Optional<Inversion> invertir(IntegralMultiple in) {
         if (!in.esDoble() || in.coordenadas() != Coordenadas.CARTESIANAS) {
             return Optional.empty();
@@ -378,13 +347,11 @@ public final class MotorIntegralesMultiples {
         Variable w = new Variable(v1);
         List<Expresion> abajo = new ArrayList<>(List.of(new Constante(a)));
         List<Expresion> arriba = new ArrayList<>(List.of(new Constante(b)));
-        // g₁(v₂) ≤ v₁: creciente da v₂ ≤ g₁⁻¹(v₁); decreciente, v₂ ≥ g₁⁻¹(v₁)
         if (g1.get().sentido() > 0) {
             arriba.add(g1.get().inversa().apply(w));
         } else if (g1.get().sentido() < 0) {
             abajo.add(g1.get().inversa().apply(w));
         }
-        // v₁ ≤ g₂(v₂): creciente da v₂ ≥ g₂⁻¹(v₁); decreciente, v₂ ≤ g₂⁻¹(v₁)
         if (g2.get().sentido() > 0) {
             abajo.add(g2.get().inversa().apply(w));
         } else if (g2.get().sentido() < 0) {
@@ -408,10 +375,6 @@ public final class MotorIntegralesMultiples {
         return a.compareTo(b) >= 0 ? a : b;
     }
 
-    /**
-     * El candidato que manda en todo [c, d] (el mayor de los de abajo o el menor de los de arriba): se compara en c,
-     * en d y en el punto medio. Vacío si ninguno manda en todo el intervalo (habría que partir la región).
-     */
     private static Optional<Expresion> dominante(List<Expresion> cs, char v, Racional c, Racional d, boolean mayor) {
         List<Racional> puntos = List.of(c, c.sumar(d).dividir(Racional.de(2)), d);
         for (Expresion h : cs) {
@@ -450,12 +413,9 @@ public final class MotorIntegralesMultiples {
                 + "partirla en dos)";
     }
 
-    // ================================================================== V10: el cambio y el jacobiano
-
     private record Cambio(Expresion integrando, Expresion jacobiano, PasoLimite paso) {
     }
 
-    /** x, y, z en las letras auxiliares (α = cos θ, β = sen θ, γ = cos φ, δ = sen φ). */
     private static Map<Character, Polinomio> sustitucion(Coordenadas c) {
         Polinomio ct = Polinomio.variable(Trigonometricas.COS_T);
         Polinomio st = Polinomio.variable(Trigonometricas.SEN_T);
@@ -473,7 +433,6 @@ public final class MotorIntegralesMultiples {
         };
     }
 
-    /** Las variables nuevas, en el orden de las columnas del jacobiano. */
     private static List<Character> nuevas(Coordenadas c) {
         return switch (c) {
             case POLARES -> List.of(R, THETA);
@@ -486,7 +445,6 @@ public final class MotorIntegralesMultiples {
         return v == THETA || v == PHI ? Trigonometricas.derivarAngulo(p, v) : Polinomios.derivar(p, v);
     }
 
-    /** f(x, y, z) en las coordenadas nuevas, sin jacobiano: polinomios por la sustitución, lo demás por partes. */
     static Expresion aCoordenadas(Expresion f, Coordenadas c) {
         Map<Character, Polinomio> s = sustitucion(c);
         try {
@@ -497,7 +455,6 @@ public final class MotorIntegralesMultiples {
             }
             return Trigonometricas.aExpresion(Trigonometricas.reducir(r));
         } catch (RuntimeException noEsPolinomio) {
-            // sigue por partes
         }
         return switch (f) {
             case Suma su -> Simplificador.simplificar(new Suma(su.terminos().stream().map(t -> aCoordenadas(t, c))
@@ -522,7 +479,6 @@ public final class MotorIntegralesMultiples {
         Map<Character, Polinomio> s = sustitucion(c);
         List<Character> cartesianas = c == Coordenadas.POLARES ? List.of('x', 'y') : List.of('x', 'y', 'z');
         List<Character> nuevas = nuevas(c);
-        // el jacobiano como determinante
         Polinomio[][] m = new Polinomio[cartesianas.size()][nuevas.size()];
         for (int i = 0; i < cartesianas.size(); i++) {
             for (int j = 0; j < nuevas.size(); j++) {
@@ -602,9 +558,6 @@ public final class MotorIntegralesMultiples {
         return r;
     }
 
-    // ================================================================== V10 desde Exploración: reconocer la región
-
-    /** R² si e es √(R² − v²) (o √(R² − v² − w²) con {@code otra}); vacío si no. */
     private static Optional<Racional> raizCirculo(Expresion e, char v, char otra) {
         Expresion base = e instanceof Funcion f && f.tipo() == TipoFuncion.SQRT ? f.argumento()
                 : e instanceof Raiz rz && rz.indice() == 2 ? rz.radicando() : null;
@@ -632,7 +585,6 @@ public final class MotorIntegralesMultiples {
         return Simplificador.simplificar(e).equals(Constante.de(0));
     }
 
-    /** El borde de abajo: −√(R² − …) (true) o 0 (false); vacío si es otra cosa. */
     private static Optional<Boolean> abajoSimetrico(Expresion inferior, Expresion superior) {
         if (cero(inferior)) {
             return Optional.of(false);
@@ -643,7 +595,6 @@ public final class MotorIntegralesMultiples {
     private record Disco(Expresion radio, Expresion desde, Expresion hasta) {
     }
 
-    /** Un disco, medio disco o cuarto de disco centrado en el origen, con v₁ adentro y v₂ afuera. */
     private static Optional<Disco> disco(Rango adentro, Rango afuera) {
         char v1 = adentro.variable();
         char v2 = afuera.variable();
@@ -669,7 +620,6 @@ public final class MotorIntegralesMultiples {
         }
         Expresion pi = new ConstanteEspecial(ConstanteEspecial.Tipo.PI);
         Expresion medioPi = Simplificador.cociente(pi, Constante.de(2));
-        // con y adentro: abajo simétrico es "todo y", afuera simétrico es "todo x"
         boolean todoY = v1 == 'y' ? simetrico.get() : afueraSimetrico;
         boolean todoX = v1 == 'y' ? afueraSimetrico : simetrico.get();
         if (todoX && todoY) {
@@ -684,7 +634,6 @@ public final class MotorIntegralesMultiples {
         return Optional.of(new Disco(radio, Constante.de(0), medioPi));
     }
 
-    /** La misma integral en coordenadas, si la región es un disco, un cilindro o una esfera centrados en el origen. */
     static Optional<IntegralMultiple> enCoordenadas(IntegralMultiple in, Coordenadas c) {
         List<Rango> rs = in.rangos();
         switch (c) {
@@ -770,8 +719,6 @@ public final class MotorIntegralesMultiples {
         return String.join(",  ", r);
     }
 
-    // ================================================================== Exploración
-
     public static String nombre(String codigo) {
         return switch (codigo) {
             case ITERADA -> "Integral iterada";
@@ -783,7 +730,6 @@ public final class MotorIntegralesMultiples {
         };
     }
 
-    /** La iterada (usada), el cambio de orden y los cambios de coordenadas que sirven (con su valor) o no aplican. */
     public List<CaminoCalculo> caminos(ResolucionIntegralMultiple r) {
         IntegralMultiple in = r.entrada();
         List<CaminoCalculo> caminos = new ArrayList<>();
@@ -819,13 +765,6 @@ public final class MotorIntegralesMultiples {
         return caminos;
     }
 
-    // ================================================================== comprobación numérica (Simpson)
-
-    /**
-     * La regla de Simpson en 2D o 3D sobre la integral efectiva (con el jacobiano), para comparar en Análisis.
-     *
-     * @param n subintervalos por variable (par)
-     */
     public static Optional<BigDecimal> simpson(ResolucionIntegralMultiple r, int n) {
         try {
             return Optional.of(simpson(r.integrando(), r.efectiva().rangos(), r.efectiva().rangos().size() - 1,
@@ -851,7 +790,6 @@ public final class MotorIntegralesMultiples {
         return suma.multiply(h).divide(BigDecimal.valueOf(3), MC);
     }
 
-    /** El valor exacto en decimal, o vacío si no se pudo. */
     public static Optional<BigDecimal> decimal(ResolucionIntegralMultiple r) {
         if (!r.resuelta()) {
             return Optional.empty();

@@ -16,7 +16,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.presentation.resolucion.AnalisisFactorizacion.Condicion;
 
-/** La pestaña Análisis de una factorización: propiedades, raíces sin repetir y conjunto solución exacto. */
 class AnalisisFactorizacionTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -41,7 +40,6 @@ class AnalisisFactorizacionTest {
         assertEquals("8", filas.get("Grado").latex());
         assertEquals("2", filas.get("Coeficiente principal").latex());
         assertEquals("\\left(0, 0\\right)", filas.get("Corte con el eje y").latex());
-        // Cada raíz distinta una vez, de menor a mayor, sin "(doble)"
         assertEquals("x \\in \\left\\{-2, -1, 0, 1, 2\\right\\}", filas.get(AnalisisFactorizacion.RAICES).latex());
         assertEquals("Las raíces −1, 0 y 1 aparecen dos veces cada una en la factorización.", a.notaRaices());
         assertTrue(a.filas().stream().noneMatch(f -> (f.latex() + f.texto()).contains("doble")));
@@ -87,7 +85,6 @@ class AnalisisFactorizacionTest {
 
     @Test
     void unaRaizDeMultiplicidadParNoCambiaElSigno() {
-        // (x − 1)²(x + 2): ≥ 0 en [−2, +∞), y 1 es un punto donde vale 0 sin cambiar de signo
         AnalisisFactorizacion a = de("(x - 1)^2 (x + 2)");
         assertEquals("\\text{C.S.} = \\left(-2, 1\\right) \\cup \\left(1, +\\infty\\right)", a.conjuntoSolucion(Condicion.MAYOR));
         assertEquals("\\text{C.S.} = \\left(-\\infty, -2\\right] \\cup \\left\\{1\\right\\}",
@@ -96,7 +93,6 @@ class AnalisisFactorizacionTest {
 
     @Test
     void enQConRaicesIrracionalesNoHayConjunto() {
-        // x² − 2 no se parte en Q: no se conocen sus raíces reales, la sección no se muestra
         AnalisisFactorizacion a = de("x^2 - 2");
         assertTrue(a.recta().isEmpty());
         assertEquals("no tiene raíces racionales", a.porNombre().get("Raíces racionales").texto());
@@ -121,7 +117,6 @@ class AnalisisFactorizacionTest {
         assertTrue(complejas.contains("i"), complejas);
         assertEquals(1, a.recta().orElseThrow().raices().size());
         assertEquals("\\text{C.S.} = \\left(0, +\\infty\\right)", a.conjuntoSolucion(Condicion.MAYOR));
-        // Las raíces reales no se repiten en la fila de complejas
         assertFalse(complejas.contains("0,") || complejas.contains("{0"), complejas);
     }
 

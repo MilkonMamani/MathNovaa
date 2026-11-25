@@ -15,24 +15,16 @@ import pe.mathnova.domain.expresion.Producto;
 import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.factorizacion.MetodoFactorizacion.ResultadoMetodo;
 
-/**
- * F03: factor común polinomio. Solo cuando la entrada ya viene agrupada, como
- * x²(x − 3) + 5(x − 3): se detecta en el árbol, antes de expandir. Por eso no es un
- * MetodoFactorizacion (esos reciben el Polinomio ya expandido).
- */
 public final class FactorComunPolinomio {
 
     public static final String CODIGO = "F03";
 
-    /** Un factor de un término: base^exponente, con la base ya como polinomio. */
     private record Pieza(Polinomio base, int exponente, Expresion original) {
     }
 
-    /** Un término de la suma: signo y factores. */
     private record TerminoArbol(boolean negativo, List<Pieza> piezas, Expresion original) {
     }
 
-    /** El factor común y el resto, si la entrada es una suma cuyos términos comparten un polinomio. */
     public Optional<ResultadoMetodo> detectar(Expresion e) {
         if (!(e instanceof Suma s)) {
             return Optional.empty();

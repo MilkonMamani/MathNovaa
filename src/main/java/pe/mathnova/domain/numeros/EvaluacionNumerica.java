@@ -25,24 +25,17 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.expresion.Visitante;
 
-/**
- * Verificación numérica (Parte E): cuando el resultado tiene radicales anidados o valores
- * trigonométricos, entrada y resultado se evalúan en {@link #PUNTOS} con {@link #CIFRAS} cifras
- * (con complejos si hace falta) y deben coincidir en {@link #CIFRAS_IGUALES}.
- */
 public final class EvaluacionNumerica {
 
     public static final int CIFRAS = 40;
     public static final int CIFRAS_IGUALES = 30;
     public static final MathContext MC = new MathContext(CIFRAS);
-    /** Cinco racionales que no suelen ser raíces de nada. */
     public static final List<Racional> PUNTOS = List.of(Racional.de(1, 3), Racional.de(-5, 7),
             Racional.de(13, 11), Racional.de(17, 9), Racional.de(-29, 13));
 
     private EvaluacionNumerica() {
     }
 
-    /** Si a y b valen lo mismo en los cinco puntos, con x como variable. */
     public static boolean iguales(Expresion a, Expresion b, char variable) {
         for (Racional p : PUNTOS) {
             Map<Character, ComplejoDecimal> x = Map.of(variable, ComplejoDecimal.de(p, MC));
@@ -63,7 +56,6 @@ public final class EvaluacionNumerica {
         return evaluar(z.aExpresion(), Map.of(), mc);
     }
 
-    /** Signo de un real con átomos, evaluado con 60 cifras; 0 si es menor que 10⁻⁴⁵. */
     static int signo(NumeroAlgebraico z) {
         MathContext mc = new MathContext(60);
         BigDecimal v = evaluar(z, mc).re();

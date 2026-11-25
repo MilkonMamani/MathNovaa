@@ -6,10 +6,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Window;
 
-/**
- * Una fórmula fija (sin ajuste al ancho) dibujada con los píxeles de la pantalla: nítida a 125 %, 150 % o
- * 200 %. Si la ventana pasa a otra pantalla con otra escala, se vuelve a dibujar.
- */
 public final class VistaLatex extends ImageView {
 
     private final RenderizadorLatex renderizador;
@@ -67,7 +63,6 @@ public final class VistaLatex extends ImageView {
         escala = s;
         factor = f;
         version = v;
-        // Con letra grande se dibuja a s·f píxeles por píxel y se muestra como si fueran s: queda f veces más grande
         Image img = ImagenLatex.de(renderizador, latex, s * f);
         setImage(img);
         setFitWidth(ImagenLatex.anchoLogico(img, s));
@@ -76,7 +71,6 @@ public final class VistaLatex extends ImageView {
 
     private double factor = 1;
     private int version = -1;
-    /** Sprint 9, parte E: el tamaño de letra o el tema cambiaron (referencia fuerte para el listener débil). */
     private final javafx.beans.InvalidationListener cambioApariencia = obs -> dibujar();
     {
         Apariencia.version().addListener(new javafx.beans.WeakInvalidationListener(cambioApariencia));

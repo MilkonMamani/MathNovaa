@@ -10,10 +10,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import pe.mathnova.domain.expresion.ImpresoraTexto;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * El paso "Pasar a R" / "Pasar a C" (RN27) dice por qué el factor no se parte en Q y sí en el campo,
- * con el dato concreto, y en "Después" va solo el factor que se va a partir.
- */
 class PasoACampoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -38,7 +34,6 @@ class PasoACampoTest {
 
     @Test
     void despuesEsElFactorQueSeParte() {
-        // (x - 1)(x^2 - 3): en Q queda x^2 - 3, que es lo que se parte en R.
         Extension.Paso p = pasoACampo("x^3 - x^2 - 3x + 3", Campo.R);
         assertEquals("x^2 - 3", ImpresoraTexto.imprimir(p.despues()));
         assertTrue(ImpresoraTexto.imprimir(p.antes()).contains("x - 1"), ImpresoraTexto.imprimir(p.antes()));

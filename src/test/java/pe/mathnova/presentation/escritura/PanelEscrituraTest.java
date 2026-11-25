@@ -31,17 +31,12 @@ import pe.mathnova.domain.escritura.Trazo;
 import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 
-/**
- * La pestaña "Escribir" sola. El reconocedor de estas pruebas es falso (no lee los trazos): sirve para
- * probar la sincronización con el campo de arriba, no el reconocimiento.
- */
 class PanelEscrituraTest {
 
     private static final Duration PAUSA = Duration.millis(250);
 
     private Stage ventana;
     private PanelEscritura panel;
-    /** Lo que llegó al campo de arriba, en orden. */
     private final List<String> puestos = new CopyOnWriteArrayList<>();
     private final AtomicLong generacion = new AtomicLong();
     private final List<List<Trazo>> leidos = new CopyOnWriteArrayList<>();
@@ -101,7 +96,6 @@ class PanelEscrituraTest {
         });
     }
 
-    /** Un reconocedor que devuelve "n trazos" según cuántos recibe, y espera a que se lo suelte si se pide. */
     private static ReconocedorEscritura porCantidad(Function<Integer, CountDownLatch> espera) {
         return trazos -> {
             CountDownLatch l = espera.apply(trazos.size());
@@ -109,7 +103,6 @@ class PanelEscrituraTest {
                 try {
                     l.await(10, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
-                    // una lectura cancelada: igual devuelve, y el panel debe descartarla
                 }
             }
             return new ResultadoReconocimiento("t" + trazos.size(), List.of());
@@ -134,7 +127,6 @@ class PanelEscrituraTest {
                 .map(n -> (ButtonBase) n).filter(b -> nombre.equals(b.getAccessibleText())).findFirst().orElseThrow());
     }
 
-    /** El aviso a la vista ("" si no hay). Se llama en el hilo de JavaFX (dentro de esperar o enFx). */
     private String aviso() {
         return panel.filaEstado().isVisible() ? panel.estadoLectura().getText() : "";
     }
@@ -176,7 +168,6 @@ class PanelEscrituraTest {
         assertEquals(List.of(false), enHiloFx, "el reconocedor corre fuera del hilo de JavaFX");
         assertEquals(PanelEscritura.LISTO, estado());
 
-        // El símbolo dudoso del simulado: elegir × vuelve a poner la expresión en el campo.
         enFx(() -> {
             Button por = (Button) panel.lookupAll(".boton-alternativa-simbolo").stream()
                     .filter(n -> "×".equals(((Button) n).getText())).findFirst().orElseThrow();
@@ -202,11 +193,11 @@ class PanelEscrituraTest {
     void unaRespuestaTardiaDeTrazosViejosSeDescarta() throws Exception {
         CountDownLatch primera = new CountDownLatch(1);
         abrirCon(porCantidad(n -> n == 1 ? primera : null));
-        trazo(20, 60, 60, 100); // "2x"
+        trazo(20, 60, 60, 100);
         Fx.esperar(() -> PanelEscritura.LEYENDO.equals(aviso()), "no empezó a leer");
-        trazo(80, 60, 120, 100); // "+1" mientras lee
+        trazo(80, 60, 120, 100);
         Fx.esperar(() -> puestos.contains("t2"), "la lectura nueva no llegó");
-        primera.countDown(); // ahora llega tarde la lectura de "2x"
+        primera.countDown();
         Thread.sleep(300);
         assertEquals(List.of("t2"), puestos, "el campo conserva la interpretación más reciente");
     }
@@ -217,12 +208,11 @@ class PanelEscrituraTest {
         abrirCon(porCantidad(n -> soltar));
         trazo(20, 60, 60, 100);
         Fx.esperar(() -> PanelEscritura.LEYENDO.equals(aviso()), "no empezó a leer");
-        generacion.incrementAndGet(); // el estudiante corrige un símbolo en el campo de arriba
+        generacion.incrementAndGet();
         soltar.countDown();
         Fx.esperar(() -> PanelEscritura.CONSERVA.equals(aviso()), "no avisó que conserva la corrección");
         assertTrue(puestos.isEmpty(), "la lectura vieja no reemplazó la corrección");
 
-        // Un trazo nuevo sí se lee y se pone.
         trazo(80, 60, 120, 100);
         Fx.esperar(() -> puestos.contains("t2"), "el trazo nuevo no se leyó");
     }
@@ -255,7 +245,6 @@ class PanelEscrituraTest {
         enFx(() -> assertEquals(1, panel.lienzo().trazos().size()));
         Fx.esperar(() -> puestos.size() == 2 && "t1".equals(puestos.get(1)), "deshacer no volvió a leer");
 
-        // Borrador sobre el segundo símbolo.
         trazo(100, 60, 140, 100);
         Fx.esperar(() -> puestos.size() == 3, "no leyó el trazo nuevo");
         ButtonBase borrador = boton("Borrador");
@@ -295,7 +284,6 @@ class PanelEscrituraTest {
         abrirCon(porCantidad(n -> null));
         trazo(20, 60, 60, 100);
         List<String> orden = new CopyOnWriteArrayList<>();
-        // "Resolver" justo después del último trazo, antes de la pausa.
         enFx(() -> {
             assertTrue(panel.leyendo());
             panel.alTerminar(() -> orden.add("resolver con " + puestos), () -> orden.add("falló"));
@@ -303,7 +291,6 @@ class PanelEscrituraTest {
         Fx.esperar(() -> !orden.isEmpty(), "no se resolvió");
         assertEquals(List.of("resolver con [t1]"), orden, "se resolvió después de poner lo último");
 
-        // Sin nada pendiente, corre enseguida.
         List<String> otra = new CopyOnWriteArrayList<>();
         enFx(() -> panel.alTerminar(() -> otra.add("ya"), () -> otra.add("falló")));
         assertEquals(List.of("ya"), otra);

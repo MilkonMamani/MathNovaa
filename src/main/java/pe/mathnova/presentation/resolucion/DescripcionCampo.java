@@ -10,11 +10,6 @@ import pe.mathnova.domain.factorizacion.Factor;
 import pe.mathnova.domain.factorizacion.FormaExtendida;
 import pe.mathnova.domain.factorizacion.Resolucion;
 
-/**
- * Qué estructura tiene la factorización en un campo, en una frase para la comparación Q / R / C:
- * "Irreducible sobre los racionales", "Un factor lineal y un factor cuadrático irreducible", "Tres factores
- * lineales: una raíz real y dos complejas conjugadas". Se cuenta sobre el resultado del motor.
- */
 public final class DescripcionCampo {
 
     private static final String[] MASCULINO = {"cero", "un", "dos", "tres", "cuatro", "cinco", "seis", "siete",

@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Tabla configuracion de V1: preferencias como pares clave-valor. */
 @Entity
 @Table(name = "configuracion")
 @Getter

@@ -11,10 +11,6 @@ import javafx.stage.Popup;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-/**
- * Un mensaje corto abajo, al centro de la ventana, que se desvanece solo: "PDF guardado en …" (parte C),
- * "Guardado" (Configuración, parte E). Uno a la vez por ventana.
- */
 public final class AvisoBreve {
 
     private static Popup actual;
@@ -22,7 +18,6 @@ public final class AvisoBreve {
     private AvisoBreve() {
     }
 
-    /** No hace nada si el nodo no está en una ventana a la vista (pruebas). */
     public static void mostrar(Node origen, String texto, Duration duracion) {
         Window ventana = origen == null || origen.getScene() == null ? null : origen.getScene().getWindow();
         if (ventana == null || !ventana.isShowing()) {

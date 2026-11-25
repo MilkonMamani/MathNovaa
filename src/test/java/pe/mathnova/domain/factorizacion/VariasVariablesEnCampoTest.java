@@ -7,11 +7,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Un polinomio en varias letras se factoriza igual en Q, R y C: el aspa doble (o el método que toque)
- * deja factores de varias letras, que ninguno de los métodos de una letra puede partir. Antes, en R o
- * C, la extensión a radicales recibía esos factores y lanzaba "Solo polinomios en una letra".
- */
 class VariasVariablesEnCampoTest {
 
     private final OrquestadorFactorizacion motor = new OrquestadorFactorizacion();

@@ -15,7 +15,6 @@ import pe.mathnova.domain.ecuacion.ResolvedorEcuaciones;
 import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 
-/** "Resolver" decide qué hacer (Parte D) y el resultado en vivo (HU37, RF71). */
 class ResolverServiceTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -33,7 +32,6 @@ class ResolverServiceTest {
         assertInstanceOf(ResolverService.Plan.Derivar.class, SERVICIO.decidir("d/dx(x^2 + y^2 = 25)"));
         assertInstanceOf(ResolverService.Plan.Integrar.class, SERVICIO.decidir("∫(x, x)"));
         assertInstanceOf(ResolverService.Plan.Integrar.class, SERVICIO.decidir("3∫(3x, x, 3, 6)"));
-        // Sprint 7: las parciales se resuelven; Sprint 8: también las integrales múltiples
         assertInstanceOf(ResolverService.Plan.Parciales.class, SERVICIO.decidir("∂/∂y(x^2 y)"));
         assertInstanceOf(ResolverService.Plan.Parciales.class, SERVICIO.decidir("grad(x y)"));
         assertInstanceOf(ResolverService.Plan.Parciales.class, SERVICIO.decidir("Du(x y, (1, 1), (1, 2))"));
@@ -72,7 +70,6 @@ class ResolverServiceTest {
         assertEquals(Optional.of(esperado), SERVICIO.enVivo(texto));
     }
 
-    /** Sprint 4: en R y C el resultado en vivo lleva radicales e i; las funciones, la sustitución. */
     @ParameterizedTest(name = "{0} en {1} → {2}")
     @CsvSource(delimiter = '|', value = {
             "x^2 - 2       | R | = (x - √2)(x + √2)",
@@ -85,14 +82,12 @@ class ResolverServiceTest {
         assertEquals(Optional.ofNullable(esperado), SERVICIO.enVivo(texto, campo));
     }
 
-    /** RF71: nada para operaciones que todavía no se resuelven, ni para entradas incompletas. */
     @ParameterizedTest
     @CsvSource(delimiter = '|', value = {"∫(e^(x^2), x)", "x^2 +", "□ + 1", "x^2 + 1", "sen(x)", "x + sen(x)"})
     void sinResultadoEnVivo(String texto) {
         assertEquals(Optional.empty(), SERVICIO.enVivo(texto));
     }
 
-    /** Sprint 6, Parte D: resultado en vivo de derivadas e integrales (exacto, y ≈ en las definidas no enteras). */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = ';', value = {
             "d/dx(x^2 sen x)          ; = 2x·sen x + x²·cos x",
@@ -109,10 +104,6 @@ class ResolverServiceTest {
         assertEquals(Optional.of(esperado), SERVICIO.enVivo(texto));
     }
 
-    /**
-     * Sprint 5, corrección 1: con un límite, el resultado en vivo es el valor del límite (nunca la
-     * fracción simplificada) y coincide con lo que da el motor, para los 16 ejemplos de LimitesTest.
-     */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
             "lim(x→2, (x^2 - 4)/(x - 2))     | = 4",
@@ -136,7 +127,6 @@ class ResolverServiceTest {
         String motor = SERVICIO.limites().calcular(texto).resultado().texto();
         Optional<String> enVivo = SERVICIO.enVivo(texto, Campo.R);
         assertEquals(Optional.of(esperado), enVivo);
-        // El mismo valor que el motor: "= 4" para 4, "No existe" para "no existe".
         String valor = enVivo.get().startsWith("= ") ? enVivo.get().substring(2).split(" ≈ ")[0] : enVivo.get();
         assertEquals(motor.toLowerCase(), valor.toLowerCase());
     }

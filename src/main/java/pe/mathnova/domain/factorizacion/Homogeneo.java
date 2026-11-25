@@ -8,11 +8,6 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * M06: polinomio homogéneo de grado n ≥ 3 en dos letras. Con t = x/y queda p = yⁿ·P(t); P(t) se
- * factoriza en una letra y cada factor de grado k vuelve como yᵏ·g(x/y). Si P(t) tiene una raíz repetida
- * no se aplica: Ruffini respecto de x (M07) deja ver la multiplicidad.
- */
 final class Homogeneo extends MetodoBase {
 
     static final char T = 't';
@@ -26,12 +21,10 @@ final class Homogeneo extends MetodoBase {
         return p.variables().size() == 2 && p.grado() >= 3 && Multivariable.homogeneo(p) && !p.variables().contains(T);
     }
 
-    /** P(t) = p(t, 1). */
     static Polinomio enT(Polinomio p, char x, char y) {
         return Multivariable.sustituir(Multivariable.sustituir(p, x, Polinomio.variable(T)), y, Polinomio.UNO);
     }
 
-    /** yᵏ·g(x/y). */
     static Polinomio homogeneizar(Polinomio g, char x, char y, int k) {
         Polinomio r = Polinomio.CERO;
         for (Map.Entry<Monomio, Racional> t : g.terminos().entrySet()) {
@@ -83,7 +76,6 @@ final class Homogeneo extends MetodoBase {
                 + " queda un polinomio en una letra", p, factores, trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Todos los términos tienen el mismo grado total: divide entre una potencia de y y trabaja con x/y.";

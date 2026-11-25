@@ -21,15 +21,6 @@ import pe.mathnova.infrastructure.escritura.ArchivoMuestras;
 import pe.mathnova.presentation.controller.EstadoResolucion;
 import pe.mathnova.presentation.controller.ResolucionController;
 
-/**
- * Comprobación de una instalación: con {@code --mathnova.autoprueba=<muestra.json | carpeta>} MathNova abre
- * "Escribir", pone en el lienzo los trazos grabados de cada muestra, pulsa "Resolver" enseguida (el mismo
- * camino que el botón: primero se reconoce lo escrito y se pone en el campo de arriba) y anota qué pasó en
- * {@code --mathnova.autoprueba.salida} (por defecto ~/.mathnova/autoprueba.txt). Con
- * {@code --mathnova.autoprueba.salir=true} se cierra al terminar.
- *
- * <p>Las muestras son archivos de {@link ArchivoMuestras}: trazos (x, y, t), no imágenes.
- */
 final class AutoPrueba {
 
     private static final Logger LOG = LoggerFactory.getLogger(AutoPrueba.class);
@@ -100,7 +91,6 @@ final class AutoPrueba {
         campoLleno = -1;
         String antes = pantalla.latexEditor();
         pantalla.panelEscritura().cargarMuestra(m);
-        // El estudiante pulsa Resolver justo después de escribir.
         pantalla.pulsarResolver();
         esperar(p, m, antes);
     }

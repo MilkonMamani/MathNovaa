@@ -12,10 +12,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
-/**
- * La sección "Propiedades de la función" (RF66): una tabla pequeña y, debajo, la tabla de signos
- * dibujada como una recta con las raíces marcadas y + o − en cada tramo.
- */
 public final class PropiedadesFuncion extends VBox {
 
     public PropiedadesFuncion(VistaPropiedades v) {
@@ -46,7 +42,6 @@ public final class PropiedadesFuncion extends VBox {
         }
     }
 
-    /** Una recta con las raíces repartidas a distancias iguales y el signo de f sobre cada tramo. */
     static final class RectaSignos extends Pane {
 
         private static final PseudoClass POSITIVO = PseudoClass.getPseudoClass("positivo");
@@ -90,7 +85,6 @@ public final class PropiedadesFuncion extends VBox {
             recta.setStartY(Y_RECTA);
             recta.setEndY(Y_RECTA);
             int n = puntos.size();
-            // n raíces dejan n + 1 tramos del mismo ancho.
             double tramo = ancho / (n + 1);
             for (int i = 0; i < n; i++) {
                 double x = tramo * (i + 1);

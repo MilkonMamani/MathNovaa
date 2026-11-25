@@ -23,7 +23,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.factorizacion.Simplificacion;
 import pe.mathnova.domain.parser.Parser;
 
-/** Sprint 5, corrección 2: qué muestran Gráfica, Análisis y Exploración según el tipo de ejercicio. */
 class ContenidoPestanasTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -40,25 +39,22 @@ class ContenidoPestanasTest {
         ResolucionLimite r = LIMITES.calcular("lim(x→2, (x^2 - 4)/(x - 2))");
         ContenidoPestanas c = ContenidoLimite.de(r, LIMITES, false);
 
-        // Gráfica
         assertEquals("\\lim_{x \\to 2} f(x) = 4", c.latexSolucion().replace("\\to2", "\\to 2"));
         assertTrue(c.grafica().isPresent());
         assertNotNull(c.grafica().get().extra().limite());
 
-        // Análisis: 6 filas, por la izquierda 1.9 → 1.999 y por la derecha 2.1 → 2.001, y "→ 4"
         TablaLimite t = c.tabla().orElseThrow();
         List<TablaValores.Fila> filas = t.filas();
         assertEquals(6, filas.size());
         assertEquals(List.of("1.9", "1.99", "1.999"), t.izquierda().stream().map(TablaValores.Fila::x).toList());
         assertEquals(List.of("2.1", "2.01", "2.001"), t.derecha().stream().map(TablaValores.Fila::x).toList());
         for (TablaValores.Fila f : filas) {
-            assertEquals(6, f.valor().length() - f.valor().indexOf('.') - 1, f.valor()); // 6 decimales
+            assertEquals(6, f.valor().length() - f.valor().indexOf('.') - 1, f.valor());
         }
         assertTrue(Math.abs(Double.parseDouble(filas.getLast().valor()) - 4) < 0.01, filas.getLast().valor());
         assertTrue(Math.abs(Double.parseDouble(t.izquierda().getLast().valor()) - 4) < 0.01);
         assertEquals("→ 4", t.tiende());
 
-        // Exploración: L02 usado; L'Hôpital y la tabla también sirven; sin comparación Q/R/C
         VistaExploracion x = c.exploracion();
         assertEquals(VistaExploracion.Estado.USADO, tarjeta(x, "L02").estado());
         assertEquals("Factorizar y cancelar", tarjeta(x, "L02").nombre());
@@ -76,7 +72,6 @@ class ContenidoPestanasTest {
         assertEquals(Optional.empty(), c.comparacion());
     }
 
-    /** "Probar" L'Hôpital vuelve a resolver con L'Hôpital y llega al mismo 4. */
     @Test
     void probarLHopital() {
         ResolucionLimite r = LIMITES.resolver("lim(x→2, (x^2 - 4)/(x - 2))", "L07", fase -> { });
@@ -102,7 +97,6 @@ class ContenidoPestanasTest {
         assertTrue(comp.latex().get(Campo.Q).contains("x^{2} - 2"), comp.latex().get(Campo.Q));
         assertFalse(comp.iguales());
 
-        // Si el resultado es el mismo en los tres campos, una sola vez con la nota.
         FactorizacionService.Comparacion igual = FACTORIZACION.comparar("(x^2 - 1)/(x + 1)");
         assertTrue(igual.iguales());
         assertEquals(FactorizacionService.MISMA_FRACCION, igual.nota());
@@ -131,13 +125,11 @@ class ContenidoPestanasTest {
         ContenidoPestanas c = ContenidoEcuacion.de(r, v, false);
         assertTrue(c.tabla().isEmpty());
         assertTrue(c.comparacion().isPresent());
-        // Se compara el polinomio, no la ecuación: ningún campo se queda sin resultado.
         FactorizacionService.Comparacion comp = FACTORIZACION.comparar(c.comparacion().get());
         assertEquals(3, comp.latex().size());
         assertTrue(comp.latex().get(Campo.R).contains("\\sqrt{2}"));
     }
 
-    /** Corrección 4: nada que se resolvió sale como "No se pudo calcular". */
     @Test
     void nuncaNoSePudoCalcular() {
         for (String texto : List.of("x^2 - 2", "(x^2 - 2)/(x - 1)", "(x^2 - 4)/(x - 2)", "e^(2x) - 1", "x^5 - x - 1")) {

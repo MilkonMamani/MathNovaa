@@ -12,7 +12,6 @@ import pe.mathnova.domain.parser.Parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Parte D del Sprint 5 (RF26). */
 class AsintotasTest {
 
     private static final SimplificadorFracciones FRACCIONES = new SimplificadorFracciones(new OrquestadorFactorizacion());

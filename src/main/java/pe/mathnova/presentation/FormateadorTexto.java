@@ -2,10 +2,6 @@ package pe.mathnova.presentation;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Pasa el texto que sale del dominio ("x^4 - 1", "2*x", "x >= 0") a escritura de pizarra
- * ("x⁴ − 1", "2·x", "x ≥ 0"). Lo que ya viene con símbolos de pizarra queda igual.
- */
 public final class FormateadorTexto {
 
     private static final String SUPERINDICES = "⁰¹²³⁴⁵⁶⁷⁸⁹";
@@ -55,16 +51,11 @@ public final class FormateadorTexto {
         return sb.toString();
     }
 
-    /**
-     * Como {@link #pizarra}, y además el signo de un número negativo al empezar o después de "=", "≈",
-     * "(" o ",": "x₁ = −1/2 ≈ −0.5". Para soluciones y resultados (HU37, HU38).
-     */
     public static String pizarraConNegativos(String texto) {
         String p = pizarra(texto);
         return p == null ? null : p.replaceAll("(^|[=≈(,→:]\\s*)-", "$1" + MENOS);
     }
 
-    /** Hay un operando antes del signo (ignorando espacios): letra, número, paréntesis o exponente. */
     private static boolean esBinario(CharSequence antes) {
         for (int i = antes.length() - 1; i >= 0; i--) {
             char c = antes.charAt(i);
@@ -76,17 +67,14 @@ public final class FormateadorTexto {
         return false;
     }
 
-    /** Un número de pizarra: "3", "−2", "3/4", "−3/4". */
     public static String numero(Racional r) {
         return r.signo() < 0 ? MENOS + r.negar() : r.toString();
     }
 
-    /** Entre paréntesis si es negativo: "(−3)". */
     public static String numeroEnParentesis(Racional r) {
         return r.signo() < 0 ? "(" + numero(r) + ")" : numero(r);
     }
 
-    /** "x²", "x" o "" según el exponente. */
     public static String potencia(char variable, int exponente) {
         if (exponente == 0) {
             return "";
@@ -101,7 +89,6 @@ public final class FormateadorTexto {
         return sb.toString();
     }
 
-    /** Un término c·xᵏ: "2x²", "−x", "3", "x", "(1/2)x". */
     public static String termino(Racional c, char variable, int exponente) {
         String m = potencia(variable, exponente);
         if (m.isEmpty()) {
@@ -115,13 +102,11 @@ public final class FormateadorTexto {
         return signo + (abs.esEntero() ? abs.toString() : "(" + abs + ")") + m;
     }
 
-    /** Un término entre paréntesis si es negativo: "(−1)", "(−3x)". */
     public static String terminoEnParentesis(Racional c, char variable, int exponente) {
         String t = termino(c, variable, exponente);
         return c.signo() < 0 ? "(" + t + ")" : t;
     }
 
-    /** Suma de términos de mayor a menor: "x² + 3x − 1". Los coeficientes cero se omiten. */
     public static String suma(char variable, Racional... coeficientesDeMayorAMenor) {
         StringBuilder sb = new StringBuilder();
         int grado = coeficientesDeMayorAMenor.length - 1;
@@ -144,10 +129,6 @@ public final class FormateadorTexto {
     private static final java.util.regex.Pattern CODIGO =
             java.util.regex.Pattern.compile("\\b(F[0-9][0-9]|M[0-9][0-9]|A[0-9]|P[0-9][0-9])\\b");
 
-    /**
-     * Cambia los códigos internos por el nombre corto del método: "corresponde F13" queda
-     * "corresponde Aspa simple". Los códigos no se muestran salvo que se pidan en Configuración.
-     */
     public static String sinCodigos(String texto) {
         if (texto == null) {
             return null;

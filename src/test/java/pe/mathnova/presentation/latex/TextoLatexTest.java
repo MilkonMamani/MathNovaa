@@ -7,13 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.scilab.forge.jlatexmath.TeXFormula;
 
-/** Los renglones de pizarra del motor pasan a LaTeX sin cambiar su contenido. */
 class TextoLatexTest {
 
     private static String lx(String s) {
         String r = TextoLatex.convertir(s);
         if (r != null) {
-            new TeXFormula(r); // jlatexmath lo entiende
+            new TeXFormula(r);
         }
         return r;
     }

@@ -52,11 +52,6 @@ import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 import pe.mathnova.domain.sugerencias.Sugerencia;
 
-/**
- * El botón "Resolver" (antes "Factorizar") y el resumen del resultado en una línea: decide qué hacer con
- * lo que se escribió (factorizar, simplificar, resolver la ecuación, calcular el límite, la derivada o la
- * integral) y lo calcula.
- */
 @Service
 public class ResolverService {
 
@@ -67,15 +62,12 @@ public class ResolverService {
     static final String IMPLICITA = "Para derivarla implícitamente escribe d/dx(…) con la ecuación adentro: "
             + "d/dx(x^2 + y^2 = 25).";
 
-    /** Qué hará "Resolver". */
     public sealed interface Plan {
 
-        /** Texto del botón. */
         default String boton() {
             return "Resolver";
         }
 
-        /** Si el botón queda habilitado. */
         default boolean resoluble() {
             return false;
         }
@@ -93,7 +85,6 @@ public class ResolverService {
             }
         }
 
-        /** HU23: polinómica en funciones de x (T01–T05), o para decir por qué no lo es. */
         record FactorizarFunciones() implements Plan {
             @Override
             public boolean resoluble() {
@@ -115,7 +106,6 @@ public class ResolverService {
             }
         }
 
-        /** HU11, HU24: lim(x→a, f) con la cascada de métodos. */
         record CalcularLimite() implements Plan {
             @Override
             public boolean resoluble() {
@@ -123,7 +113,6 @@ public class ResolverService {
             }
         }
 
-        /** HU12, HU25: d/dx(f), dⁿ/dxⁿ(f) o la derivación implícita d/dx(F = G). */
         record Derivar() implements Plan {
             @Override
             public boolean resoluble() {
@@ -131,7 +120,6 @@ public class ResolverService {
             }
         }
 
-        /** HU13: ∫(f, x), ∫(f, x, a, b) o k·∫(…). */
         record Integrar() implements Plan {
             @Override
             public boolean resoluble() {
@@ -139,10 +127,6 @@ public class ResolverService {
             }
         }
 
-        /**
-         * HU28 (Sprint 7): ∂/∂x(f), grad(f), Du(f, v, P) o la regla de la cadena
-         * "d/dt(f); x = t^2, y = sen t".
-         */
         record Parciales() implements Plan {
             @Override
             public boolean resoluble() {
@@ -150,7 +134,6 @@ public class ResolverService {
             }
         }
 
-        /** HU29 (Sprint 8): lim((x, y) → (a, b), f). */
         record LimiteDoble() implements Plan {
             @Override
             public boolean resoluble() {
@@ -158,7 +141,6 @@ public class ResolverService {
             }
         }
 
-        /** HU30 (Sprint 8): extremos(f) o extremos(f; g = c). */
         record Extremos() implements Plan {
             @Override
             public boolean resoluble() {
@@ -166,7 +148,6 @@ public class ResolverService {
             }
         }
 
-        /** HU31 (Sprint 8): ∬ y ∭, con o sin cambio de coordenadas. */
         record IntegralMultiple() implements Plan {
             @Override
             public boolean resoluble() {
@@ -174,7 +155,6 @@ public class ResolverService {
             }
         }
 
-        /** Una operación que se reconoce pero no se resuelve (un número delante de una derivada). */
         record Operacion(String mensaje) implements Plan {
         }
 
@@ -194,16 +174,13 @@ public class ResolverService {
     private final pe.mathnova.domain.calculo.extremos.MotorExtremos extremos;
     private final pe.mathnova.domain.calculo.multiples.MotorIntegralesMultiples multiples;
 
-    /** HU14: donde se guarda cada resolución que termina bien; null en las pruebas sin base. */
     private final HistorialService historial;
 
-    /** Sin historial (pruebas). */
     public ResolverService(FactorizacionService factorizacion, OrquestadorFactorizacion motor,
                            ResolvedorEcuaciones ecuaciones) {
         this(factorizacion, motor, ecuaciones, new LimiteService(motor));
     }
 
-    /** Sin historial (pruebas). */
     public ResolverService(FactorizacionService factorizacion, OrquestadorFactorizacion motor,
                            ResolvedorEcuaciones ecuaciones, LimiteService limites) {
         this(factorizacion, motor, ecuaciones, limites, null);
@@ -223,17 +200,6 @@ public class ResolverService {
         this.multiples = new pe.mathnova.domain.calculo.multiples.MotorIntegralesMultiples(motor);
     }
 
-    // ------------------------------------------------------------------ historial (Sprint 9, HU14)
-
-    /**
-     * RN24: guarda lo que se acaba de resolver con éxito, en una sola transacción. Solo se llama cuando el
-     * cálculo terminó sin error; una resolución que no llegó a un resultado (un límite sin calcular, una
-     * integral que ningún método resolvió) no se guarda.
-     *
-     * @param resolucion el objeto del dominio (Resolucion, ResolucionLimite…)
-     * @param forzado    el método con que se empezó, o null
-     * @return el id de la resolución guardada; vacío si no se guardó nada o no hay historial
-     */
     public Optional<Integer> guardar(String texto, Object resolucion, String forzado, List<Sugerencia> sugerencias) {
         if (historial == null || resolucion == null) {
             return Optional.empty();
@@ -241,23 +207,11 @@ public class ResolverService {
         return historial.guardar(new HistorialService.Guardado(texto, resolucion, forzado, sugerencias));
     }
 
-    /**
-     * Resuelve sin pantalla y guarda: lo usa el Historial para recalcular una resolución de otra versión del
-     * motor (RNF19). Si el cálculo falla, no se guarda nada.
-     *
-     * @throws RuntimeException el error del cálculo (sintaxis, método que no aplica…)
-     */
     public Optional<Integer> resolverYGuardar(String texto, Campo campo, String forzado) {
         Object r = resolver(texto, campo, forzado);
         return guardar(texto, r, forzado, sugerencias(r));
     }
 
-    /**
-     * Resuelve sin pantalla y sin guardar: el objeto del dominio (Resolucion, ResolucionLimite…). Lo usan el
-     * Historial (RNF19) y el PDF (Sprint 9, parte C), que necesita la resolución para su comprobación.
-     *
-     * @throws RuntimeException el error del cálculo (sintaxis, método que no aplica…)
-     */
     public Object resolver(String texto, Campo campo, String forzado) {
         Consumer<FaseFactorizacion> nada = f -> { };
         Plan plan = decidir(texto);
@@ -277,7 +231,6 @@ public class ResolverService {
         };
     }
 
-    /** Las sugerencias (HU10) que se guardan con una resolución. */
     public List<Sugerencia> sugerencias(Object r) {
         return switch (r) {
             case Resolucion x -> factorizacion.sugerencias(x);
@@ -288,9 +241,6 @@ public class ResolverService {
         };
     }
 
-    // ------------------------------------------------------------------ Sprint 8
-
-    /** HU29: un límite doble. */
     public pe.mathnova.domain.calculo.limites.ResolucionLimiteDoble resolverLimiteDoble(String texto,
                                                                                        Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
@@ -302,7 +252,6 @@ public class ResolverService {
         return limitesDobles.resolver(l);
     }
 
-    /** HU30: puntos críticos y extremos, con el Hessiano o con Lagrange. */
     public pe.mathnova.domain.calculo.extremos.ResolucionExtremos resolverExtremos(String texto,
                                                                                   Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
@@ -314,11 +263,6 @@ public class ResolverService {
         return extremos.resolver(x);
     }
 
-    /**
-     * HU31: una integral doble o triple.
-     *
-     * @param forzado ORDEN, POLARES, CILINDRICAS o ESFERICAS (Exploración), o null
-     */
     public pe.mathnova.domain.calculo.multiples.ResolucionIntegralMultiple resolverIntegralMultiple(
             String texto, String forzado, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
@@ -334,9 +278,6 @@ public class ResolverService {
         return multiples.caminos(r);
     }
 
-    // ------------------------------------------------------------------ derivadas e integrales (Sprint 6)
-
-    /** @param forzado un camino de Exploración, o null */
     public ResolucionDerivada resolverDerivada(String texto, String forzado, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion e = Parser.parse(texto);
@@ -347,7 +288,6 @@ public class ResolverService {
         return derivadas.resolver(d, forzado);
     }
 
-    /** @param forzado el método que se prueba primero, o null */
     public ResolucionIntegral resolverIntegral(String texto, String forzado, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion e = Parser.parse(texto);
@@ -355,7 +295,6 @@ public class ResolverService {
         return integrales.resolver(e, forzado);
     }
 
-    /** HU28: una parcial, un gradiente, una derivada direccional o la regla de la cadena (con ";"). */
     public ResolucionParcial resolverParciales(String texto, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Optional<MotorParciales.ReglaCadena> cadena = MotorParciales.leerCadena(texto);
@@ -372,12 +311,10 @@ public class ResolverService {
         return integrales.caminos(r);
     }
 
-    /** HU11: el límite con sus pasos, guardado en el historial. */
     public ResolucionLimite resolverLimite(String texto, Consumer<FaseFactorizacion> avance) {
         return limites.resolver(texto, avance);
     }
 
-    /** @param forzado el método que se prueba primero ("Probar" en Exploración), o null */
     public ResolucionLimite resolverLimite(String texto, String forzado, Consumer<FaseFactorizacion> avance) {
         return limites.resolver(texto, forzado, avance);
     }
@@ -397,7 +334,6 @@ public class ResolverService {
             if (texto.indexOf(';') < 0) {
                 return new Plan.Invalido(error.getMessage(), error.getPosicion());
             }
-            // "d/dt(f); x = t^2, y = sen t": el ";" va fuera de la derivada (Sprint 7)
             try {
                 MotorParciales.leerCadena(texto);
                 return new Plan.Parciales();
@@ -456,7 +392,6 @@ public class ResolverService {
         }
     }
 
-    /** Las expresiones con funciones son de una sola variable, x. */
     private static boolean soloX(Expresion e) {
         SortedSet<Character> letras = VariablePrincipal.de(e).variables();
         return letras.isEmpty() || letras.size() == 1 && letras.first() == 'x';
@@ -474,11 +409,6 @@ public class ResolverService {
         }
     }
 
-    /**
-     * HU38. Avisa las mismas fases que la factorización para el indicador de carga.
-     *
-     * @param forzado el método con que empieza la factorización (HU08), o null en automático
-     */
     public ResolucionEcuacion resolverEcuacion(String texto, String forzado, Consumer<FaseFactorizacion> avance) {
         avance.accept(FaseFactorizacion.LECTURA);
         Expresion e = Parser.parse(texto);
@@ -493,22 +423,10 @@ public class ResolverService {
         return r.factorizacion() == null ? null : factorizacion.verificar(r.factorizacion());
     }
 
-    // ------------------------------------------------------------------ resumen en una línea (antes RF71)
-
-    /**
-     * El resultado en una línea, en texto de la sección 9: "= (x - 2)(x - 3)",
-     * "x₁ = -1/2 ≈ -0.5, x₂ = 2", "= 5/3 ≈ 1.6667". Vacío si no hay nada que mostrar: entrada
-     * incompleta o inválida, una operación que todavía no se resuelve, o nada nuevo que decir.
-     *
-     * <p>Antes se mostraba en gris bajo el editor (HU37, RF71). Esa línea se retiró de la pantalla: el
-     * resultado depende del método y del campo, y adelantarlo confundía. La interfaz ya no llama a este
-     * método; queda porque las pruebas de los sprints S4–S8 lo usan para comparar resultados.
-     */
     public Optional<String> enVivo(String texto) {
         return enVivo(texto, Campo.Q);
     }
 
-    /** Igual, con la factorización en el campo elegido (R o C muestran radicales e i). */
     public Optional<String> enVivo(String texto, Campo campo) {
         Plan plan = decidir(texto);
         try {
@@ -580,7 +498,6 @@ public class ResolverService {
         return String.join(", ", partes);
     }
 
-    /** "= 4", "= 3/2 ≈ 1.5", "= e ≈ 2.7183", "= +∞", "No existe"; nada si no se pudo calcular. */
     static Optional<String> limiteEnVivo(ResultadoLimite r) {
         return switch (r) {
             case ResultadoLimite.Finito f -> {
@@ -598,7 +515,6 @@ public class ResolverService {
         };
     }
 
-    /** "= x³/3 + C", "= 1/3 ≈ 0.3333", "= ln 2 ≈ 0.6931"; nada si ningún método aplicó. */
     static Optional<String> integralEnVivo(ResolucionIntegral r) {
         if (!r.resuelta()) {
             return Optional.empty();
@@ -617,7 +533,6 @@ public class ResolverService {
         return Optional.of("= " + r.texto() + " ≈ " + d.replace("-", ImpresoraPizarra.MENOS));
     }
 
-    /** "3", o "5/3 ≈ 1.6667" si no es entero. */
     static String conDecimal(Racional r) {
         if (r.esEntero()) {
             return r.toString();

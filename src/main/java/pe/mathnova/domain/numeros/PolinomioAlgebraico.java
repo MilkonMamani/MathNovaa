@@ -28,14 +28,9 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.expresion.Visitante;
 
-/**
- * Polinomio en una letra con coeficientes {@link NumeroAlgebraico}: x² − √2·x + 1, x − 1 − √3·i.
- * El índice de la lista es el exponente. Inmutable.
- */
 public final class PolinomioAlgebraico {
 
     private final char variable;
-    /** c[k] es el coeficiente de xᵏ; el último no es cero (salvo en el polinomio cero). */
     private final List<NumeroAlgebraico> c;
 
     private PolinomioAlgebraico(char variable, List<NumeroAlgebraico> coeficientes) {
@@ -50,7 +45,6 @@ public final class PolinomioAlgebraico {
         this.c = Collections.unmodifiableList(l);
     }
 
-    /** De menor a mayor grado. */
     public static PolinomioAlgebraico de(char variable, List<NumeroAlgebraico> coeficientes) {
         return new PolinomioAlgebraico(variable, coeficientes);
     }
@@ -59,17 +53,14 @@ public final class PolinomioAlgebraico {
         return new PolinomioAlgebraico(variable, List.of(k));
     }
 
-    /** x − r. */
     public static PolinomioAlgebraico lineal(char variable, NumeroAlgebraico raiz) {
         return new PolinomioAlgebraico(variable, List.of(raiz.negar(), NumeroAlgebraico.UNO));
     }
 
-    /** x² + b·x + c. */
     public static PolinomioAlgebraico cuadratico(char variable, NumeroAlgebraico b, NumeroAlgebraico c) {
         return new PolinomioAlgebraico(variable, List.of(c, b, NumeroAlgebraico.UNO));
     }
 
-    /** @throws IllegalArgumentException si p tiene más de una letra */
     public static PolinomioAlgebraico desde(Polinomio p) {
         if (p.variables().size() > 1) {
             throw new IllegalArgumentException("Solo polinomios en una letra: " + p);
@@ -81,17 +72,9 @@ public final class PolinomioAlgebraico {
         return new PolinomioAlgebraico(v, l);
     }
 
-    /**
-     * Lee un polinomio en {@code variable} con coeficientes con radicales e i: "x - √3·i",
-     * "x^2 + (∛2 + ∛4)·x - 2 + ∛4 + 2·∛2", "x + 1/2 - √(1 + 4√2)/2".
-     *
-     * @throws NoEsPolinomioException si no lo es
-     */
     public static PolinomioAlgebraico desde(Expresion e, char variable) {
         return e.aceptar(new Lector(variable));
     }
-
-    // ------------------------------------------------------------------ consultas
 
     public char variable() {
         return variable;
@@ -109,7 +92,6 @@ public final class PolinomioAlgebraico {
         return c.getLast();
     }
 
-    /** De menor a mayor grado. */
     public List<NumeroAlgebraico> coeficientes() {
         return c;
     }
@@ -118,7 +100,6 @@ public final class PolinomioAlgebraico {
         return c.size() == 1 && c.getFirst().esCero();
     }
 
-    /** Todos los coeficientes sin átomos. */
     public boolean exacto() {
         return c.stream().allMatch(NumeroAlgebraico::exacto);
     }
@@ -131,7 +112,6 @@ public final class PolinomioAlgebraico {
         return c.stream().allMatch(NumeroAlgebraico::esReal);
     }
 
-    /** El polinomio de Q, si todos los coeficientes son racionales. */
     public Polinomio aPolinomio() {
         Polinomio r = Polinomio.CERO;
         for (int k = 0; k < c.size(); k++) {
@@ -139,8 +119,6 @@ public final class PolinomioAlgebraico {
         }
         return r;
     }
-
-    // ------------------------------------------------------------------ aritmética
 
     public PolinomioAlgebraico sumar(PolinomioAlgebraico o) {
         int n = Math.max(c.size(), o.c.size());
@@ -180,12 +158,10 @@ public final class PolinomioAlgebraico {
         return r;
     }
 
-    /** Dividido entre su coeficiente principal. */
     public PolinomioAlgebraico monico() {
         return multiplicar(principal().inverso());
     }
 
-    /** [cociente, resto]. El divisor debe tener coeficiente principal invertible. */
     public PolinomioAlgebraico[] dividir(PolinomioAlgebraico d) {
         if (d.esCero()) {
             throw new ArithmeticException("División entre el polinomio cero");
@@ -203,7 +179,7 @@ public final class PolinomioAlgebraico {
             for (int j = 0; j <= gd; j++) {
                 resto.set(i - gd + j, resto.get(i - gd + j).restar(k.multiplicar(d.c.get(j))));
             }
-            resto.set(i, NumeroAlgebraico.CERO); // exacto aunque haya átomos
+            resto.set(i, NumeroAlgebraico.CERO);
         }
         return new PolinomioAlgebraico[] {new PolinomioAlgebraico(variable, q), new PolinomioAlgebraico(variable, resto)};
     }
@@ -216,7 +192,6 @@ public final class PolinomioAlgebraico {
         return r;
     }
 
-    /** Cambia x por x + h. */
     public PolinomioAlgebraico trasladar(NumeroAlgebraico h) {
         PolinomioAlgebraico base = de(variable, List.of(h, NumeroAlgebraico.UNO));
         PolinomioAlgebraico r = constante(variable, NumeroAlgebraico.CERO);
@@ -230,9 +205,6 @@ public final class PolinomioAlgebraico {
         return new PolinomioAlgebraico(variable, c.stream().map(NumeroAlgebraico::conjugar).toList());
     }
 
-    // ------------------------------------------------------------------ texto
-
-    /** "x^2 - √2·x + 1", "x - 1 - √3·i", "x^2 + (∛2 + ∛4)·x - 2 + ∛4 + 2·∛2". */
     public Expresion aExpresion() {
         List<Expresion> sumandos = new ArrayList<>();
         for (int k = c.size() - 1; k >= 0; k--) {
@@ -290,8 +262,6 @@ public final class PolinomioAlgebraico {
     public int hashCode() {
         return Objects.hash(variable, c);
     }
-
-    // ------------------------------------------------------------------ lectura
 
     private record Lector(char variable) implements Visitante<PolinomioAlgebraico> {
 
@@ -382,7 +352,7 @@ public final class PolinomioAlgebraico {
 
         @Override
         public PolinomioAlgebraico visitar(Funcion f) {
-            constanteDe(f.argumento()); // solo funciones de constantes
+            constanteDe(f.argumento());
             return k(NumeroAlgebraico.de(Atomo.simbolico(f)));
         }
 

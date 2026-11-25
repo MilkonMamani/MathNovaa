@@ -7,7 +7,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Tabla operacion de V1 (catálogo de V2 y V3, solo lectura): FACTORIZAR, LIMITE, DERIVAR… */
 @Entity
 @Table(name = "operacion")
 @Getter

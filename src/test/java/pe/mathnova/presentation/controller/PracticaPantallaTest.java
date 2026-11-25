@@ -35,10 +35,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.Navegador;
 
-/**
- * Sprint 9, parte D: la pantalla Práctica sobre la base de prueba de target/. La pantalla escribe en su propio
- * hilo (sin la transacción de la prueba): el historial (y con él las sesiones) se vacía antes y después.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class PracticaPantallaTest {
 
@@ -139,7 +135,6 @@ class PracticaPantallaTest {
         assertTrue(temas.stream().anyMatch(t -> t.startsWith("Límites · ")), temas.toString());
         capturar("practica-elegir.png");
 
-        // "Empezar" abre el ejercicio
         Fx.enFx(() -> ((Button) raiz.lookupAll(".practica-tarjeta").stream()
                 .filter(t -> ((PracticaService.Propuesta) t.getUserData()).texto().equals("2x^3 - 3x^2 - 3x + 2"))
                 .findFirst().orElseThrow().lookup(".boton-primario")).fire());
@@ -156,7 +151,6 @@ class PracticaPantallaTest {
         assertEquals("Paso 1 de 3", Fx.enFx(() -> texto("#pasoActual")));
         assertEquals(0.0, Fx.enFx(() -> ((javafx.scene.control.ProgressBar) buscar("#progreso")).getProgress()));
 
-        // Paso 1: primero una opción equivocada
         Button mal = otraQue("Agrupación de términos");
         Fx.enFx(mal::fire);
         Fx.enFx(() -> {
@@ -167,7 +161,6 @@ class PracticaPantallaTest {
             assertEquals("1", texto("#fallidos"));
             assertEquals("0", texto("#aciertos"));
         });
-        // La pista, en azul, sin el nombre del método
         Fx.enFx(() -> ((Button) buscar("#verPista")).fire());
         Fx.enFx(() -> {
             assertTrue(buscar("#cajaPista").isVisible());
@@ -201,11 +194,9 @@ class PracticaPantallaTest {
         int sesion = Fx.enFx(() -> controlador.practica().sesionId());
         assertEquals(2, jdbc.queryForObject("SELECT aciertos FROM sesion_practica WHERE id = ?", Integer.class, sesion));
 
-        // "Repetir este" abre otra sesión del mismo ejercicio
         Fx.enFx(() -> ((Button) buscar("#repetir")).fire());
         Fx.esperar(() -> controlador.practica() != null && controlador.practica().sesionId() != sesion, "no repitió");
         assertEquals("Paso 1 de 3", Fx.enFx(() -> texto("#pasoActual")));
-        // "Practicar otro" vuelve a elegir
         Fx.enFx(() -> ((Button) buscar("#elegirOtro")).fire());
         assertTrue(Fx.enFx(() -> buscar("#vistaElegir").isVisible()));
     }

@@ -35,11 +35,6 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.latex.VistaLatex;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/**
- * "Resolver" con un cociente de polinomios que tiene un factor común: la Pizarra muestra la factorización, la
- * sustitución en la operación con la cancelación y su restricción, y después la operación sobre lo que queda.
- * Se revisan los pasos dibujados, no solo el resultado.
- */
 class FactorizarYSimplificarPizarraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -72,7 +67,6 @@ class FactorizarYSimplificarPizarraTest {
         }
     }
 
-    /** Un paso dibujado: su título y las fórmulas que se ven (o están plegadas) dentro. */
     private record Paso(String titulo, List<String> formulas, List<String> textos, Node nodo) {
         boolean tiene(String latex) {
             return formulas.stream().anyMatch(f -> f != null && sinEspacios(f).contains(sinEspacios(latex)));
@@ -158,7 +152,6 @@ class FactorizarYSimplificarPizarraTest {
         return true;
     }
 
-    /** El índice del paso de factorización: en un límite va después de la evaluación directa que da 0/0. */
     private static int primero(List<Paso> pasos, String operacion) {
         if (operacion.equals("límite")) {
             assertEquals("Evaluación directa", pasos.getFirst().titulo());
@@ -200,7 +193,6 @@ class FactorizarYSimplificarPizarraTest {
         String tarjeta = enFx(() -> ((FormulaAjustable) raiz.lookup(".pizarra-resultado-formula")).getLatex());
         assertNotNull(tarjeta);
         assertTrue(sinEspacios(tarjeta).endsWith(sinEspacios(resultado)), () -> "resultado: " + tarjeta + " / " + r);
-        // La comprobación final sigue siendo de las factorizaciones y no aparece por la factorización auxiliar
         assertFalse(enFx(() -> raiz.lookup(".pizarra-comprobacion-titulo") != null
                 && seVe(raiz.lookup(".pizarra-comprobacion-titulo"))
                 && ((Labeled) raiz.lookup(".pizarra-comprobacion-titulo")).getText().contains("factoriz")));
@@ -220,7 +212,6 @@ class FactorizarYSimplificarPizarraTest {
         assertTrue(factorizar.titulo().startsWith("Factorizar el numerador con Ruffini"), factorizar::toString);
         assertTrue(factorizar.tiene("x^{3} - 3x - 2 = \\left(x - 2\\right)\\left(x + 1\\right)^{2}"),
                 factorizar::toString);
-        // El desarrollo (tabla de Ruffini, cero del término x², cociente y trinomio) existe pero empieza plegado
         assertTrue(factorizar.textos().contains("Se coloca 0 porque falta el término de grado 2."), factorizar::toString);
         assertTrue(factorizar.textos().stream().anyMatch(t -> t != null && t.startsWith("Residuo 0")), factorizar::toString);
         assertTrue(factorizar.tiene("x^{2} + 2x + 1 = \\left(x + 1\\right)^{2}"), factorizar::toString);
@@ -229,7 +220,6 @@ class FactorizarYSimplificarPizarraTest {
             assertNotNull(ver, "sin Ver desarrollo");
             assertFalse(ver.isSelected(), "en Todos los pasos el desarrollo largo empieza cerrado");
             assertFalse(seVe(factorizar.nodo().lookup(".pizarra-desarrollo-aux")));
-            // Plegado: el resumen y la sustitución siguen a la vista
             assertTrue(seVe(factorizar.nodo().lookup(".pizarra-resumen")));
             assertTrue(seVe(pasos.get(k + 1).nodo()));
             ver.setSelected(true);
@@ -256,7 +246,6 @@ class FactorizarYSimplificarPizarraTest {
             ToggleButton ver = (ToggleButton) pasos.getFirst().nodo().lookup(".pizarra-ver-desarrollo");
             assertTrue(ver.isSelected(), "al llegar al paso 1 en Paso a paso se abre el desarrollo");
         });
-        // Un ejercicio nuevo en Paso a paso: el desarrollo vuelve a abrirse al llegar
         List<Paso> otros = resolver("int((x^3-3*x-2)/(x-2), x)");
         boolean pasoAPaso = enFx(() -> raiz.lookup(".pizarra-cabecera").lookupAll(".pizarra-control").stream()
                 .noneMatch(n -> n instanceof Button b && "Paso a paso".equals(b.getText())));

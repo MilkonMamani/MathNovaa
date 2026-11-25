@@ -10,14 +10,9 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Polinomio en una sola letra con coeficientes densos (el índice es el exponente). Base de Ruffini,
- * del recíproco, del aspa doble, de los coeficientes indeterminados y de Kronecker.
- */
 final class Univariado {
 
     private final char variable;
-    /** c[i] es el coeficiente de x^i; c[grado] ≠ 0 salvo para el cero. */
     private final Racional[] c;
 
     private Univariado(char variable, Racional[] c) {
@@ -32,7 +27,6 @@ final class Univariado {
         }
     }
 
-    /** Vacío si p tiene más de una letra. Una constante queda en la letra 'x'. */
     static Optional<Univariado> de(Polinomio p) {
         if (p.variables().size() > 1) {
             return Optional.empty();
@@ -49,7 +43,6 @@ final class Univariado {
         return new Univariado(variable, coeficientesDeMenorAMayor.toArray(Racional[]::new));
     }
 
-    /** De mayor a menor, como la fila de arriba de la tabla de Ruffini. */
     static Univariado desdeMayor(char variable, List<Racional> coeficientes) {
         List<Racional> r = new ArrayList<>(coeficientes);
         java.util.Collections.reverse(r);
@@ -76,7 +69,6 @@ final class Univariado {
         return c.length == 1 && c[0].esCero();
     }
 
-    /** Coeficientes de mayor a menor grado, con los ceros de los términos que faltan. */
     List<Racional> deMayorAMenor() {
         List<Racional> r = new ArrayList<>();
         for (int i = c.length - 1; i >= 0; i--) {
@@ -132,7 +124,6 @@ final class Univariado {
         return new Univariado(variable, r);
     }
 
-    /** [cociente, resto] de la división larga. */
     Univariado[] dividir(Univariado d) {
         if (d.esCero()) {
             throw new ArithmeticException("División entre el polinomio cero");
@@ -154,13 +145,11 @@ final class Univariado {
         return new Univariado[] {new Univariado(variable, q), new Univariado(variable, resto)};
     }
 
-    /** El cociente si d divide exactamente; vacío si no. */
     Optional<Univariado> cocienteExacto(Univariado d) {
         Univariado[] qr = dividir(d);
         return qr[1].esCero() ? Optional.of(qr[0]) : Optional.empty();
     }
 
-    /** Multiplica por el MCM de los denominadores y divide por el MCD: enteros sin factor común. */
     Univariado primitivo() {
         BigInteger mcm = BigInteger.ONE;
         for (Racional r : c) {
@@ -180,7 +169,6 @@ final class Univariado {
         return multiplicar(k);
     }
 
-    /** División sintética entre (x − r): la fila del medio y la de abajo (con el residuo al final). */
     TrabajoIntermedio.TablaRuffini.Division ruffini(Racional r, List<Integer> rellenos) {
         List<Racional> arriba = deMayorAMenor();
         List<Racional> medio = new ArrayList<>();
@@ -199,12 +187,10 @@ final class Univariado {
         return new TrabajoIntermedio.TablaRuffini.Division(r, arriba, medio, abajo, rellenos);
     }
 
-    /** Cociente de una división sintética: la fila de abajo sin el residuo. */
     static Univariado cociente(char variable, TrabajoIntermedio.TablaRuffini.Division d) {
         return desdeMayor(variable, d.resultados().subList(0, d.resultados().size() - 1));
     }
 
-    /** Posiciones (en la fila de arriba) de los términos que faltan, sin contar el principal. */
     List<Integer> ceros() {
         List<Integer> r = new ArrayList<>();
         List<Racional> arriba = deMayorAMenor();

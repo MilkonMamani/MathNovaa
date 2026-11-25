@@ -19,18 +19,6 @@ import pe.mathnova.domain.escritura.ReconocedorEscritura;
 import pe.mathnova.domain.escritura.ResultadoReconocimiento;
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * El reconocedor real de la pestaña "Escribir": UniMERNet Small en un proceso local, solo CPU y sin red.
- * Se activa con {@code mathnova.reconocedor=unimernet}.
- *
- * <p>Los trazos se dibujan en una imagen ({@link ImagenTrazos}) y se mandan al proceso persistente
- * ({@link ProcesoInferencia}); la respuesta es el LaTeX tal como lo lee el modelo, sin retoques: el
- * adaptador al editor está en {@code LatexReconocido}.
- *
- * <p>Dónde está el reconocedor (la carpeta con {@code python/}, {@code servidor/} y {@code modelo/}):
- * {@code mathnova.unimernet.carpeta} si se puso; si no, junto al ejecutable instalado
- * ({@code <instalación>/reconocedor}); si no, {@code ./reconocedor} (desarrollo).
- */
 @Component
 @ConditionalOnProperty(name = "mathnova.reconocedor", havingValue = "unimernet")
 public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBean {
@@ -48,7 +36,7 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         this.carpeta = ubicar(carpeta);
         Path python = this.carpeta.resolve("python").resolve("python.exe");
         if (!Files.isRegularFile(python)) {
-            python = this.carpeta.resolve("python").resolve("bin").resolve("python3"); // no Windows (desarrollo)
+            python = this.carpeta.resolve("python").resolve("bin").resolve("python3");
         }
         List<String> comando = new ArrayList<>(List.of(python.toString(), "-I", "-u",
                 this.carpeta.resolve("servidor").resolve("servidor_unimernet.py").toString(),
@@ -61,11 +49,9 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         this.proceso = new ProcesoInferencia(comando, this.carpeta, Duration.ofSeconds(esperaCarga),
                 Duration.ofSeconds(esperaLectura), registro);
         LOG.info("Reconocedor UniMERNet en {}", this.carpeta);
-        // Por si la JVM termina sin cerrar Spring (no debería): el proceso no queda huérfano.
         Runtime.getRuntime().addShutdownHook(new Thread(proceso::close, "reconocedor-cierre"));
     }
 
-    /** Para las pruebas: con un comando cualquiera. */
     ReconocedorUniMERNet(Path carpeta, ProcesoInferencia proceso) {
         this.carpeta = carpeta;
         this.proceso = proceso;
@@ -75,7 +61,6 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         if (configurada != null && !configurada.isBlank()) {
             return Path.of(configurada).toAbsolutePath().normalize();
         }
-        // jpackage pone la ruta del .exe en jpackage.app-path: <instalación>/MathNova.exe
         String app = System.getProperty("jpackage.app-path");
         if (app != null && !app.isBlank()) {
             Path junto = Path.of(app).toAbsolutePath().getParent().resolve("reconocedor");
@@ -90,13 +75,8 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         return carpeta;
     }
 
-    /** Empieza así el mensaje cuando faltan los archivos del reconocedor (no vienen con Git). */
     public static final String FALTA = "Falta el reconocedor de escritura";
 
-    /**
-     * Los pesos y el Python del reconocedor no están en Git (pesan ~3,4 GB): quien clona el repositorio no
-     * los tiene. En vez de un error genérico, se dice qué falta y cómo conseguirlo.
-     */
     static void verificar(Path carpeta) {
         List<String> faltan = new ArrayList<>();
         for (String f : List.of("python/python.exe", "servidor/servidor_unimernet.py",
@@ -130,12 +110,10 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         }
     }
 
-    /** El LaTeX de una imagen PNG cualquiera (pruebas con imágenes tipográficas). */
     String reconocerPng(byte[] png) throws IOException, InterruptedException {
         return proceso.reconocer(png);
     }
 
-    /** Milisegundos que tardó en cargar el modelo; -1 si no cargó. */
     public long cargaMs() {
         return proceso.cargaMs();
     }
@@ -158,7 +136,6 @@ public class ReconocedorUniMERNet implements ReconocedorEscritura, DisposableBea
         return proceso.listo();
     }
 
-    /** PID del proceso de inferencia (para medir memoria); -1 si no está en marcha. */
     public long pid() {
         return proceso.pid();
     }

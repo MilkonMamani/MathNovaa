@@ -5,7 +5,6 @@ import java.time.Instant;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-/** Instant ↔ TEXT ISO-8601 UTC ('2026-11-15T19:21:00Z'), como pide V1. */
 @Converter
 public class InstanteConverter implements AttributeConverter<Instant, String> {
 

@@ -20,12 +20,6 @@ import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * L04: cómo crece una expresión algebraica cuando x → +∞. Es c·xᵖ, con c ≠ 0 exacto y p racional:
- * 2x² + 1 crece como 2x², √(x² + x) como x, (3x + 1)/(x² + 5) como 3x⁻¹. Comparar grados es comparar p.
- * Si en una suma los términos principales se cancelan (√(x² + x) − x), no hay término principal: es
- * la forma ∞ − ∞ y hace falta el conjugado.
- */
 record TerminoPrincipal(NumeroAlgebraico coeficiente, Racional exponente) {
 
     static Optional<TerminoPrincipal> de(Expresion e, char x) {
@@ -92,12 +86,11 @@ record TerminoPrincipal(NumeroAlgebraico coeficiente, Racional exponente) {
             }
         }
         if (c.esCero()) {
-            return Optional.empty(); // los términos principales se cancelan: ∞ − ∞
+            return Optional.empty();
         }
         return Optional.of(new TerminoPrincipal(c, mayor));
     }
 
-    /** (c·xᵖ)^(m/q) = c^(m/q)·x^(p·m/q); c debe ser positivo si q es par. */
     private static Optional<TerminoPrincipal> potencia(TerminoPrincipal t, Racional k) {
         if (k.num().bitLength() > 16 || k.den().bitLength() > 16) {
             return Optional.empty();
@@ -114,10 +107,6 @@ record TerminoPrincipal(NumeroAlgebraico coeficiente, Racional exponente) {
         return c.map(v -> new TerminoPrincipal(v, t.exponente.multiplicar(k)));
     }
 
-    /**
-     * Para mostrar: e dividida entre xᵖ término a término. 2x² + 1 entre x² da 2 + 1/x²; √(x² + x)
-     * entre x da √(1 + 1/x).
-     */
     static Expresion dividida(Expresion e, char x, Racional p) {
         if (p.esCero()) {
             return e;

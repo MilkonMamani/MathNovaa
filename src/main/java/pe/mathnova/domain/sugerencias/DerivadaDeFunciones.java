@@ -2,7 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/** RN18 para una expresión con funciones (HU23): se deriva con la regla de la cadena. */
 final class DerivadaDeFunciones implements ReglaSugerencia {
 
     @Override

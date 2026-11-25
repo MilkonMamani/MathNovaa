@@ -3,16 +3,11 @@ package pe.mathnova.domain.expresion;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-/** Consultas simples sobre un árbol de expresión. */
 public final class Expresiones {
 
     private Expresiones() {
     }
 
-    /**
-     * Letras que aparecen (variables y constantes literales como la a de "a x"), en orden alfabético.
-     * En una operación incluye su variable y lo que haya en los límites.
-     */
     public static SortedSet<Character> variables(Expresion e) {
         SortedSet<Character> vars = new TreeSet<>();
         recolectar(e, vars);
@@ -95,10 +90,6 @@ public final class Expresiones {
         }
     }
 
-    /**
-     * e con cada aparición de {@code buscado} cambiada por {@code por} (sin simplificar). No entra en
-     * las operaciones (límites, derivadas, integrales), salvo que la operación entera sea lo buscado.
-     */
     public static Expresion reemplazar(Expresion e, Expresion buscado, Expresion por) {
         if (e.equals(buscado)) {
             return por;
@@ -118,7 +109,6 @@ public final class Expresiones {
         };
     }
 
-    /** Si {@code buscado} aparece en e. */
     public static boolean contiene(Expresion e, Expresion buscado) {
         if (e.equals(buscado)) {
             return true;
@@ -136,17 +126,12 @@ public final class Expresiones {
         };
     }
 
-    /** Verdadero si la raíz del árbol es un límite, una derivada, una integral, un gradiente o una Du (HU34). */
     public static boolean esOperacion(Expresion e) {
         return e instanceof Limite || e instanceof Derivada || e instanceof DerivadaParcial
                 || e instanceof Integral || e instanceof IntegralMultiple || e instanceof Gradiente
                 || e instanceof Direccional || e instanceof LimiteDoble || e instanceof Extremos;
     }
 
-    /**
-     * Verdadero si hay funciones trascendentes (sen, ln, exp...) o una potencia con
-     * variable en el exponente (e^x). sqrt y las raíces no cuentan.
-     */
     public static boolean esTrascendente(Expresion e) {
         return switch (e) {
             case Variable v -> false;

@@ -22,7 +22,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/** HU38, RF73. */
 class ResolvedorEcuacionesTest {
 
     private static final ResolvedorEcuaciones RESOLVEDOR = new ResolvedorEcuaciones(new OrquestadorFactorizacion());
@@ -39,14 +38,11 @@ class ResolvedorEcuacionesTest {
         return r.pasos().stream().map(PasoEcuacion::tipo).toList();
     }
 
-    // ------------------------------------------------------------------ las cuatro pruebas pedidas
-
     @Test
     void cuadraticaIgualadaACero() {
         ResolucionEcuacion r = resolver("x^2 - 5x + 6 = 0");
         assertEquals(List.of("2", "3"), valores(r));
         assertEquals("x₁ = 2, x₂ = 3", r.resumen());
-        // Q es 0: no hay "pasar todo a un lado".
         assertEquals(List.of(PasoEcuacion.Tipo.FACTORIZAR, PasoEcuacion.Tipo.IGUALAR_A_CERO, PasoEcuacion.Tipo.DESPEJAR),
                 tipos(r));
         assertEquals(List.of("x - 3 = 0", "x - 2 = 0").stream().sorted().toList(),
@@ -61,7 +57,6 @@ class ResolvedorEcuacionesTest {
         PasoEcuacion primero = r.pasos().getFirst();
         assertEquals("Pasar todo a un lado", primero.titulo());
         assertEquals(List.of("x^3 - x = 0"), primero.lineas());
-        // RN12: factores por raíz de menor a mayor.
         assertEquals("x(x + 1)(x - 1) = 0", r.pasos().get(1).lineas().getFirst());
     }
 
@@ -82,8 +77,6 @@ class ResolvedorEcuacionesTest {
         assertEquals("doble", r.soluciones().getFirst().nombreMultiplicidad());
         assertTrue(r.pasos().get(1).lineas().contains("x - 1 = 0 (doble)"), r.pasos().get(1).lineas().toString());
     }
-
-    // ------------------------------------------------------------------ factores sin raíz en Q y bordes
 
     @Test
     void factorSinRaizEnQSeInforma() {
@@ -119,7 +112,6 @@ class ResolvedorEcuacionesTest {
         assertEquals("t₁ = -2, t₂ = 2", resolver("t^2 = 4").resumen());
     }
 
-    /** HU08 también en ecuaciones: el método forzado empieza la factorización. */
     @Test
     void conMetodoForzado() {
         ResolucionEcuacion r = RESOLVEDOR.resolver((Ecuacion) Parser.parse("x^2 - 5x + 6 = 0"), "F13");
@@ -136,8 +128,6 @@ class ResolvedorEcuacionesTest {
     void noPolinomicaNoSeResuelve() {
         assertThrows(NoEsPolinomioException.class, () -> resolver("sen(x) = 0"));
     }
-
-    // ------------------------------------------------------------------ parser (un solo "=")
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', value = {

@@ -11,25 +11,17 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.factorizacion.Tecnicas;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * Los pasos de otro motor puestos dentro de un paso de cálculo (Sprint 6), plegados como la factorización
- * dentro de un límite: las reglas internas de una derivada, la factorización del denominador en las
- * fracciones parciales y la resolución de f′(x) = 0 en los puntos críticos.
- */
 public final class Anidados {
 
-    /** El código de los pasos de una ecuación dentro de otro cálculo. */
     public static final String ECUACION = "EC";
 
     private Anidados() {
     }
 
-    /** Una regla de derivación con sus reglas internas; Trabajo lleva la fórmula y qué es u y v. */
     public static PasoLimite deDerivada(PasoDerivada p) {
         return deDerivada(p, null);
     }
 
-    /** @param parte "lado izquierdo", "numerador"…, que se agrega al título; o null */
     public static PasoLimite deDerivada(PasoDerivada p, String parte) {
         List<PasoLimite> hijos = new ArrayList<>();
         p.hijos().forEach(h -> hijos.add(deDerivada(h, null)));
@@ -56,7 +48,6 @@ public final class Anidados {
         };
     }
 
-    /** Los pasos de una factorización (F01…F30) con la parte que se factoriza en el título. */
     public static List<PasoLimite> deFactorizacion(Resolucion r, String parte) {
         List<PasoLimite> r2 = new ArrayList<>();
         r.pasos().forEach(p -> r2.add(deFactorizacion(p, parte)));
@@ -69,7 +60,6 @@ public final class Anidados {
                 p.despuesComoForma().aExpresion(), p.trabajo());
     }
 
-    /** Los pasos del resolvedor de ecuaciones; dentro de "Factorizar" van los de la factorización. */
     public static List<PasoLimite> deEcuacion(ResolucionEcuacion r) {
         List<PasoLimite> pasos = new ArrayList<>();
         for (ResolucionEcuacion.PasoEcuacion p : r.pasos()) {

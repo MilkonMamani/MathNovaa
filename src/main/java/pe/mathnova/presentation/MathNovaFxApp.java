@@ -9,7 +9,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import pe.mathnova.MathNovaApplication;
 
-/** Une JavaFX con Spring: Spring crea los controladores de cada FXML. */
 public class MathNovaFxApp extends Application {
 
     private ConfigurableApplicationContext contexto;

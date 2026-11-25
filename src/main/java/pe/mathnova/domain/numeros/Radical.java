@@ -6,13 +6,6 @@ import java.util.Objects;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * coeficiente · ⁿ√radicando, real. Siempre simplificado: el radicando es un entero positivo sin
- * factores que sean potencias n-ésimas (√8 = 2√2, ∛16 = 2∛2) y el índice es el menor posible
- * (⁴√4 = √2). Un racional es un radical de índice 1 y radicando 1. Con índice impar y radicando
- * negativo, el signo pasa al coeficiente (∛−2 = −∛2); la raíz par de un negativo no es real y la
- * lleva NumeroAlgebraico con la unidad i.
- */
 public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
 
     public static final Radical UNO = new Radical(Racional.UNO, 1, BigInteger.ONE);
@@ -35,7 +28,6 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
             indice = 1;
             radicando = BigInteger.ONE;
         } else if (indice > 1 && !radicando.equals(BigInteger.ONE)) {
-            // Se sacan las potencias n-ésimas y se reduce el índice por el MCD de los exponentes.
             Map<BigInteger, Integer> primos = Primos.factorizar(radicando);
             BigInteger fuera = BigInteger.ONE;
             int g = indice;
@@ -55,7 +47,7 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
             indice = dentro.equals(BigInteger.ONE) ? 1 : nuevo;
             radicando = dentro;
         } else {
-            coeficiente = coeficiente.multiplicar(Racional.de(radicando)); // índice 1: ¹√r = r
+            coeficiente = coeficiente.multiplicar(Racional.de(radicando));
             indice = 1;
             radicando = BigInteger.ONE;
         }
@@ -65,7 +57,6 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
         return new Radical(r, 1, BigInteger.ONE);
     }
 
-    /** ⁿ√r con r racional: ⁿ√(a/b) = ⁿ√(a·bⁿ⁻¹)/b. */
     public static Radical raiz(int n, Racional r) {
         BigInteger b = r.den();
         return new Radical(new Racional(BigInteger.ONE, b), n, r.num().multiply(b.pow(n - 1)));
@@ -83,12 +74,10 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
         return coeficiente.esCero();
     }
 
-    /** La parte sin coeficiente: ⁿ√radicando. */
     public Radical unidad() {
         return new Radical(Racional.UNO, indice, radicando);
     }
 
-    /** ⁿ√a · ᵐ√b = ˡ√(a^(l/n) · b^(l/m)) con l = mcm(n, m), ya simplificado. */
     public Radical multiplicar(Radical o) {
         int l = Primos.mcm(indice, o.indice);
         BigInteger r = radicando.pow(l / indice).multiply(o.radicando.pow(l / o.indice));
@@ -99,7 +88,6 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
         return new Radical(coeficiente.multiplicar(k), indice, radicando);
     }
 
-    /** Potencia entera no negativa. */
     public Radical potencia(int k) {
         if (k < 0) {
             throw new IllegalArgumentException("Para exponentes negativos use NumeroAlgebraico.inverso");
@@ -107,7 +95,6 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
         return new Radical(coeficiente.potencia(k), indice, radicando.pow(k));
     }
 
-    /** "√", "∛", "⁴√"… */
     static String simbolo(int indice) {
         return switch (indice) {
             case 2 -> "√";
@@ -126,7 +113,6 @@ public record Radical(Racional coeficiente, int indice, BigInteger radicando) {
         return sb.toString();
     }
 
-    /** "2√2", "-∛4", "√6/2", "3/2". */
     @Override
     public String toString() {
         if (esRacional()) {

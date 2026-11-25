@@ -4,11 +4,6 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * Convierte el árbol a LaTeX para la vista previa (HU02). Las operaciones se dibujan como en la
- * pizarra (HU34): {@code \lim_{x \to 2}}, {@code \frac{d}{dx}}, {@code \frac{\partial}{\partial y}},
- * {@code \int_{0}^{1} … \, dx}, {@code \iint}; las griegas como {@code \alpha}.
- */
 public final class ImpresoraLatex implements Visitante<String> {
 
     private static final ImpresoraLatex INSTANCIA = new ImpresoraLatex();
@@ -40,8 +35,6 @@ public final class ImpresoraLatex implements Visitante<String> {
         return Letras.latex(v.nombre());
     }
 
-    // ------------------------------------------------------------------ operaciones (HU34)
-
     @Override
     public String visitar(Limite l) {
         String punto = switch (l.punto()) {
@@ -59,14 +52,12 @@ public final class ImpresoraLatex implements Visitante<String> {
     @Override
     public String visitar(Derivada d) {
         if (d.orden() == 1 && d.cuerpo() instanceof Variable y) {
-            // D08: y' dentro de una derivación implícita
             return Letras.latex(y.nombre()).strip() + "'";
         }
         String orden = d.orden() == 1 ? "" : "^{" + d.orden() + "}";
         return "\\frac{d" + orden + "}{d" + Letras.latex(d.variable()).strip() + orden + "}" + parentesis(p(d.cuerpo()));
     }
 
-    /** Las variables iguales seguidas se agrupan: [x, x, y] es {@code \partial x^{2} \partial y}. */
     @Override
     public String visitar(DerivadaParcial d) {
         String orden = d.orden() == 1 ? "" : "^{" + d.orden() + "}";
@@ -97,10 +88,6 @@ public final class ImpresoraLatex implements Visitante<String> {
         return "\\int" + limites + " " + cuerpo(i.cuerpo()) + diferencial(i.variable());
     }
 
-    /**
-     * Región como producto de intervalos: {@code \iint_{[0, 1] \times [0, 2]} … \, dx \, dy}. Si algún límite
-     * depende de otra variable (Sprint 8), como integrales iteradas: {@code \int_{0}^{1}\int_{0}^{x} … \, dy \, dx}.
-     */
     @Override
     public String visitar(IntegralMultiple i) {
         boolean constantes = i.rangos().stream().allMatch(r -> Expresiones.variables(r.inferior()).isEmpty()
@@ -132,14 +119,12 @@ public final class ImpresoraLatex implements Visitante<String> {
         return simbolo + "_{" + region + "} " + cuerpo(i.cuerpo()) + diferenciales;
     }
 
-    /** {@code \lim_{(x, y) \to (0, 0)} …} (Sprint 8). */
     @Override
     public String visitar(LimiteDoble l) {
         return "\\lim_{(" + Letras.latex(l.x()).strip() + ", " + Letras.latex(l.y()).strip() + ") \\to (" + p(l.a())
                 + ", " + p(l.b()) + ")} " + cuerpo(l.cuerpo());
     }
 
-    /** {@code \operatorname{extremos}\left(f\right)}, o con la restricción después de ";" (Sprint 8). */
     @Override
     public String visitar(Extremos x) {
         String r = x.conRestriccion() ? ";\\ " + p(x.restriccion()) : "";
@@ -150,12 +135,10 @@ public final class ImpresoraLatex implements Visitante<String> {
         return " \\, d" + Letras.latex(variable).strip();
     }
 
-    /** Cuerpo de un límite o una integral: entre paréntesis si es una suma o lleva signo. */
     private String cuerpo(Expresion e) {
         return e instanceof Suma || e instanceof Negacion ? parentesis(p(e)) : p(e);
     }
 
-    /** \nabla f, o \nabla f(1, 2). */
     @Override
     public String visitar(Gradiente g) {
         String f = p(g.cuerpo());
@@ -163,7 +146,6 @@ public final class ImpresoraLatex implements Visitante<String> {
         return "\\nabla " + cuerpo + (g.enUnPunto() ? tupla(g.punto()) : "");
     }
 
-    /** D_{\vec u} f(1, 2) con \vec u = (3, 4). */
     @Override
     public String visitar(Direccional d) {
         String f = p(d.cuerpo());
@@ -196,7 +178,6 @@ public final class ImpresoraLatex implements Visitante<String> {
         for (int k = 0; k < terminos.size(); k++) {
             Expresion t = terminos.get(k);
             if (k > 0) {
-                // Un solo operador por término: x − 3, x − 2x y x + 3, no x + −3, x + −2x ni x − −3 (ver Signos)
                 Signos.Termino signo = Signos.separar(t);
                 sb.append(signo.negativo() ? " - " : " + ");
                 t = signo.valor();
@@ -209,7 +190,6 @@ public final class ImpresoraLatex implements Visitante<String> {
     @Override
     public String visitar(Negacion n) {
         Expresion a = n.argumento();
-        // −(x + 1), −(−3), −(−2x): nunca dos signos seguidos
         boolean envolver = a instanceof Suma || Signos.conMenos(a);
         return "-" + (envolver ? parentesis(p(a)) : p(a));
     }
@@ -218,7 +198,6 @@ public final class ImpresoraLatex implements Visitante<String> {
     public String visitar(Producto prod) {
         List<Expresion> fs = prod.factores();
         if (fs.getFirst() instanceof Constante k && k.valor().signo() < 0) {
-            // −2x, no (−2)x; −x, no (−1)x
             Expresion resto = Signos.sinMenos(prod).orElseThrow();
             return "-" + (resto instanceof Suma || Signos.conMenos(resto) ? parentesis(p(resto)) : p(resto));
         }
@@ -246,7 +225,6 @@ public final class ImpresoraLatex implements Visitante<String> {
         if (base instanceof Funcion f && pot.exponente() instanceof Constante c && c.valor().esEntero()
                 && c.valor().signo() > 0 && f.tipo() != TipoFuncion.SQRT && f.tipo() != TipoFuncion.EXP
                 && f.tipo() != TipoFuncion.ABS) {
-            // sen^2(x)
             return nombre(f) + exp + parentesis(p(f.argumento()));
         }
         boolean atomo = base instanceof Variable || base instanceof ConstanteEspecial

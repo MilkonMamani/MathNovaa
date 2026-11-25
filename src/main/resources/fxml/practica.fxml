@@ -11,10 +11,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- "Práctica" (Sprint 9, parte D). Sin ejercicio: "Elige un ejercicio" con tarjetas. Con ejercicio: a la
-     izquierda el avance (paso, barra azul, aciertos a la primera, intentos fallidos, pista, elegir otro); a la
-     derecha la pizarra con el enunciado, los pasos ya resueltos y el recuadro punteado con la pregunta y sus
-     opciones. Las tarjetas, los pasos y las opciones los arma PracticaController. -->
 <VBox fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pe.mathnova.presentation.controller.PracticaController"
       styleClass="pantalla-practica" spacing="18">
@@ -29,7 +25,6 @@
     </VBox>
 
     <StackPane VBox.vgrow="ALWAYS">
-        <!-- Sin ejercicio -->
         <VBox fx:id="vistaElegir" spacing="14">
             <Label text="Elige un ejercicio" styleClass="titulo-tarjeta"/>
             <ScrollPane fx:id="desplazamientoElegir" fitToWidth="true" hbarPolicy="NEVER" focusTraversable="false"
@@ -41,7 +36,6 @@
                    styleClass="practica-nota-pie" wrapText="true"/>
         </VBox>
 
-        <!-- Con ejercicio -->
         <HBox fx:id="vistaPractica" spacing="20" visible="false" managed="false">
             <VBox minWidth="280" prefWidth="280" maxWidth="280">
                 <VBox fx:id="tarjetaAvance" styleClass="tarjeta, practica-avance">
@@ -76,7 +70,6 @@
                         <StackPane fx:id="enunciado" alignment="CENTER_LEFT"/>
                         <VBox fx:id="pasos" styleClass="practica-pasos"/>
 
-                        <!-- La pregunta del paso, con borde punteado -->
                         <VBox fx:id="cajaPregunta" styleClass="practica-pregunta">
                             <Label fx:id="textoPregunta" styleClass="practica-pregunta-texto" wrapText="true"/>
                             <StackPane fx:id="formulaPregunta" alignment="CENTER_LEFT"/>
@@ -93,7 +86,6 @@
                             </HBox>
                         </VBox>
 
-                        <!-- Al terminar -->
                         <VBox fx:id="cajaFinal" spacing="14" visible="false" managed="false">
                             <VBox spacing="6" styleClass="pizarra-resultado-bloque">
                                 <Label text="Resultado" styleClass="pizarra-resultado-rotulo"/>

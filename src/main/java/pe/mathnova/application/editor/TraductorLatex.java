@@ -7,30 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.IntPredicate;
 
-/**
- * Convierte el LaTeX del editor visual (MathLive, HU36) al texto que lee el parser (sección 9):
- * {@code \frac{x+1}{x-1}} es "(x + 1)/(x - 1)" y {@code 3\int_{3}^{6}3x\,dx} es "3·∫(3x, x, 3, 6)".
- * El parser no cambia: este traductor solo escribe texto.
- *
- * <p>Pone paréntesis y "·" donde hace falta para que el parser arme el mismo árbol que se ve en el
- * editor: una fracción junto a otro factor va entre paréntesis ("(1/2)x"), un exponente o un
- * denominador compuesto también ("x^(n + 1)", "1/(2x)"), y antes de un número, de una raíz cerrada,
- * de una función o de una operación va "·" ("2·3", "√2·x", "x·sen(x)", "3·∫(…)").
- *
- * <p>RN45: las letras sueltas siguen siendo variables. Si dos letras seguidas forman un nombre que el
- * parser leería como función ("l" "n"), se separan con un espacio ("l n").
- *
- * <p>Una casilla vacía ({@code \placeholder{}}) se escribe "□". {@link #casillaVacia(String)} dice cuál
- * falta sin hablar de posiciones ("Completa el exponente", "Completa el integrando"). En una integral
- * simple las dos casillas de los límites son opcionales (RF69): si las dos están vacías se borran antes
- * de traducir y la integral es indefinida; si solo una está llena, falta la otra.
- *
- * <p>{@code \surd} (lo que deja MathLive con un √ pegado) seguido de {…} o (…) es la raíz; suelto es
- * un error con {@link #RAIZ_SUELTA}.
- */
 public final class TraductorLatex {
 
-    /** El LaTeX tiene algo que MathNova no sabe escribir como texto. */
     public static final class LatexNoValido extends RuntimeException {
         public LatexNoValido(String mensaje) {
             super(mensaje);
@@ -42,20 +20,10 @@ public final class TraductorLatex {
     private TraductorLatex() {
     }
 
-    /** \surd o √ sin nada entre llaves o paréntesis después. */
     public static final String RAIZ_SUELTA = "A la raíz le falta lo de adentro: usa la tecla √ o escribe √(…) con paréntesis";
-    /** RF69: una integral con un límite lleno y el otro vacío. */
     public static final String OTRO_LIMITE = "Completa el otro límite o deja los dos vacíos";
-    /** Una casilla vacía de la que no se sabe qué es. */
     public static final String CASILLA_RESALTADA = "Completa la casilla resaltada";
 
-    /**
-     * La primera casilla obligatoria vacía.
-     *
-     * @param indice  cuál es entre todas las casillas ({@code \placeholder}) del LaTeX, en el orden en
-     *                que aparecen, empezando en 0; el editor la busca con este número para resaltarla
-     * @param mensaje qué falta: "Completa el exponente", "Completa el integrando"…
-     */
     public record CasillaVacia(int indice, String mensaje) {
     }
 
@@ -77,18 +45,10 @@ public final class TraductorLatex {
         }
     }
 
-    /**
-     * false si queda una casilla obligatoria vacía. Las dos casillas de los límites de una integral
-     * simple son opcionales cuando están vacías las dos (RF69): la integral queda indefinida.
-     */
     public static boolean completo(String latex) {
         return casillaVacia(latex).isEmpty();
     }
 
-    /**
-     * La primera casilla obligatoria que falta llenar, con un mensaje que dice cuál es (no una
-     * posición del texto). Vacío si no falta ninguna.
-     */
     public static java.util.Optional<CasillaVacia> casillaVacia(String latex) {
         if (latex == null || latex.isBlank()) {
             return java.util.Optional.empty();
@@ -109,7 +69,6 @@ public final class TraductorLatex {
         return java.util.Optional.empty();
     }
 
-    /** Quita los límites vacíos de las integrales simples que tienen los dos vacíos (RF69). */
     private static List<Tok> sinOpcionales(List<Tok> t) {
         String[] mensaje = new String[t.size()];
         boolean[] opcional = new boolean[t.size()];
@@ -123,16 +82,11 @@ public final class TraductorLatex {
         return r;
     }
 
-    /** Qué es cada casilla según dónde está: el exponente, el integrando, el punto del límite… */
     private static final class Casillas {
 
         private Casillas() {
         }
 
-        /**
-         * Pone en {@code mensaje} qué falta para cada \placeholder entre {@code desde} y {@code hasta}
-         * (sin incluir), y marca en {@code opcional} los tokens de los límites vacíos que se pueden quitar.
-         */
         static void marcar(List<Tok> t, int desde, int hasta, String porDefecto, String[] mensaje, boolean[] opcional) {
             int i = desde;
             while (i < hasta) {
@@ -204,7 +158,6 @@ public final class TraductorLatex {
             }
         }
 
-        /** \frac{a}{b}; si es d/dx o ∂/∂x, lo que sigue es la función que se deriva. */
         private static int fraccion(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
             int a = i + 1;
             int b = Math.min(finDeArgumento(t, a), hasta);
@@ -227,7 +180,6 @@ public final class TraductorLatex {
             return Math.max(c, i + 1);
         }
 
-        /** ∫, ∬, ∭: los límites (opcionales en ∫ si están vacíos los dos), el integrando y el diferencial. */
         private static int integral(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
             if (t.get(i).esCmd("int")) {
                 int tras = finDeLimites(t, i + 1, hasta);
@@ -290,7 +242,6 @@ public final class TraductorLatex {
             return Math.max(k, i + 1);
         }
 
-        /** El integrando llega hasta el diferencial (d seguido de una letra) del mismo nivel. */
         private static int finDeIntegrando(List<Tok> t, int j, int hasta) {
             int k = j;
             int nivel = 0;
@@ -308,7 +259,6 @@ public final class TraductorLatex {
             return k;
         }
 
-        /** Índice justo después de los _{…} y ^{…} que empiezan en j. */
         private static int finDeLimites(List<Tok> t, int j, int hasta) {
             while (j < hasta && (t.get(j).tipo() == Tipo.SUB || t.get(j).tipo() == Tipo.SUP)) {
                 j = Math.max(Math.min(finDeArgumento(t, j + 1), hasta), j + 1);
@@ -316,10 +266,6 @@ public final class TraductorLatex {
             return j;
         }
 
-        /**
-         * \int_c^d\int_a^b f dx dy (la tecla ∬): todos los límites son obligatorios y cada mensaje nombra la
-         * variable, que es la del diferencial que le toca (la ∫ de dentro va con el primero).
-         */
         private static int iterada(List<Tok> t, int i, int hasta, String[] mensaje, boolean[] opcional) {
             List<int[]> inferiores = new ArrayList<>();
             List<int[]> superiores = new ArrayList<>();
@@ -347,7 +293,6 @@ public final class TraductorLatex {
             }
             int n = inferiores.size();
             for (int m = 0; m < n; m++) {
-                // m = 0 es la ∫ de fuera, que va con el último diferencial.
                 int dif = n - 1 - m;
                 String de = dif < vars.size() ? " de " + vars.get(dif) : "";
                 if (inferiores.get(m) != null) {
@@ -361,7 +306,6 @@ public final class TraductorLatex {
             return Math.max(k, i + 1);
         }
 
-        /** Índice justo después del delimitador del \right que cierra el \left de i. */
         private static int finDeLeft(List<Tok> t, int i, int hasta) {
             int nivel = 0;
             for (int j = i; j < hasta; j++) {
@@ -374,10 +318,8 @@ public final class TraductorLatex {
             return hasta;
         }
 
-        /** El \left( de i es el argumento de sen, ln, ∇, extremos… */
         private static boolean argumentoDeFuncion(List<Tok> t, int i) {
             int j = i - 1;
-            // sen^{-1}( o log_{10}(: se salta el exponente o la base
             while (j >= 0 && t.get(j).tipo() == Tipo.CIERRA) {
                 int nivel = 0;
                 while (j >= 0) {
@@ -388,7 +330,7 @@ public final class TraductorLatex {
                     }
                     j--;
                 }
-                j -= 2; // la llave que abre y el ^ o _
+                j -= 2;
             }
             if (j < 0) {
                 return false;
@@ -397,7 +339,6 @@ public final class TraductorLatex {
             if (p.tipo() == Tipo.CMD && (FUNCIONES.containsKey(p.v()) || OPERADORES.contains(p.v()) || p.v().equals("nabla"))) {
                 return true;
             }
-            // extremos(…): \operatorname{extremos} queda como letras
             StringBuilder palabra = new StringBuilder();
             for (int k = j; k >= 0 && t.get(k).tipo() == Tipo.CHAR && Character.isLetter(t.get(k).v().charAt(0)); k--) {
                 palabra.insert(0, t.get(k).v());
@@ -414,7 +355,6 @@ public final class TraductorLatex {
         }
     }
 
-    /** Índice justo después del argumento que empieza en i: {…}, \placeholder{} o un token. */
     private static int finDeArgumento(List<Tok> t, int i) {
         Tok x = t.get(i);
         if (x.tipo() == Tipo.ABRE) {
@@ -446,8 +386,6 @@ public final class TraductorLatex {
                 && dentro.stream().skip(1).allMatch(x -> x.tipo() == Tipo.ABRE || x.tipo() == Tipo.CIERRA);
     }
 
-    // ================================================================== tokens
-
     private enum Tipo { CMD, CHAR, ABRE, CIERRA, SUP, SUB, FIN }
 
     private record Tok(Tipo tipo, String v) {
@@ -468,7 +406,6 @@ public final class TraductorLatex {
             return false;
         }
 
-        /** MathLive guarda \operatorname{sen} como \operatorname{\mathrm{sen}}. */
         static final java.util.regex.Pattern ESTILO_DOBLE =
                 java.util.regex.Pattern.compile("\\\\(?:operatorname|mathrm)\\{\\\\(?:mathrm|text|textrm)\\{([A-Za-z]+)\\}\\}");
 
@@ -484,7 +421,6 @@ public final class TraductorLatex {
                         j++;
                     }
                     if (j == i + 1) {
-                        // \, \; \{ \} \! y compañía: un solo carácter.
                         String nombre = i + 1 < s.length() ? String.valueOf(s.charAt(i + 1)) : " ";
                         t.add(new Tok(Tipo.CMD, nombre));
                         i += 2;
@@ -519,7 +455,6 @@ public final class TraductorLatex {
     private static final Set<String> ESTILOS = Set.of("mathrm", "operatorname", "text", "textrm", "mathit",
             "mathsf", "mathbf", "mathnormal", "textit", "boldsymbol", "bm");
 
-    /** Nombre del comando → nombre canónico de la función en el parser. */
     private static final Map<String, String> FUNCIONES = Map.ofEntries(
             Map.entry("sin", "sen"), Map.entry("sen", "sen"), Map.entry("cos", "cos"),
             Map.entry("tan", "tan"), Map.entry("tg", "tan"), Map.entry("cot", "cot"), Map.entry("cotg", "cot"),
@@ -530,10 +465,6 @@ public final class TraductorLatex {
 
     private static final Map<String, String> INVERSAS = Map.of("sen", "arcsen", "cos", "arccos", "tan", "arctan");
 
-    /**
-     * Operaciones con nombre que el editor escribe como {@code \operatorname{extremos}} (en letra recta) y
-     * el parser lee como llamada: extremos(f), grad(f), Du(f, (v), (P)).
-     */
     private static final Set<String> OPERADORES = Set.of("extremos", "grad", "Du");
 
     private static final Map<String, Character> GRIEGAS = Map.ofEntries(
@@ -558,14 +489,8 @@ public final class TraductorLatex {
             Map.entry("vert", "|"), Map.entry("mid", "|"), Map.entry("ldots", "…"), Map.entry("cdots", "…"),
             Map.entry("lbrace", "{"), Map.entry("rbrace", "}"), Map.entry("langle", "⟨"), Map.entry("rangle", "⟩"),
             Map.entry("#", "#"), Map.entry("&", "&"), Map.entry("_", "_"), Map.entry("lnot", "¬"), Map.entry("neg", "¬"),
-            // RF62: el parser los rechaza con su mensaje de "fuera del alcance".
             Map.entry("sum", "Σ"), Map.entry("prod", "∏"), Map.entry("oint", "∮"));
 
-    /**
-     * Quita espacios y estilos, y deja cada nombre en una forma: {@code \operatorname{sen}} es
-     * {@code \sen}, {@code \mathrm{d}} y {@code \differentialD} son la letra d, {@code \exponentialE}
-     * es e, {@code \mleft} es {@code \left} y {@code \dfrac} es {@code \frac}.
-     */
     private static List<Tok> normalizar(List<Tok> t) {
         List<Tok> r = new ArrayList<>();
         for (int i = 0; i < t.size(); i++) {
@@ -594,7 +519,6 @@ public final class TraductorLatex {
                         i = j;
                         continue;
                     }
-                    // Estilo sobre algo que no es una palabra: se ignora el estilo y queda el grupo.
                     continue;
                 }
                 if (ESTILOS.contains(n)) {
@@ -628,18 +552,12 @@ public final class TraductorLatex {
         return r;
     }
 
-    // ================================================================== piezas
-
     private enum Clase {
-        /** Número, grupo entre paréntesis, potencia, ∞, □. */
         VALOR,
-        /** Una letra sola: variable o constante. */
         LETRA,
-        /** sen(x), log_2(x): siempre con paréntesis. */
         LLAMADA,
         FRACCION,
         RAIZ,
-        /** lim, d/dx, ∂/∂x, ∫, ∬, ∭. */
         OPERACION,
         OPERADOR
     }
@@ -662,8 +580,6 @@ public final class TraductorLatex {
             return clase == Clase.VALOR && texto.matches("\\d+(\\.\\d+)?");
         }
     }
-
-    // ================================================================== lectura
 
     private static final class Lectura {
 
@@ -694,13 +610,11 @@ public final class TraductorLatex {
             return actual().tipo() == Tipo.FIN;
         }
 
-        /** Lee piezas hasta el final, hasta un cierre que no le toca o hasta donde diga {@code para}. */
         List<Pieza> secuencia(IntPredicate para) {
             List<Pieza> p = new ArrayList<>();
             while (!fin() && !para.test(k)) {
                 Tok x = actual();
                 if (x.tipo() == Tipo.CIERRA) {
-                    // Una llave que no abrió nadie: se ignora.
                     avanzar();
                     continue;
                 }
@@ -743,7 +657,6 @@ public final class TraductorLatex {
                 avanzar();
                 p.add(grupo());
             } else if (c == 'D' && en(k + 1).tipo() == Tipo.SUB) {
-                // Sprint 7: D_{\vec u}(f, (v), (P)) es Du(…)
                 avanzar();
                 avanzar();
                 argumento();
@@ -761,7 +674,6 @@ public final class TraductorLatex {
                 avanzar();
                 p.add(new Pieza("∂", Clase.VALOR));
             } else if (c == '√' || c == '∛') {
-                // Un √ pegado como carácter, igual que \surd.
                 avanzar();
                 p.add(raizSuelta(c == '∛' ? "∛" : "√"));
             } else {
@@ -770,7 +682,6 @@ public final class TraductorLatex {
             }
         }
 
-        /** Dígitos con punto decimal; MathLive escribe la coma decimal como {,}. */
         private Pieza numero() {
             StringBuilder sb = new StringBuilder();
             while (true) {
@@ -800,20 +711,18 @@ public final class TraductorLatex {
             return x.esChar(')') || x.esChar(']') || x.esChar('}') || x.esCmd("right");
         }
 
-        /** Después de "(", "[", "{" o \left: lee hasta el cierre. Los corchetes y llaves agrupan igual que el paréntesis. */
         private Pieza grupo() {
             List<Pieza> dentro = secuencia(i -> esCierre(en(i)));
             Tok cierre = actual();
             if (cierre.esCmd("right")) {
                 avanzar();
-                avanzar(); // el delimitador
+                avanzar();
             } else if (esCierre(cierre)) {
                 avanzar();
             }
             return new Pieza("(" + emitir(dentro).strip() + ")", Clase.VALOR, true);
         }
 
-        /** {...} o un solo token; un dígito solo es un dígito ({@code \frac12}). */
         private List<Tok> argumento() {
             List<Tok> r = new ArrayList<>();
             Tok x = actual();
@@ -839,7 +748,6 @@ public final class TraductorLatex {
                 return r;
             }
             if (x.tipo() == Tipo.CMD) {
-                // Un comando con sus propios argumentos (\frac12, \placeholder{}): se copia entero.
                 int desde = k;
                 List<Pieza> descartadas = new ArrayList<>();
                 item(descartadas, i -> false);
@@ -864,8 +772,6 @@ public final class TraductorLatex {
                     && tokens.stream().skip(1).allMatch(x -> x.tipo() != Tipo.CHAR && x.tipo() != Tipo.CMD));
         }
 
-        // -------------------------------------------------------------- comandos
-
         private void comando(List<Pieza> p, IntPredicate para) {
             String n = avanzar().v();
             if (FUNCIONES.containsKey(n)) {
@@ -889,7 +795,6 @@ public final class TraductorLatex {
             switch (n) {
                 case "frac" -> p.add(fraccion(para));
                 case "sqrt" -> p.add(raiz());
-                // MathLive escribe \surd cuando √ llega como carácter (un pegado): \surd{x} o \surd(x) es la raíz.
                 case "surd" -> p.add(raizSuelta("√"));
                 case "int" -> p.add(integral(para));
                 case "iint" -> p.add(integralMultiple(para, 2));
@@ -906,12 +811,10 @@ public final class TraductorLatex {
                 case "right" -> avanzar();
                 case "infty" -> p.add(new Pieza("∞", Clase.VALOR));
                 case "partial" -> p.add(new Pieza("∂", Clase.VALOR));
-                // Sprint 7: \nabla(f) y \nabla(f, (1, 2)) son grad(…)
                 case "nabla" -> p.add(new Pieza("grad" + argumentoDeFuncion(), Clase.LLAMADA));
                 case "placeholder" -> {
                     if (actual().esChar('[')) {
                         while (!fin() && !avanzar().esChar(']')) {
-                            // id del placeholder
                         }
                     }
                     if (actual().tipo() == Tipo.ABRE) {
@@ -923,7 +826,6 @@ public final class TraductorLatex {
             }
         }
 
-        /** sen, cos, log_b, ln...: siempre con paréntesis; sen^{-1} es arcsen. */
         private Pieza funcion(String nombre) {
             String base = "";
             String potencia = "";
@@ -945,7 +847,6 @@ public final class TraductorLatex {
             return new Pieza(nombre + base + potencia + argumentoDeFuncion(), Clase.LLAMADA);
         }
 
-        /** "(…)" o, sin paréntesis, [número] letra [^n] como en el parser: \sin 2x es sen(2x). */
         private String argumentoDeFuncion() {
             Tok x = actual();
             if (x.esChar('(') || x.esChar('[')) {
@@ -999,7 +900,6 @@ public final class TraductorLatex {
             return new Pieza(simbolo + r, Clase.RAIZ);
         }
 
-        /** \surd o √ seguidos de {…}, de (…) o de \left(…\right); sin eso, es un error. */
         private Pieza raizSuelta(String simbolo) {
             Tok x = actual();
             String r;
@@ -1021,8 +921,6 @@ public final class TraductorLatex {
             }
             return new Pieza(simbolo + r, Clase.RAIZ);
         }
-
-        // -------------------------------------------------------------- fracción y derivadas
 
         private Pieza fraccion(IntPredicate para) {
             List<Tok> num = argumento();
@@ -1079,7 +977,6 @@ public final class TraductorLatex {
             return false;
         }
 
-        /** d, d^2, d^{2} → orden; si no es eso, null. */
         private static Integer ordenDeD(List<Tok> num) {
             if (num.isEmpty() || !num.getFirst().esChar('d')) {
                 return null;
@@ -1102,7 +999,6 @@ public final class TraductorLatex {
             return o != null && finDeOrden(num, 1) == num.size() ? o : null;
         }
 
-        /** En i hay ^n o ^{n}: devuelve n. */
         private static Integer ordenTras(List<Tok> x, int i) {
             if (i >= x.size() || x.get(i).tipo() != Tipo.SUP) {
                 return null;
@@ -1134,7 +1030,6 @@ public final class TraductorLatex {
             return i + 2;
         }
 
-        /** dx o dx^2: la letra; si no es eso, null. */
         private static Character variableDeDx(List<Tok> den) {
             if (den.size() < 2 || !den.getFirst().esChar('d')) {
                 return null;
@@ -1154,7 +1049,6 @@ public final class TraductorLatex {
             return o == null ? 1 : o;
         }
 
-        /** ∂x ∂y^2 … → [x, y, y]; si no es eso, null. */
         private static List<Character> variablesParciales(List<Tok> den) {
             List<Character> vars = new ArrayList<>();
             int i = 0;
@@ -1190,7 +1084,6 @@ public final class TraductorLatex {
             return null;
         }
 
-        /** El cuerpo de lim, d/dx o ∂/∂x: lo que sigue, hasta "=", "," o el fin del grupo. */
         private String cuerpo(IntPredicate para) {
             List<Pieza> c = secuencia(para.or(this::esSeparador));
             return textoDeCuerpo(c);
@@ -1212,8 +1105,6 @@ public final class TraductorLatex {
             return x.esChar('=') || x.esChar(',') || x.esChar('<') || x.esChar('>')
                     || x.esCmd("le", "leq", "ge", "geq", "ne", "neq", "lt", "gt");
         }
-
-        // -------------------------------------------------------------- límite
 
         private Pieza limite(IntPredicate para) {
             if (actual().tipo() != Tipo.SUB) {
@@ -1253,9 +1144,6 @@ public final class TraductorLatex {
             return new Pieza("lim(" + variable + "→" + p + lado + ", " + cuerpo(para) + ")", Clase.OPERACION);
         }
 
-        // -------------------------------------------------------------- integrales
-
-        /** En i empieza un diferencial "d x" que cierra el cuerpo de la integral. */
         private boolean esDiferencial(int i) {
             if (!en(i).esChar('d') || letra(en(i + 1)) == null) {
                 return false;
@@ -1266,7 +1154,6 @@ public final class TraductorLatex {
                     || sig.esChar('<') || sig.esChar('>') || sig.esCmd("le", "leq", "ge", "geq", "ne", "neq", "cdot");
         }
 
-        /** Los límites _{a}^{b} (en cualquier orden) de una ∫: {inferior, superior}, null el que no está. */
         @SuppressWarnings("unchecked")
         private List<Tok>[] limitesDeIntegral() {
             List<Tok>[] r = new List[2];
@@ -1277,13 +1164,8 @@ public final class TraductorLatex {
             return r;
         }
 
-        /**
-         * ∫ f dx, o varias ∫ seguidas con un diferencial por cada una: la tecla ∬ escribe
-         * {@code \int_c^d\int_a^b f\,dx\,dy}, que es ∬(f, x, a, b, y, c, d): la ∫ de dentro va con el
-         * primer diferencial (RN48: en la simple, los dos límites vacíos la dejan indefinida).
-         */
         private Pieza integral(IntPredicate para) {
-            List<List<Tok>[]> cadena = new ArrayList<>(); // de fuera hacia dentro
+            List<List<Tok>[]> cadena = new ArrayList<>();
             cadena.add(limitesDeIntegral());
             while (actual().esCmd("int")) {
                 avanzar();
@@ -1330,7 +1212,6 @@ public final class TraductorLatex {
             return new Pieza(sb.append(')').toString(), Clase.OPERACION);
         }
 
-        /** {@code \iint_{[a, b] \times [c, d]} f \, dx \, dy}, como lo dibuja ImpresoraLatex. */
         private Pieza integralMultiple(IntPredicate para, int n) {
             String simbolo = n == 2 ? "∬" : "∭";
             List<Tok> region = null;
@@ -1363,7 +1244,6 @@ public final class TraductorLatex {
             return new Pieza(sb.append(')').toString(), Clase.OPERACION);
         }
 
-        /** [a, b] \times [c, d] → {a, b}, {c, d}. */
         private static List<String[]> intervalos(List<Tok> region) {
             List<List<Tok>> partes = new ArrayList<>();
             List<Tok> actual = new ArrayList<>();
@@ -1415,8 +1295,6 @@ public final class TraductorLatex {
             return r;
         }
 
-        // -------------------------------------------------------------- potencias
-
         private static Pieza potencia(Pieza base, List<Pieza> exp) {
             String b = switch (base.clase()) {
                 case VALOR, LETRA, LLAMADA -> base.texto();
@@ -1425,14 +1303,12 @@ public final class TraductorLatex {
             return new Pieza(b + "^" + exponente(exp), Clase.VALOR);
         }
 
-        /** Un solo factor va tal cual ("x^2", "e^x", "x^-2"); lo demás, entre paréntesis ("x^(n + 1)"). */
         private static String exponente(List<Pieza> exp) {
             if (exp.isEmpty()) {
                 return CASILLA;
             }
             if (exp.size() == 1 && simple(exp.getFirst())) {
                 Pieza p = exp.getFirst();
-                // e^{x^2} es "e^(x^2)": la gramática lo leería igual sin paréntesis, pero así se ve.
                 return p.texto().contains("^") && !p.grupo() ? "(" + p.texto() + ")" : p.texto();
             }
             if (exp.size() == 2 && (exp.getFirst().esOperador("-") || exp.getFirst().esOperador("+"))
@@ -1447,7 +1323,6 @@ public final class TraductorLatex {
                     || p.clase() == Clase.RAIZ;
         }
 
-        /** Radicando: un número, una letra o un grupo van solos; lo demás, entre paréntesis. */
         private static String envolverSalvoAtomo(List<Pieza> p) {
             if (p.size() == 1) {
                 Pieza x = p.getFirst();
@@ -1459,9 +1334,6 @@ public final class TraductorLatex {
         }
     }
 
-    // ================================================================== escritura
-
-    /** Nombres que el lexer lee como una palabra: si dos letras sueltas los forman, se separan (RN45). */
     private static final List<String> PALABRAS = List.of("arcsen", "arcsin", "arccos", "arctan", "arctg",
                     "cosec", "sqrt", "sen", "sin", "cos", "tan", "cot", "ctg", "sec", "csc", "log", "exp", "lim",
                     "int", "inf", "ln", "tg", "pi").stream()
@@ -1470,7 +1342,6 @@ public final class TraductorLatex {
 
     private static final Set<String> CON_ESPACIOS = Set.of("=", "≠", "≤", "≥", "<", ">", "≈");
 
-    /** Operadores tras los que una fracción puede ir sin paréntesis: empieza un término. */
     private static final Set<String> INICIAN_TERMINO = Set.of("+", "-", "=", "≠", "≤", "≥", "<", ">", "≈", ",",
             ";", "→", "±", "∓");
 
@@ -1534,7 +1405,6 @@ public final class TraductorLatex {
         }
         String t = prev.texto();
         if (t.contains("^") && Character.isLetter(t.charAt(t.length() - 1)) && Character.isLetter(inicio)) {
-            // "e^x·x" y no "e^xx"
             return "·";
         }
         if (p.clase() == Clase.LETRA && prev.clase() == Clase.LETRA) {

@@ -13,12 +13,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.factorizacion.Tecnicas;
 import pe.mathnova.presentation.FormateadorTexto;
 
-/**
- * La pestaña "Exploración" (Parte D): los métodos como tarjetas "Usado", "Probar" o "No aplica", y
- * la comparación Q/R/C (R y C llegan en el Sprint 4). Sin JavaFX.
- *
- * @param probables si "Probar" vuelve a resolver con ese método (no en una fracción)
- */
 public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
 
     public enum Estado {
@@ -35,20 +29,11 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         }
     }
 
-    /** Qué hace "Probar". */
     public enum Accion {
-        /** Vuelve a resolver empezando por ese método. */
         RESOLVER_CON,
-        /** Abre la pestaña Análisis (la tabla de valores de un límite). */
         ABRIR_ANALISIS
     }
 
-    /**
-     * @param nombre      nombre corto, con el código delante solo si Configuración lo pide
-     * @param ayuda       nombre largo, para el tooltip
-     * @param motivo      por qué no aplica; null en los demás
-     * @param vistaPrevia una línea con lo que da ese camino ("(2x)/1 en x = 2 → 4"), o null
-     */
     public record Tarjeta(String codigo, String nombre, String ayuda, Estado estado, String motivo,
                           String vistaPrevia, Accion accion) {
 
@@ -65,12 +50,10 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         return new VistaExploracion(List.of(), false);
     }
 
-    /** De una factorización (o de la factorización dentro de una ecuación). */
     public static VistaExploracion de(Resolucion r, boolean codigos) {
         return new VistaExploracion(tarjetas(List.of(r), r.alternativas(), codigos), true);
     }
 
-    /** HU23: la técnica T y lo usado en u; "Probar" no aplica (el método se fuerza sobre polinomios). */
     public static VistaExploracion de(pe.mathnova.domain.factorizacion.ResolucionFunciones r, boolean codigos) {
         if (!r.factorizable()) {
             return vacia();
@@ -85,10 +68,6 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         return new VistaExploracion(t, false);
     }
 
-    /**
-     * Sprint 5, de un límite: el método usado ("Usado"), los otros caminos que llegan al mismo valor
-     * ("Probar", con su vista previa) y los que no aplican con su motivo.
-     */
     public static VistaExploracion deLimite(List<CaminosLimite.Camino> caminos, boolean codigos) {
         List<Tarjeta> t = new ArrayList<>();
         for (CaminosLimite.Camino c : caminos) {
@@ -107,12 +86,6 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         return new VistaExploracion(t, true);
     }
 
-    /**
-     * Sprint 6, de una derivada o una integral: el camino usado, los otros que también sirven (con lo que
-     * dan, y "Probar" vuelve a resolver empezando por ahí) y los que no aplican con su motivo.
-     *
-     * @param nombres el nombre de cada código (los de derivadas e integrales no están en Tecnicas)
-     */
     public static VistaExploracion deCalculo(List<pe.mathnova.domain.calculo.CaminoCalculo> caminos,
                                              java.util.function.Function<String, String> nombres, boolean codigos) {
         List<Tarjeta> t = new ArrayList<>();
@@ -121,7 +94,6 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
             String ayuda = nombres.apply(c.codigo());
             String texto = c.texto() == null ? null : FormateadorTexto.pizarraConNegativos(c.texto());
             t.add(switch (c.estado()) {
-                // Sprint 7: en por partes, "Usado" muestra la elección de u por ILATE
                 case USADO -> new Tarjeta(c.codigo(), nombre, ayuda, Estado.USADO, null, texto, Accion.RESOLVER_CON);
                 case SIRVE -> new Tarjeta(c.codigo(), nombre, ayuda, Estado.PROBAR, null, texto, Accion.RESOLVER_CON);
                 case NO_APLICA -> new Tarjeta(c.codigo(), nombre, ayuda, Estado.NO_APLICA, texto, null,
@@ -131,7 +103,6 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         return new VistaExploracion(t, true);
     }
 
-    /** De una fracción: lo usado y lo que no aplicó en el numerador y el denominador. */
     public static VistaExploracion de(List<Resolucion> partes, boolean codigos) {
         return new VistaExploracion(tarjetas(partes, List.of(), codigos), false);
     }
@@ -142,7 +113,6 @@ public record VistaExploracion(List<Tarjeta> tarjetas, boolean probables) {
         for (Resolucion r : partes) {
             r.pasos().forEach(p -> usados.add(p.codigoTecnica()));
             if (r.extension() != null) {
-                // "Pasar a R/C" no es un método: solo F21–F30 y A5.
                 r.extension().pasos().stream().map(p -> p.codigoTecnica()).filter(c -> !c.startsWith("P"))
                         .forEach(usados::add);
             }

@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/** Número racional exacto. */
 public record Constante(Racional valor) implements Expresion {
 
     public Constante {

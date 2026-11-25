@@ -20,27 +20,14 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * L06 (RF47): los límites notables, con u = k·x. Se prueban antes que L'Hôpital (RN35).
- * <ul>
- *   <li>sen u/u → 1 y tan u/u → 1 cuando u → 0 (también u/sen u)</li>
- *   <li>(1 − cos u)/u² → 1/2</li>
- *   <li>(eᵘ − 1)/u → 1</li>
- *   <li>ln(1 + u)/u → 1</li>
- *   <li>(1 + 1/u)ᵘ → e cuando u → ∞; en general (1 + a/x)^(bx) → e^(ab)</li>
- * </ul>
- * Un factor constante arriba o abajo se saca: sen(3x)/(2x) = (3/2)·sen(3x)/(3x) → 3/2.
- */
 final class LimitesNotables {
 
-    /** El valor y el renglón que lo explica. */
     record Notable(NumeroAlgebraico valor, String forma, String detalle) {
     }
 
     private LimitesNotables() {
     }
 
-    /** @param enCero si x → 0 (las cuatro primeras formas); si no, x → +∞ (la del número e) */
     static Optional<Notable> buscar(Expresion f, char x, boolean enCero, boolean alInfinito) {
         Expresion g = Simplificador.simplificar(f);
         if (alInfinito) {
@@ -56,7 +43,6 @@ final class LimitesNotables {
         Racional q = arriba.factor.dividir(abajo.factor);
         Expresion n = arriba.resto;
 
-        // sen u/u y tan u/u
         if (n instanceof Funcion fn && (fn.tipo() == TipoFuncion.SEN || fn.tipo() == TipoFuncion.TAN)
                 && den1.isPresent()) {
             Optional<Racional> k = lineal(fn.argumento(), x);
@@ -65,7 +51,6 @@ final class LimitesNotables {
                 return Optional.of(resultado(q, k.get(), den1.get()[0], nombre + " u/u → 1 cuando u → 0", nombre, x));
             }
         }
-        // u/sen u
         if (abajo.resto instanceof Funcion fd && fd.tipo() == TipoFuncion.SEN) {
             Optional<Racional[]> num1 = monomio(n, x).filter(m -> m[1].equals(Racional.UNO));
             Optional<Racional> k = lineal(fd.argumento(), x);
@@ -75,7 +60,6 @@ final class LimitesNotables {
                         "Con u = " + textoU(k.get(), x) + ": el cociente vale " + v + "·u/sen u → " + v + "·1 = " + v));
             }
         }
-        // (1 − cos u)/u²
         if (n instanceof Suma s && s.terminos().size() == 2 && den2.isPresent()) {
             Optional<Racional> k = unoMenosCoseno(s, x);
             if (k.isPresent()) {
@@ -87,14 +71,12 @@ final class LimitesNotables {
                                 + "·1/2 = " + v));
             }
         }
-        // (eᵘ − 1)/u
         if (n instanceof Suma s && s.terminos().size() == 2 && den1.isPresent()) {
             Optional<Racional> k = exponencialMenosUno(s, x);
             if (k.isPresent()) {
                 return Optional.of(resultado(q, k.get(), den1.get()[0], "(eᵘ − 1)/u → 1 cuando u → 0", "(e^u - 1)", x));
             }
         }
-        // ln(1 + u)/u
         if (n instanceof Funcion fn && fn.tipo() == TipoFuncion.LN && den1.isPresent()
                 && fn.argumento() instanceof Suma s && s.terminos().size() == 2) {
             Optional<Racional> k = unoMas(s, x);
@@ -105,7 +87,6 @@ final class LimitesNotables {
         return Optional.empty();
     }
 
-    /** q·F(kx)/(c·x) = (q·k/c)·F(u)/u → q·k/c. */
     private static Notable resultado(Racional q, Racional k, Racional c, String forma, String nombre, char x) {
         Racional v = q.multiplicar(k).dividir(c);
         return new Notable(NumeroAlgebraico.de(v), forma, "Con u = " + textoU(k, x) + ": el cociente vale "
@@ -117,7 +98,6 @@ final class LimitesNotables {
         return k.equals(Racional.UNO) ? String.valueOf(x) : k.equals(Racional.UNO.negar()) ? "-" + x : k + "" + x;
     }
 
-    /** (1 + a/(c·x))^(b·x) → e^(a·b/c) cuando x → ∞. */
     private static Optional<Notable> numeroE(Expresion g, char x) {
         if (!(g instanceof Potencia p)) {
             return Optional.empty();
@@ -139,7 +119,7 @@ final class LimitesNotables {
         if (den.isEmpty()) {
             return Optional.empty();
         }
-        Racional coef = e.factor.multiplicar(a.valor()).dividir(den.get()[0]); // 1 + coef/x
+        Racional coef = e.factor.multiplicar(a.valor()).dividir(den.get()[0]);
         Racional exponente = coef.multiplicar(b.get());
         NumeroAlgebraico v = Exactos.exp(NumeroAlgebraico.de(exponente));
         String detalle = coef.equals(Racional.UNO) && b.get().equals(Racional.UNO)
@@ -149,7 +129,6 @@ final class LimitesNotables {
         return Optional.of(new Notable(v, "(1 + 1/u)ᵘ → e cuando u → ∞", detalle));
     }
 
-    /** Un factor constante afuera: 3·sen(2x) es (3, sen(2x)); −x es (−1, x). */
     private record Escalado(Racional factor, Expresion resto) {
     }
 
@@ -171,7 +150,6 @@ final class LimitesNotables {
         };
     }
 
-    /** [c, m] si e es c·xᵐ (m natural); vacío si no. */
     private static Optional<Racional[]> monomio(Expresion e, char x) {
         try {
             Polinomio p = Polinomio.desde(e);
@@ -186,12 +164,10 @@ final class LimitesNotables {
         }
     }
 
-    /** k si e es k·x con k ≠ 0. */
     private static Optional<Racional> lineal(Expresion e, char x) {
         return monomio(e, x).filter(m -> m[1].equals(Racional.UNO)).map(m -> m[0]);
     }
 
-    /** k si s es 1 − cos(kx). */
     private static Optional<Racional> unoMenosCoseno(Suma s, char x) {
         Expresion a = s.terminos().get(0);
         Expresion b = s.terminos().get(1);
@@ -206,7 +182,6 @@ final class LimitesNotables {
         return Optional.empty();
     }
 
-    /** k si s es e^(kx) − 1. */
     private static Optional<Racional> exponencialMenosUno(Suma s, char x) {
         for (int i = 0; i < 2; i++) {
             Expresion a = s.terminos().get(i);
@@ -225,7 +200,6 @@ final class LimitesNotables {
         return Optional.empty();
     }
 
-    /** k si s es 1 + kx. */
     private static Optional<Racional> unoMas(Suma s, char x) {
         for (int i = 0; i < 2; i++) {
             if (esUno(s.terminos().get(i))) {

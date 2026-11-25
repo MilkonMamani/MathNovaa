@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Sprint 5: límites con pasos anidados (paso_padre_id) y sugerencias en el historial. */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class HistorialLimiteTest {
@@ -60,7 +59,6 @@ class HistorialLimiteTest {
 
         assertEquals(3, jdbc.queryForObject("SELECT COUNT(*) FROM parametro_resolucion WHERE resolucion_id = ?",
                 Integer.class, id));
-        // Guardar otra vez con otra versión reemplaza los pasos anidados sin chocar con UNIQUE.
         historial.guardarLimite(texto, r, AHORA.plusSeconds(60), "0.3.0");
         assertEquals(4, jdbc.queryForObject("SELECT COUNT(*) FROM paso WHERE resolucion_id = ?", Integer.class, id));
     }

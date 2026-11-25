@@ -26,26 +26,6 @@ import pe.mathnova.domain.escritura.Muestra;
 import pe.mathnova.domain.escritura.Punto;
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * El lienzo de la pestaña "Escribir", con la misma cuadrícula de la Pizarra. Cada trazo se guarda
- * como una lista de puntos (x, y, t), no como imagen: el dibujo se rehace con ellos.
- *
- * <ul>
- *   <li>Lápiz: trazo de 2,5 px en #0F172A con puntas redondeadas.</li>
- *   <li>Borrador: quita los puntos que toca, con un ancho de 14 px; un trazo cortado al medio queda
- *       en dos.</li>
- *   <li>Deshacer quita lo último que se hizo (un trazo o una pasada del borrador).</li>
- * </ul>
- * Acepta mouse, lápiz y pantalla táctil. JavaFX no dice si un evento viene del lápiz o del dedo: los
- * toques que llegan mientras hay un trazo con mouse o lápiz se ignoran (la mano apoyada). Un toque con el
- * dedo llega como TouchEvent y, además, como eventos de mouse "sintetizados": esos se ignoran, así cada
- * gesto queda una sola vez. Los gestos táctiles (desplazar, pellizcar…) no salen del lienzo: escribir no
- * mueve la página; la rueda del mouse sí la sigue moviendo.
- *
- * <p>Cada punto guarda x, y en píxeles del lienzo (recortados a sus bordes) y t en milisegundos desde el
- * primer punto de la muestra. {@link #muestra} devuelve los trazos con el tamaño del lienzo de captura y
- * {@link #cargar} los vuelve a dibujar, a escala si el lienzo es más chico.
- */
 public final class LienzoEscritura extends Region {
 
     public enum Herramienta { LAPIZ, BORRADOR }
@@ -63,15 +43,12 @@ public final class LienzoEscritura extends Region {
     private List<Trazo> trazos = List.of();
     private final Deque<List<Trazo>> historial = new ArrayDeque<>();
     private final List<Punto> actual = new ArrayList<>();
-    /** Un trazo (o una pasada del borrador) en curso, y con qué. */
     private Fuente fuente;
     private int toque = -1;
     private boolean borroAlgo;
     private Punto ultimoBorrador;
     private Herramienta herramienta = Herramienta.LAPIZ;
-    /** System.nanoTime del primer punto de la muestra: el t = 0. */
     private long origen;
-    /** El lienzo más grande en que se capturó un trazo de la muestra actual. */
     private double anchoCaptura;
     private double altoCaptura;
     private final ReadOnlyBooleanWrapper estaVacio = new ReadOnlyBooleanWrapper(true);
@@ -103,8 +80,6 @@ public final class LienzoEscritura extends Region {
 
         getChildren().addAll(canvas, vacio);
 
-        // Mouse (y lápiz, que Windows manda como mouse). Se consumen para que nada de afuera (el
-        // ScrollPane de la pantalla, el SplitPane) los tome como un arrastre suyo.
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
             if (!e.isSynthesized() && fuente == null) {
                 empezar(Fuente.MOUSE, e.getX(), e.getY());
@@ -144,16 +119,12 @@ public final class LienzoEscritura extends Region {
             }
             e.consume();
         });
-        // Desplazar, pellizcar, girar o deslizar con el dedo sobre el lienzo no mueve la página. La rueda
-        // del mouse y el panel táctil de la laptop no son "directos": siguen desplazando la pantalla.
         canvas.addEventHandler(GestureEvent.ANY, e -> {
             if (e.isDirect()) {
                 e.consume();
             }
         });
     }
-
-    // ------------------------------------------------------------------ API
 
     public void setHerramienta(Herramienta h) {
         herramienta = h;
@@ -163,17 +134,14 @@ public final class LienzoEscritura extends Region {
         return herramienta;
     }
 
-    /** Al apoyar el lápiz (o el dedo, o el borrador). */
     public void setOnEmpezar(Runnable r) {
         onEmpezar = r;
     }
 
-    /** Al levantarlo. */
     public void setOnTerminar(Runnable r) {
         onTerminar = r;
     }
 
-    /** Los trazos que hay ahora, en el orden en que se dibujaron. */
     public List<Trazo> trazos() {
         return trazos;
     }
@@ -186,7 +154,6 @@ public final class LienzoEscritura extends Region {
         return estaVacio.get();
     }
 
-    /** Deshace el último trazo o la última pasada del borrador. */
     public void deshacer() {
         if (!historial.isEmpty()) {
             trazos = historial.pop();
@@ -194,7 +161,6 @@ public final class LienzoEscritura extends Region {
         }
     }
 
-    /** Deja el lienzo vacío (se puede deshacer). */
     public void borrarTodo() {
         if (!trazos.isEmpty()) {
             historial.push(trazos);
@@ -203,7 +169,6 @@ public final class LienzoEscritura extends Region {
         redibujar();
     }
 
-    /** Vacío y sin nada que deshacer ("Volver a escribir"). */
     public void reiniciar() {
         historial.clear();
         trazos = List.of();
@@ -212,18 +177,12 @@ public final class LienzoEscritura extends Region {
         redibujar();
     }
 
-    /** Lo que hay ahora en el lienzo como muestra, con el tamaño del lienzo en que se capturó. */
     public Muestra muestra(String etiqueta) {
         double ancho = Math.max(anchoCaptura, canvas.getWidth());
         double alto = Math.max(altoCaptura, canvas.getHeight());
         return new Muestra(etiqueta, ancho, alto, trazos);
     }
 
-    /**
-     * Reemplaza lo que hay por los trazos de la muestra, como si se acabaran de dibujar uno por uno: deshacer
-     * quita el último. Si el lienzo es más chico que el de captura, la muestra se reduce para que entre
-     * entera (la misma escala en x e y); si es igual o más grande, se dibuja tal cual.
-     */
     public void cargar(Muestra m) {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
@@ -243,15 +202,11 @@ public final class LienzoEscritura extends Region {
         fuente = null;
         anchoCaptura = aqui.ancho();
         altoCaptura = aqui.alto();
-        // Un trazo nuevo sigue el reloj de la muestra cargada.
         long ultimo = trazos.stream().flatMap(t -> t.puntos().stream()).mapToLong(Punto::t).max().orElse(0);
         origen = System.nanoTime() - ultimo * 1_000_000L;
         redibujar();
     }
 
-    // ------------------------------------------------------------------ trazos
-
-    /** Relativo al lienzo (recortado a sus bordes) y con el tiempo desde que empezó la muestra. */
     private Punto punto(double x, double y) {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
@@ -264,7 +219,6 @@ public final class LienzoEscritura extends Region {
         fuente = f;
         onEmpezar.run();
         if (herramienta == Herramienta.LAPIZ && trazos.isEmpty()) {
-            // Primer trazo de una muestra nueva: t = 0 y el lienzo de captura es el de ahora.
             origen = System.nanoTime();
             anchoCaptura = 0;
             altoCaptura = 0;
@@ -305,13 +259,12 @@ public final class LienzoEscritura extends Region {
                 actual.clear();
             }
         } else if (!borroAlgo) {
-            historial.pop(); // la pasada no tocó nada: no hay qué deshacer
+            historial.pop();
         }
         redibujar();
         onTerminar.run();
     }
 
-    /** Quita los puntos a menos de medio ancho del borrador del segmento a–b; corta los trazos en dos. */
     private void borrar(Punto a, Punto b) {
         double radio = ANCHO_BORRADOR / 2;
         List<Trazo> quedan = new ArrayList<>();
@@ -339,7 +292,6 @@ public final class LienzoEscritura extends Region {
         }
     }
 
-    /** Distancia de p al segmento a–b. */
     static double distancia(Punto p, Punto a, Punto b) {
         double dx = b.x() - a.x();
         double dy = b.y() - a.y();
@@ -349,8 +301,6 @@ public final class LienzoEscritura extends Region {
         double cy = a.y() + t * dy - p.y();
         return Math.sqrt(cx * cx + cy * cy);
     }
-
-    // ------------------------------------------------------------------ dibujo
 
     @Override
     protected void layoutChildren() {
@@ -410,7 +360,6 @@ public final class LienzoEscritura extends Region {
         g.stroke();
     }
 
-    /** El canvas, para las pruebas (se le mandan los eventos). */
     Canvas canvas() {
         return canvas;
     }

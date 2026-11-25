@@ -27,18 +27,6 @@ import org.scilab.forge.jlatexmath.TeXIcon;
 
 import pe.mathnova.domain.escritura.Trazo;
 
-/**
- * Inferencia REAL con UniMERNet Small (no es una prueba unitaria: necesita reconocedor/python y los pesos).
- * Se corre con {@code -Dmathnova.it.unimernet=true}. Solo mira qué LEE el modelo en cada imagen; lo que
- * hace MathNova con esa lectura lo prueba EscrituraRealIT.
- *
- * <p>Dos tipos de imagen, ambos técnicos (ninguno es escritura de una persona):
- * <ul>
- *   <li>tipográfica: la fórmula compuesta con jlatexmath;</li>
- *   <li>trazos simulados ({@link TrazosSimulados}) dibujados con {@link ImagenTrazos}, igual que el lienzo.</li>
- * </ul>
- * Deja las imágenes y un informe en {@code target/reconocimiento/}.
- */
 @EnabledIfSystemProperty(named = "mathnova.it.unimernet", matches = "true")
 class ReconocimientoRealIT {
 
@@ -46,7 +34,6 @@ class ReconocimientoRealIT {
     private static final Path SALIDA = Path.of("target", "reconocimiento");
     private static final StringBuilder INFORME = new StringBuilder();
 
-    /** Caso, LaTeX para la imagen tipográfica, trazos simulados. */
     private record Caso(String nombre, String tipografico, BiFunction<Double, Long, List<Trazo>> trazos) {
     }
 
@@ -78,7 +65,6 @@ class ReconocimientoRealIT {
         Files.writeString(SALIDA.resolve("lecturas.tsv"), INFORME.toString(), StandardCharsets.UTF_8);
     }
 
-    /** PeakWorkingSet64 del proceso, en MB (Windows). */
     static String memoriaPico(long pid) {
         try {
             Process p = new ProcessBuilder("powershell", "-NoProfile", "-Command",
@@ -125,7 +111,6 @@ class ReconocimientoRealIT {
                 lecturas.put(c.nombre() + " trazos-" + semilla, leer(c.nombre(), "trazos-" + semilla, png));
             }
         }
-        // La misma imagen dos veces: el modelo ya cargado (tiempo en caliente).
         leer("B", "trazos-1-repetida", ImagenTrazos.png(TrazosSimulados.casoB(45.0, 1)));
         lecturas.values().forEach(l -> assertFalse(l == null));
         assertTrue(lecturas.size() == 20, "todas las imágenes tuvieron respuesta");

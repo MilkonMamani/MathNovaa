@@ -14,11 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Tabla paso de V1. Los métodos descartados (HU05) van con es_descartado = 1, su motivo y sin "después".
- * paso_padre_id (Sprint 5): en un límite, los pasos de la factorización (L02) y de las derivadas (L07)
- * cuelgan del paso que los usa; en los demás queda nulo.
- */
 @Entity
 @Table(name = "paso")
 @Getter
@@ -34,12 +29,10 @@ public class PasoEntity {
     @JoinColumn(name = "resolucion_id", nullable = false)
     private ResolucionEntity resolucion;
 
-    /** El paso del que cuelga este (paso_padre_id), o null. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paso_padre_id")
     private PasoEntity padre;
 
-    /** Único dentro de la resolución: primero los pasos aplicados y después los descartados. */
     @Column(name = "orden", nullable = false)
     private Integer orden;
 
@@ -61,7 +54,6 @@ public class PasoEntity {
     @Column(name = "despues_latex")
     private String despuesLatex;
 
-    /** ASPA_SIMPLE para F13, OTRO para agrupaciones y comparaciones; nulo si no hay trabajo. */
     @Column(name = "trabajo_tipo")
     private String trabajoTipo;
 

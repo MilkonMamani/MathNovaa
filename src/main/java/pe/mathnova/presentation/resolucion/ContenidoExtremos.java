@@ -16,14 +16,6 @@ import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.grafica.FuncionReal;
 import pe.mathnova.presentation.grafica.VentanaGrafica;
 
-/**
- * Puntos críticos y extremos (Sprint 8, HU30).
- * <ul>
- *   <li>Gráfica: las curvas de nivel con cada punto marcado (mínimo en verde, máximo en rojo, silla en gris). Con
- *       Lagrange, la restricción g = 0 encima en negro y la curva de nivel que la toca en el óptimo.</li>
- *   <li>Análisis: la tabla de puntos con D, fxx y su clasificación (o λ y f con Lagrange) y la matriz hessiana.</li>
- * </ul>
- */
 public record ContenidoExtremos(String latexSolucion, List<SeccionAnalisis> secciones, DatosCurvasNivel curvas)
         implements ContenidoPestanas {
 

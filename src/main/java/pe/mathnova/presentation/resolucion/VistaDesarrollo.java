@@ -11,11 +11,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/**
- * Dibuja un {@link Desarrollo}: las frases como texto, cada fórmula con el mismo renderizador nítido que el
- * resto de la Pizarra (se reparte en renglones antes de achicar la letra) y cada definición con su control
- * "Ver valor exacto de r" al costado.
- */
 public final class VistaDesarrollo extends VBox {
 
     private final List<ToggleButton> controles = new ArrayList<>();
@@ -57,8 +52,6 @@ public final class VistaDesarrollo extends VBox {
             caja.getChildren().add(texto(d.texto()));
         }
         FormulaAjustable f = formula(d.latex(), maximo, minimo);
-        // La fórmula mide lo que necesita (es corta: el símbolo y su aproximación) y el control va a su lado;
-        // si no hay lugar, baja a la línea siguiente.
         f.setMaxWidth(Region.USE_PREF_SIZE);
         if (d.detalle().isEmpty()) {
             caja.getChildren().add(f);
@@ -94,12 +87,10 @@ public final class VistaDesarrollo extends VBox {
         n.setManaged(si);
     }
 
-    /** Los controles "Ver valor exacto…" (pruebas). */
     public List<ToggleButton> controles() {
         return List.copyOf(controles);
     }
 
-    /** El detalle exacto de cada definición (pruebas). */
     public List<Node> detalles() {
         return List.copyOf(detalles);
     }

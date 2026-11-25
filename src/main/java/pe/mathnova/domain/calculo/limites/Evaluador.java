@@ -24,14 +24,6 @@ import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.expresion.Visitante;
 import pe.mathnova.domain.numeros.NumeroAlgebraico;
 
-/**
- * Evaluación directa (L01): reemplaza la variable por un número exacto o por ±∞ y combina con las
- * reglas de los límites (k + ∞ = ∞, k/∞ = 0, ∞·∞ = ∞…). Donde las reglas no deciden, devuelve la
- * indeterminación: 0/0, ∞/∞, ∞ − ∞, 0·∞, 1^∞, 0⁰ o ∞⁰.
- *
- * <p>Una indeterminación solo se informa si está en la raíz de la expresión (en la operación de más
- * afuera); una que aparece dentro de una parte se devuelve como {@link Valor.Indefinido}.
- */
 public final class Evaluador implements Visitante<Valor> {
 
     private final char variable;
@@ -46,13 +38,10 @@ public final class Evaluador implements Visitante<Valor> {
         return e.aceptar(new Evaluador(variable, valor));
     }
 
-    /** El valor exacto de una expresión sin variables (el punto de un límite: 2, 1/2, −π/2…). */
     public static Optional<NumeroAlgebraico> constante(Expresion e) {
         Valor v = e.aceptar(new Evaluador('\0', null));
         return v instanceof Valor.Numero n ? Optional.of(n.valor()) : Optional.empty();
     }
-
-    // ------------------------------------------------------------------ reglas
 
     private static boolean esCero(Valor v) {
         return v instanceof Valor.Numero n && n.esCero();
@@ -67,7 +56,6 @@ public final class Evaluador implements Visitante<Valor> {
                 false);
     }
 
-    /** Un hijo con indeterminación no se combina: queda como indefinido. */
     private static Valor hijo(Valor v) {
         return v instanceof Valor.Indeterminado i ? anidada(i) : v;
     }
@@ -262,8 +250,6 @@ public final class Evaluador implements Visitante<Valor> {
         }
         return new Valor.Indefinido("Una potencia de base negativa con exponente fraccionario no es real", false);
     }
-
-    // ------------------------------------------------------------------ visitante
 
     @Override
     public Valor visitar(Constante c) {

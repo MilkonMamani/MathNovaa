@@ -7,7 +7,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Tabla curso de V1 (catálogo de V2, solo lectura): Fundamentos de Matemática, Cálculo 1, 2 y 3. */
 @Entity
 @Table(name = "curso")
 @Getter

@@ -29,10 +29,8 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.animacion.AnimadorResolucion;
 import pe.mathnova.presentation.latex.RenderizadorLatex;
 
-/** La Pizarra en una ventana de verdad: notas ocultas, el "?", el interruptor y paso a paso. */
 class PizarraResolucionTest {
 
-    /** x³ − 2x² − x + 2 en cuatro pasos, como en el wireframe. */
     private static final List<VistaPaso> PASOS = List.of(
             new VistaPaso(1, "F04", "Agrupación de términos", "Agrupación de términos",
                     "Los dos primeros términos tienen x² en común y los dos últimos, −1.",
@@ -149,7 +147,7 @@ class PizarraResolucionTest {
         List<Boolean> guardado = new ArrayList<>();
         enFx(() -> {
             pizarra.setOnExplicaciones(guardado::add);
-            pizarra.botonNota(3).fire(); // se olvida al cambiar el interruptor
+            pizarra.botonNota(3).fire();
             pizarra.interruptor().fire();
             acomodar();
             assertEquals(List.of(1, 2, 3, 4), notasVisibles());
@@ -287,7 +285,6 @@ class PizarraResolucionTest {
             assertTrue(seVe(seccion));
             assertTrue(seccion.getParent().getStyleClass().contains("pizarra-cuerpo"),
                     "en la misma hoja blanca, debajo del resultado");
-            // Cerrada: solo el título y "Ver comprobación"; ni "Por expansión" ni "Coincide con la entrada".
             assertEquals("Ver comprobación", pizarra.verDetalle().getText());
             assertFalse(seVe(pizarra.detalleComprobacion()));
             for (Node mensaje : List.of(pizarra.estadoComprobacion(), pizarra.metodoComprobacion())) {

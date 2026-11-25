@@ -92,7 +92,6 @@ class PolinomioTest {
         assertThrows(ArithmeticException.class, () -> p("x/(2 - 2)"));
     }
 
-    /** HU32 y RN44: cualquier letra es variable en factorización. */
     @Test
     void diferenciaDeCuadradosEnAyB() {
         assertEquals(p("a^2 - b^2"), p("(a - b)(a + b)"));

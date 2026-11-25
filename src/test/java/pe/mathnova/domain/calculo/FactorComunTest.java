@@ -21,12 +21,6 @@ import pe.mathnova.domain.expresion.ImpresoraPizarra;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * Límites, derivadas e integrales de un cociente de polinomios con un factor común: primero se factoriza y se
- * cancela (con la restricción), después la operación sobre lo que queda. Por la misma ruta que "Resolver"
- * ({@link ResolverService}); se comprueba el paso elegido, la factorización, la cancelación y el resultado, no
- * solo el valor final.
- */
 class FactorComunTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -53,7 +47,6 @@ class FactorComunTest {
         return pasos.stream().map(PasoLimite::codigo).toList();
     }
 
-    /** El paso que factoriza y cancela: qué factoriza, con qué métodos y dónde vale. */
     private static void cancela(PasoLimite paso, String codigo, String antes, String despues, List<String> metodos,
                                 List<String> restricciones) {
         assertEquals(codigo, paso.codigo());
@@ -66,12 +59,9 @@ class FactorComunTest {
         }
     }
 
-    // ------------------------------------------------------------------ caso corto
-
     @Test
     void cortoEnElLimite() {
         ResolucionLimite r = limite("(x^2-9)/(x-3)", "3");
-        // La evaluación directa da 0/0 (la función no está definida en 3) y por eso se factoriza
         assertEquals(List.of("L01", "L02", "L01"), codigos(r.pasos()));
         cancela(r.pasos().get(1), "L02", "(x² − 9)/(x − 3)", "x + 3", List.of("F05"), List.of());
         assertEquals("(x + 3)(x − 3)", p(r.pasos().get(1).hijos().getFirst().despues()));
@@ -98,8 +88,6 @@ class FactorComunTest {
         assertEquals("x²/2 + 3x + C", r.texto());
         assertTrue(r.verificada());
     }
-
-    // ------------------------------------------------------------------ caso largo
 
     @Test
     void largoEnElLimite() {
@@ -137,8 +125,6 @@ class FactorComunTest {
         assertTrue(r.verificada());
     }
 
-    // ------------------------------------------------------------------ otros casos
-
     @Test
     void cancelacionParcialConservaLasDosRestricciones() {
         ResolucionDerivada d = derivar("(x^2-9)/(x^2-x-6)");
@@ -167,7 +153,6 @@ class FactorComunTest {
 
     @Test
     void siElAlumnoEligeUnMetodoSeRespeta() {
-        // "Probar" fracciones parciales en Exploración: se divide como pidió, sin simplificar antes
         ResolucionIntegral i = RESOLVER.resolverIntegral("int((x^2-9)/(x-3), x)", MotorIntegrales.FRACCIONES, a -> { });
         assertNotEquals(FactorComun.SIMPLIFICAR, i.pasos().getFirst().codigo());
         assertEquals("x²/2 + 3x + C", i.texto());

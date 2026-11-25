@@ -24,17 +24,6 @@ import pe.mathnova.domain.factorizacion.FormaFactorizada;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 
-/**
- * Un sistema de ecuaciones polinómicas P₁ = 0, …, Pₙ = 0 resuelto en Q por sustitución (Sprint 8, HU30): lo usan
- * los puntos críticos (∇f = 0) y los multiplicadores de Lagrange. En cada vuelta:
- * <ol>
- *   <li>si una ecuación tiene una sola incógnita, se resuelve con el resolvedor de ecuaciones (factorización) y se
- *       reemplaza cada raíz en las demás;</li>
- *   <li>si no, se despeja la incógnita que aparece lineal (con coeficiente numérico) y se reemplaza en las demás;</li>
- *   <li>si no, se factoriza una ecuación y se sigue por cada factor (un producto es cero si un factor lo es).</li>
- * </ol>
- * Solo se dan soluciones con coordenadas racionales; las raíces irracionales se avisan y se dejan fuera.
- */
 public final class SistemaPolinomico {
 
     private static final int PROFUNDIDAD = 12;
@@ -47,12 +36,6 @@ public final class SistemaPolinomico {
         this.ecuaciones = new ResolvedorEcuaciones(orquestador);
     }
 
-    /**
-     * @param soluciones cada una con un valor por incógnita, sin repetir
-     * @param pasos      el despeje, la sustitución y la resolución de cada vuelta
-     * @param avisos     raíces irracionales que no se incluyeron
-     * @param completo   false si alguna rama no se pudo resolver con estos métodos
-     */
     public record Resultado(List<Map<Character, Racional>> soluciones, List<PasoLimite> pasos, List<String> avisos,
                             boolean completo) {
     }
@@ -134,25 +117,21 @@ public final class SistemaPolinomico {
             return List.of();
         }
 
-        // 1. Una ecuación con una sola incógnita
         for (Polinomio q : eqs) {
             if (q.variables().size() == 1) {
                 return conUnaIncognita(q, eqs, vars, pasos, e, profundidad);
             }
         }
-        // 2. Una incógnita lineal con coeficiente numérico
         Optional<Despeje> d = despeje(eqs, vars);
         if (d.isPresent()) {
             return sustituir(d.get(), eqs, vars, pasos, e, profundidad);
         }
-        // 3. Factorizar una ecuación y seguir por cada factor
         for (Polinomio q : eqs) {
             List<Polinomio> factores = factores(q);
             if (factores.size() > 1) {
                 return porFactores(q, factores, eqs, vars, pasos, e, profundidad);
             }
         }
-        // 4. Restar dos ecuaciones: en Lagrange, 1 − 2λx = 0 y 1 − 2λy = 0 dan 2λ(y − x) = 0
         for (int i = 0; i < eqs.size(); i++) {
             for (int j = i + 1; j < eqs.size(); j++) {
                 Polinomio resta = eqs.get(i).restar(eqs.get(j));
@@ -236,14 +215,12 @@ public final class SistemaPolinomico {
         }
     }
 
-    /** Un polinomio de una letra sin raíces racionales: si cambia de signo o tiene grado impar, tiene raíz real. */
     private static boolean tieneRaizReal(Polinomio q) {
         if (q.grado() % 2 == 1) {
             return true;
         }
         char v = q.variables().first();
         Racional lider = q.coeficiente(Monomio.de(v, q.grado()));
-        // con grado par y coeficiente principal positivo, basta ver si toma un valor negativo en algún punto
         for (int i = -40; i <= 40; i++) {
             Racional x = Racional.de(i, 4);
             Racional y = q.evaluar(Map.of(v, x));
@@ -257,7 +234,6 @@ public final class SistemaPolinomico {
     private record Despeje(Polinomio ecuacion, char variable, Polinomio valor) {
     }
 
-    /** La ecuación y la incógnita con coeficiente numérico más sencillas de despejar. */
     private static Optional<Despeje> despeje(List<Polinomio> eqs, List<Character> vars) {
         Despeje mejor = null;
         int costo = Integer.MAX_VALUE;

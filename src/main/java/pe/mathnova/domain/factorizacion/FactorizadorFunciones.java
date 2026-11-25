@@ -24,18 +24,6 @@ import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Expresiones con funciones (sección 2.12). Solo se factoriza si la expresión es polinómica en sus
- * funciones (RN32): se sustituye u = g(x), se factoriza en u con el motor de Q y se deshace la
- * sustitución.
- * <ul>
- *   <li>T01: factor común de una función (x·eˣ + eˣ = eˣ(x + 1)).</li>
- *   <li>T02 (eˣ), T03 (trigonométricas) y T05 (logaritmos): sustitución y un método de Q.</li>
- *   <li>T04: identidades (pitagórica, ángulo doble y suma a producto), solo cuando dejan una forma
- *       polinómica en las funciones.</li>
- * </ul>
- * Las restricciones de dominio (RF46, RN34) se listan como las de las fracciones.
- */
 public final class FactorizadorFunciones {
 
     static final String NO_POLINOMICA = "No se puede factorizar: no es polinómica en una sola función (RN32)";
@@ -54,7 +42,6 @@ public final class FactorizadorFunciones {
         List<String> restricciones = restricciones(entrada);
         List<String> identidades = new ArrayList<>();
 
-        // T04 antes de sustituir: suma a producto y ángulo doble.
         Expresion e = sumaAProducto(entrada, identidades);
         e = anguloDoble(e, identidades);
 
@@ -68,7 +55,6 @@ public final class FactorizadorFunciones {
         Map<Character, Expresion> funciones = new HashMap<>();
         letras.forEach((clave, letra) -> funciones.put(letra, Parser.parse(clave)));
 
-        // Pitagórica: si al cambiar cos² por 1 − sen² (o al revés) queda un término en una función, se usa.
         Polinomio pitagorica = pitagoricaHaciaUnTermino(p, letras, funciones, identidades);
         if (pitagorica != null) {
             p = pitagorica;
@@ -90,8 +76,6 @@ public final class FactorizadorFunciones {
         return new ResolucionFunciones(entrada, true, null, codigo, r, funciones, resultado, identidades, sustitucion,
                 restricciones);
     }
-
-    // ------------------------------------------------------------------ código
 
     private static String codigo(Resolucion r, Polinomio p, Map<Character, Expresion> funciones, List<String> identidades) {
         if (!identidades.isEmpty()) {
@@ -125,7 +109,6 @@ public final class FactorizadorFunciones {
         return String.join(", ", l);
     }
 
-    /** "u = e^x", "u = sen(x), v = cos(x)". */
     private static String definicion(Polinomio p, Map<Character, Expresion> funciones) {
         List<String> l = new ArrayList<>();
         for (char c : p.variables()) {
@@ -137,9 +120,6 @@ public final class FactorizadorFunciones {
         return String.join(", ", l);
     }
 
-    // ------------------------------------------------------------------ T04
-
-    /** sen(2a) = 2sen(a)·cos(a); cos(2a) = 2cos(a)² − 1, o 1 − 2sen(a)² si el resto está en senos. */
     private static Expresion anguloDoble(Expresion e, List<String> identidades) {
         Set<String> sueltas = new LinkedHashSet<>();
         SustitucionFunciones.recorrer(e, n -> {
@@ -171,7 +151,6 @@ public final class FactorizadorFunciones {
         });
     }
 
-    /** a si e es 2·a; null si no. */
     private static Expresion mitad(Expresion e) {
         if (e instanceof Producto(List<Expresion> fs) && fs.size() == 2 && fs.getFirst() instanceof Constante c
                 && c.valor().equals(Racional.de(2))) {
@@ -180,10 +159,6 @@ public final class FactorizadorFunciones {
         return null;
     }
 
-    /**
-     * sen(m·x) ± sen(n·x) y cos(m·x) ± cos(n·x) con m ≠ n enteros positivos y sin ser x y 2x
-     * (eso lo hace el ángulo doble): pasan a producto.
-     */
     private static Expresion sumaAProducto(Expresion e, List<String> identidades) {
         if (!(e instanceof Suma(List<Expresion> ts)) || ts.size() != 2) {
             return e;
@@ -215,7 +190,6 @@ public final class FactorizadorFunciones {
         return r;
     }
 
-    /** [tipo, k, negativo] si t es ±sen(k·x) o ±cos(k·x). */
     private static Object[] trig(Expresion t) {
         boolean negativo = false;
         if (t instanceof Negacion(Expresion arg)) {
@@ -238,7 +212,6 @@ public final class FactorizadorFunciones {
         return new Object[] {f.tipo(), k, negativo};
     }
 
-    /** k·x/d simplificado: x, 2x, x/2… */
     private static Expresion argumento(long k, long d, Expresion x) {
         Racional c = Racional.de(k, d);
         if (c.equals(Racional.UNO)) {
@@ -247,7 +220,6 @@ public final class FactorizadorFunciones {
         return c.esEntero() ? new Producto(new Constante(c), x) : new Producto(new Constante(c), x);
     }
 
-    /** Las letras de sen(a) y cos(a) con el mismo argumento, si están. */
     private record Par(char sen, char cos) {
     }
 
@@ -293,7 +265,6 @@ public final class FactorizadorFunciones {
                     continue;
                 }
                 Polinomio q = reemplazarCuadrado(p, quitar, poner);
-                // Solo si queda un término en una sola función (1 − cos² = sen²), no −sen·cos².
                 if (q.terminos().size() == 1 && q.variables().size() <= 1) {
                     letras.clear();
                     letras.putAll(copiaLetras);
@@ -308,7 +279,6 @@ public final class FactorizadorFunciones {
         return null;
     }
 
-    /** Cambia quitar² por 1 − poner² en cada término. */
     private static Polinomio reemplazarCuadrado(Polinomio p, char quitar, char poner) {
         Polinomio uno = Polinomio.UNO;
         Polinomio cambio = uno.restar(Polinomio.variable(poner).potencia(2));
@@ -322,7 +292,6 @@ public final class FactorizadorFunciones {
         return r;
     }
 
-    /** Un factor sen² + cos² (del mismo argumento) vale 1. */
     private static FormaFactorizada quitarSenoMasCoseno(FormaFactorizada f, Map<String, Character> letras,
                                                        List<String> identidades) {
         Map<Character, Expresion> funciones = new HashMap<>();
@@ -352,9 +321,6 @@ public final class FactorizadorFunciones {
         return cambio ? FormaFactorizada.normalizada(f.constante(), quedan) : f;
     }
 
-    // ------------------------------------------------------------------ dominio
-
-    /** RF46, RN34: ln a exige a > 0; tan a, a ≠ π/2 + kπ; cot a, a ≠ kπ… */
     static List<String> restricciones(Expresion e) {
         Set<String> r = new LinkedHashSet<>();
         SustitucionFunciones.recorrer(e, n -> {

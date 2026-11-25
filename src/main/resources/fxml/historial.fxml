@@ -13,9 +13,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- "Historial" (HU14, HU15): cada ejercicio resuelto, del más reciente al más antiguo, en páginas de 50.
-     Encima de la tabla van, cuando se abren, el velo oscuro, la hoja de una resolución (a la derecha) y el
-     diálogo para eliminar. Las filas, la hoja y las fórmulas las arma HistorialController. -->
 <StackPane fx:id="raiz" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="pe.mathnova.presentation.controller.HistorialController"
            styleClass="pantalla-historial">
@@ -64,10 +61,8 @@
         </HBox>
     </VBox>
 
-    <!-- Fondo oscurecido: un clic fuera de la hoja o del diálogo los cierra -->
     <Region fx:id="velo" styleClass="historial-velo" visible="false" onMouseClicked="#cerrarCapas"/>
 
-    <!-- La hoja de una resolución, a la derecha, encima de la tabla -->
     <VBox fx:id="hoja" styleClass="historial-hoja, escala-letra" StackPane.alignment="CENTER_RIGHT" visible="false"
           maxWidth="560" prefWidth="560">
         <VBox styleClass="historial-hoja-cabecera" spacing="6">
@@ -91,7 +86,6 @@
         </HBox>
     </VBox>
 
-    <!-- ¿Eliminar este ejercicio? -->
     <VBox fx:id="dialogo" styleClass="tarjeta, historial-dialogo" StackPane.alignment="CENTER" visible="false"
           maxWidth="460" maxHeight="-Infinity">
         <Label text="¿Eliminar este ejercicio?" styleClass="titulo-tarjeta"/>

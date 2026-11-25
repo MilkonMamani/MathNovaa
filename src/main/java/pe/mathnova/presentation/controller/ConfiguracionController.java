@@ -37,10 +37,6 @@ import pe.mathnova.application.service.InformacionService;
 import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/**
- * Pantalla "Configuración" (Sprint 9, parte E): Resolución, Apariencia, Datos y Acerca de. Cada ajuste se guarda
- * al cambiarlo, con el aviso "Guardado", y ConfiguracionService lo aplica en toda la app sin reiniciar.
- */
 @Component
 @Scope("prototype")
 public class ConfiguracionController {
@@ -93,10 +89,8 @@ public class ConfiguracionController {
     private final ToggleGroup grupoModo = new ToggleGroup();
     private final ToggleGroup grupoLetra = new ToggleGroup();
     private final ToggleGroup grupoTema = new ToggleGroup();
-    /** Se está poniendo lo que dice la base: no hay que guardarlo otra vez. */
     private boolean cargando;
     private String ultimoAviso;
-    /** Para las pruebas: la confirmación de "Borrar todo el historial". */
     private Predicate<Window> confirmar = ConfiguracionController::confirmarBorrado;
     private Consumer<String> avisar = texto -> AvisoBreve.mostrar(raiz, texto, Duration.seconds(1.6));
 
@@ -126,7 +120,6 @@ public class ConfiguracionController {
         previa.setLatex(VISTA_PREVIA);
         vistaPrevia.getChildren().setAll(previa);
 
-        // Si otra pantalla cambia un ajuste (el interruptor "Explicaciones" de la Pizarra), aquí también cambia.
         configuracion.explicacionesProperty().addListener((obs, antes, si) -> poner(mostrarExplicaciones, si));
         configuracion.codigosProperty().addListener((obs, antes, si) -> poner(mostrarCodigos, si));
 
@@ -134,14 +127,12 @@ public class ConfiguracionController {
         cargar();
     }
 
-    /** Botones unidos: siempre hay uno elegido; elegir otro lo guarda. */
     private <T> void unir(ToggleGroup grupo, Map<ToggleButton, T> opciones, Consumer<T> guardar) {
         opciones.keySet().forEach(b -> b.setToggleGroup(grupo));
         boolean[] reponiendo = {false};
         grupo.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
                 if (antes != null) {
-                    // un clic en el elegido no lo deja sin nada, y volver a elegirlo no es un cambio
                     reponiendo[0] = true;
                     antes.setSelected(true);
                     reponiendo[0] = false;
@@ -156,7 +147,6 @@ public class ConfiguracionController {
     }
 
     private void interruptor(ToggleButton t, Consumer<Boolean> guardar) {
-        // Espacio ya lo maneja el botón; Enter también lo cambia.
         t.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 t.fire();
@@ -185,7 +175,6 @@ public class ConfiguracionController {
         cargando = antes;
     }
 
-    /** Lee todo otra vez (al volver a la pantalla): los ajustes y cuántos ejercicios hay. */
     public void cargar() {
         cargando = true;
         try {
@@ -208,8 +197,6 @@ public class ConfiguracionController {
         g.selectToggle(t);
     }
 
-    // ---------------------------------------------------------------- Datos
-
     private void contarEjercicios() {
         long n;
         try {
@@ -222,14 +209,12 @@ public class ConfiguracionController {
         borrarHistorial.setDisable(n == 0);
     }
 
-    /** "12 ejercicios guardados. Se guardan en ~/.mathnova/mathnova.db." */
     static String datos(long n, String ruta) {
         String cuantos = n == 0 ? "Todavía no hay ejercicios guardados" : n == 1 ? "1 ejercicio guardado"
                 : n + " ejercicios guardados";
         return cuantos + ". Se guardan en " + ruta + ".";
     }
 
-    /** "Borrar todo el historial", con confirmación. Los ejemplos no se tocan. */
     @FXML
     void borrarHistorial() {
         Window w = raiz.getScene() == null ? null : raiz.getScene().getWindow();
@@ -275,8 +260,6 @@ public class ConfiguracionController {
         return d.showAndWait().filter(b -> b == borrar).isPresent();
     }
 
-    // ---------------------------------------------------------------- Acerca de
-
     private void armarVersiones() {
         versiones.getChildren().clear();
         List<InformacionService.Version> lista = informacion.versiones();
@@ -288,8 +271,6 @@ public class ConfiguracionController {
             versiones.addRow(i, nombre, valor);
         }
     }
-
-    // ---------------------------------------------------------------- pruebas
 
     void setConfirmar(Predicate<Window> confirmar) {
         this.confirmar = confirmar;

@@ -10,17 +10,9 @@ import java.util.Optional;
 
 import pe.mathnova.domain.algebra.Racional;
 
-/**
- * A4: método de Kronecker. Un factor de grado k de P queda determinado por sus valores en k + 1
- * puntos, y cada valor divide al de P en ese punto. Se prueban todas las combinaciones de divisores,
- * se interpola y se mira si el polinomio que sale divide a P. Si ninguno lo hace para k = 1…n/2,
- * P no se factoriza en Q.
- */
 final class Kronecker {
 
-    /** Hasta este grado se certifica; por encima, el mensaje de A.3. */
     static final int GRADO_MAXIMO = 8;
-    /** Más combinaciones que esto y se deja sin certificar. */
     private static final long COMBINACIONES_MAXIMAS = 20_000_000L;
     private static final Map<Univariado, Respuesta> MEMORIA = new LinkedHashMap<>(64, 0.75f, true) {
         @Override
@@ -29,7 +21,6 @@ final class Kronecker {
         }
     };
 
-    /** factor presente: se encontró uno; sin factor y completa: es irreducible; si no, no se pudo saber. */
     record Respuesta(Optional<Univariado> factor, boolean completa) {
         boolean irreducible() {
             return factor.isEmpty() && completa;
@@ -62,7 +53,6 @@ final class Kronecker {
         if (n > GRADO_MAXIMO || !p.enteros()) {
             return new Respuesta(Optional.empty(), false);
         }
-        // k = 1: raíces racionales.
         Optional<List<Racional>> candidatos = RaicesRacionales.candidatos(p);
         if (candidatos.isEmpty()) {
             return new Respuesta(Optional.empty(), false);
@@ -85,7 +75,6 @@ final class Kronecker {
         return new Respuesta(Optional.empty(), completa);
     }
 
-    /** Búsqueda de un factor de grado exactamente k. */
     private static final class Busqueda {
 
         private final Univariado p;
@@ -94,7 +83,6 @@ final class Kronecker {
         private final long a0;
         private long[] puntos;
         private List<long[]> divisores;
-        /** L_i(x)·D = suma de pesos[i][j]·x^j; D es el denominador común. */
         private long[][] pesos;
         private long denominador;
         private boolean completa = true;
@@ -128,7 +116,6 @@ final class Kronecker {
             }
         }
 
-        /** Los k + 1 puntos enteros con menos divisores de P(x); P(x) ≠ 0 porque no hay raíces. */
         private boolean elegirPuntos() {
             List<long[]> opciones = new ArrayList<>();
             for (int i = 0; i <= 4 * k + 6; i++) {
@@ -152,7 +139,6 @@ final class Kronecker {
                 long[] o = opciones.get(i);
                 puntos[i] = o[0];
                 List<Long> d = RaicesRacionales.divisores(o[1]);
-                // El signo del factor se fija con el primer punto: ahí solo divisores positivos.
                 long[] conSigno = new long[i == 0 ? d.size() : 2 * d.size()];
                 for (int j = 0; j < d.size(); j++) {
                     conSigno[j] = d.get(j);
@@ -166,7 +152,6 @@ final class Kronecker {
             return true;
         }
 
-        /** Bases de Lagrange con denominador común. */
         private void preparar() {
             int m = k + 1;
             long[][] numeradores = new long[m][];
@@ -214,7 +199,6 @@ final class Kronecker {
         }
 
         private Optional<Univariado> interpolar(long[] valores) {
-            // Coeficiente principal primero: debe ser entero, no nulo y dividir a an.
             long lider = coeficiente(valores, k);
             if (lider == 0 || lider % denominador != 0 || an % Math.abs(lider / denominador) != 0) {
                 return Optional.empty();

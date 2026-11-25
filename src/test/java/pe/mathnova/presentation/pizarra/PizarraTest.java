@@ -16,10 +16,6 @@ import pe.mathnova.domain.factorizacion.Paso;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * HU06, definición de terminado 3: los modelos de los dibujos de pizarra tienen los números
- * correctos para el TrabajoIntermedio de los ejemplos. No abren la ventana.
- */
 class PizarraTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -34,14 +30,6 @@ class PizarraTest {
         return celdas.stream().map(ModeloRuffini.Celda::texto).toList();
     }
 
-    /**
-     * <pre>
-     *       |  2   -3   -3    2
-     *   x=2 |       4    2   -2
-     *       |-------------------
-     *       |  2    1   -1  | 0
-     * </pre>
-     */
     @Test
     void tablaDeRuffini() {
         ModeloRuffini m = ModeloRuffini.de(trabajo("2x^3 - 3x^2 - 3x + 2", "F16", TrabajoIntermedio.TablaRuffini.class));
@@ -54,13 +42,11 @@ class PizarraTest {
                 () -> assertEquals(List.of("2", "1", "−1"), t.abajo()),
                 () -> assertEquals("0", t.residuo()),
                 () -> assertTrue(t.residuoCero()),
-                // De dónde sale cada número de la fila del medio: resultado anterior × raíz.
                 () -> assertEquals(List.of("", "2·2", "1·2", "−1·2"), t.origenes()),
                 () -> assertEquals(List.of("x = 2 ✓"), m.raices()),
                 () -> assertEquals(List.of("x = 1 ✗ residuo −2"), m.fallidos()));
     }
 
-    /** Raíz repetida: las tablas se apilan y el 0 del término x² que faltaba va marcado. */
     @Test
     void tablasApiladasConRaizRepetida() {
         ModeloRuffini m = ModeloRuffini.de(trabajo("x^3 - 3x + 2", "F17", TrabajoIntermedio.TablaRuffini.class));
@@ -71,14 +57,12 @@ class PizarraTest {
                 () -> assertEquals(List.of(false, true, false, false),
                         primera.arriba().stream().map(ModeloRuffini.Celda::relleno).toList()),
                 () -> assertEquals(List.of("1", "1", "−2"), primera.abajo()),
-                // el cociente de una es la fila de arriba de la siguiente
                 () -> assertEquals(primera.abajo(), textos(segunda.arriba())),
                 () -> assertEquals(List.of("", "1", "2"), segunda.medio()),
                 () -> assertEquals(List.of("1", "2"), segunda.abajo()),
                 () -> assertEquals("0", segunda.residuo()));
     }
 
-    /** 6x² + x − 2: 2x ╲╱ −1 / 3x ╱╲ 2. */
     @Test
     void aspaSimple() {
         ModeloAspa m = ModeloAspa.de(trabajo("6x^2 + x - 2", "F13", TrabajoIntermedio.AspaSimple.class));
@@ -101,7 +85,6 @@ class PizarraTest {
                 () -> assertEquals("(x − 2)(x − 3)", m.resultado()));
     }
 
-    /** x⁴ + 5x³ + 11x² + 14x + 4 = (x² + 3x + 1)(x² + 2x + 4). */
     @Test
     void aspaDobleEspecial() {
         ModeloAspaDoble m = ModeloAspaDoble.de(trabajo("x^4 + 5x^3 + 11x^2 + 14x + 4", "F19",

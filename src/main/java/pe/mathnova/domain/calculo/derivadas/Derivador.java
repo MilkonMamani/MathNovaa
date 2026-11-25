@@ -36,22 +36,8 @@ import static pe.mathnova.domain.calculo.derivadas.Simplificador.potencia;
 import static pe.mathnova.domain.calculo.derivadas.Simplificador.producto;
 import static pe.mathnova.domain.calculo.derivadas.Simplificador.suma;
 
-/**
- * Deriva respecto de una variable (RF27) y devuelve la derivada simplificada. Las demás letras son
- * constantes (RN43): en d/dt(a·t²) la a sale como factor. Cada regla queda como un {@link PasoDerivada};
- * las que se aplican dentro de otra (la cadena dentro del producto) quedan como sus hijos.
- *
- * <p>En la derivación implícita (D08) una segunda letra, y, es función de la variable: su derivada es
- * y', que se representa como {@code Derivada(1, x, y)} y se despeja al final.
- */
 public final class Derivador implements Visitante<Expresion> {
 
-    /**
-     * La derivada simplificada y las reglas aplicadas.
-     *
-     * @param pasos todas las reglas en el orden en que se aplican (primero la de afuera)
-     * @param arbol solo las de afuera; las internas están en sus hijos
-     */
     public record Resultado(Expresion derivada, List<PasoDerivada> pasos, List<PasoDerivada> arbol) {
         public Resultado {
             Objects.requireNonNull(derivada, "derivada");
@@ -64,7 +50,6 @@ public final class Derivador implements Visitante<Expresion> {
     private static final Constante DOS = Constante.de(2);
 
     private final char variable;
-    /** La letra que es función de la variable en una derivación implícita, o 0. */
     private final char funcion;
     private final List<PasoDerivada> pasos = new ArrayList<>();
     private final List<PasoDerivada> arbol = new ArrayList<>();
@@ -80,7 +65,6 @@ public final class Derivador implements Visitante<Expresion> {
         return derivar(e, variable, (char) 0);
     }
 
-    /** D08: y es función de x; su derivada es y'. */
     public static Resultado derivarImplicita(Expresion e, char variable, char funcion) {
         return derivar(e, variable, funcion);
     }
@@ -91,12 +75,9 @@ public final class Derivador implements Visitante<Expresion> {
         return new Resultado(r, d.pasos, d.arbol);
     }
 
-    /** y' = Derivada(1, x, y). */
     public static Expresion prima(char funcion, char variable) {
         return new Derivada(1, variable, new Variable(funcion));
     }
-
-    // ------------------------------------------------------------------ ayudas
 
     private boolean depende(Expresion e) {
         var letras = Expresiones.variables(e);
@@ -107,7 +88,6 @@ public final class Derivador implements Visitante<Expresion> {
         return e instanceof Variable v && v.nombre() == variable;
     }
 
-    /** La derivada de e (con sus pasos). */
     private Expresion d(Expresion e) {
         if (!depende(e)) {
             return registrar("D01", "La derivada de una constante es 0" + constanteLiteral(e), "(c)' = 0",
@@ -116,23 +96,16 @@ public final class Derivador implements Visitante<Expresion> {
         return e.aceptar(this);
     }
 
-    /** RN43: si e es una letra distinta de la variable, se dice que es una constante. */
     private String constanteLiteral(Expresion e) {
         return Expresiones.variables(e).isEmpty() ? ""
                 : " (" + String.join(", ", Expresiones.variables(e).stream().map(String::valueOf).toList())
                         + " es constante respecto de " + variable + ")";
     }
 
-    /** u' para la regla de la cadena: 1 si u es la variable (sin paso), si no se deriva. */
     private Expresion interna(Expresion u) {
         return esLaVariable(u) ? UNO : d(u);
     }
 
-    /**
-     * Reserva el lugar del paso, calcula (los pasos internos quedan como hijos) y lo completa.
-     *
-     * @param calculo recibe la lista de renglones de Trabajo, donde puede agregar "u' = 2x"
-     */
     private Expresion registrar(String codigo, String regla, String formula, Expresion antes,
                                 Function<List<String>, Expresion> calculo) {
         int i = pasos.size();
@@ -144,7 +117,6 @@ public final class Derivador implements Visitante<Expresion> {
         try {
             Expresion aplicada = calculo.apply(trabajo);
             r = Simplificador.simplificar(aplicada);
-            // La regla con los valores puestos, antes de simplificar: "((3x² + 1)⁴)' = 4(3x² + 1)³·6x".
             if (APLICADA.contains(codigo) && !pizarra(aplicada).equals(pizarra(r))) {
                 trabajo.add("(" + pizarra(antes) + ")' = " + pizarra(aplicada));
             }
@@ -157,7 +129,6 @@ public final class Derivador implements Visitante<Expresion> {
         return r;
     }
 
-    /** Las reglas que se escriben con sus valores antes de simplificar (producto, cociente, cadena…). */
     private static final java.util.Set<String> APLICADA = java.util.Set.of("D04", "D05", "D06", "D07");
 
     private static String texto(Expresion e) {
@@ -176,7 +147,6 @@ public final class Derivador implements Visitante<Expresion> {
         return esLaVariable(u) ? "" : ", con u = " + texto(u);
     }
 
-    /** "u = 3x²" y "u' = 6x" en Trabajo, si u no es la variable. */
     private Expresion internaConTrabajo(Expresion u, List<String> trabajo) {
         if (esLaVariable(u)) {
             return UNO;
@@ -186,8 +156,6 @@ public final class Derivador implements Visitante<Expresion> {
         trabajo.add("u' = " + pizarra(du));
         return du;
     }
-
-    // ------------------------------------------------------------------ hojas
 
     @Override
     public Expresion visitar(Constante c) {
@@ -207,8 +175,6 @@ public final class Derivador implements Visitante<Expresion> {
     public Expresion visitar(ConstanteEspecial c) {
         return Constante.de(0);
     }
-
-    // ------------------------------------------------------------------ operaciones
 
     @Override
     public Expresion visitar(Suma s) {
@@ -318,7 +284,6 @@ public final class Derivador implements Visitante<Expresion> {
             return registrar(cadena("D02", b), "(uⁿ)' = n·uⁿ⁻¹·u'" + conU(b) + " y n = " + texto(n), formula, p, t -> {
                 t.add("n = " + pizarra(n));
                 Expresion du = internaConTrabajo(b, t);
-                // Sin simplificar: así queda escrita la regla con los valores, 4(3x² + 1)³·6x.
                 return new Producto(List.of(n, new Potencia(b, Simplificador.simplificar(
                         suma(List.of(n, Constante.de(-1))))), du));
             });
@@ -336,7 +301,6 @@ public final class Derivador implements Visitante<Expresion> {
                 return euler ? producto(List.of(p, du)) : producto(List.of(p, new Funcion(TipoFuncion.LN, b), du));
             });
         }
-        // D09: y = f^g → ln y = g·ln f → y'/y = (g·ln f)' → y' = f^g·(g·ln f)'
         Expresion lnY = producto(List.of(n, new Funcion(TipoFuncion.LN, b)));
         return registrar("D09", "Base y exponente dependen de " + variable
                         + ": f^g = e^(g·ln f), así que (f^g)' = f^g·(g'·ln f + g·f'/f)",
@@ -412,8 +376,6 @@ public final class Derivador implements Visitante<Expresion> {
             };
         });
     }
-
-    // ------------------------------------------------------------------ operaciones: no se derivan aquí
 
     private static IllegalArgumentException operacion() {
         return new IllegalArgumentException("Una operación (límite, derivada, integral o ecuación) no se deriva");

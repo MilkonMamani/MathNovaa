@@ -49,22 +49,10 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.presentation.controller.EstadoResolucion;
 import pe.mathnova.presentation.controller.ResolucionController;
 
-/**
- * Prueba de humo de extremo a extremo (Parte F). Se abre la pantalla "Resolver ejercicio" de verdad
- * (resolucion.fxml con su controlador, el editor MathLive en el WebView y el teclado en pantalla) en
- * una ventana propia e invisible, y cada ejercicio se entra como lo haría el estudiante: pulsando las
- * teclas del teclado en pantalla y escribiendo el resto con el teclado físico (KeyEvents de JavaFX).
- * Después se pulsa "Resolver" y se comprueba que no hubo error, que el resultado es el esperado (por
- * estructura o numéricamente) y que la pantalla terminó en RESUELTO.
- *
- * <p>En los pasos, "[etiqueta]" es la tecla del teclado en pantalla con esa etiqueta ("[→]" es la
- * flecha); el resto se escribe con el teclado físico, letra por letra.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PruebaHumoTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
-    /** Mientras vale true, factorizar falla: así se ve dónde aparece un error del motor. */
     private static volatile boolean fallarFactorizacion;
 
     private static final FactorizacionService FACTORIZACION = new FactorizacionService(MOTOR) {
@@ -81,7 +69,6 @@ class PruebaHumoTest {
     private static final ResolverService RESOLVER = new ResolverService(FACTORIZACION, MOTOR,
             new ResolvedorEcuaciones(MOTOR));
 
-    /** Sin base de datos ni animaciones: el resultado aparece de una vez. */
     private static final class SinAnimaciones extends ConfiguracionService {
         SinAnimaciones() {
             super(null);
@@ -146,7 +133,6 @@ class PruebaHumoTest {
             assertTrue(System.nanoTime() < limite, "El editor no cargó");
             Thread.sleep(100);
         }
-        // Las primeras teclas, mientras la ventana toma el foco, se pierden: se teclea "x" hasta que aparezca.
         while (!"x".equals(limpiarYEscribir("x"))) {
             assertTrue(System.nanoTime() < limite, "El editor no recibe las teclas");
             Thread.sleep(200);
@@ -163,19 +149,14 @@ class PruebaHumoTest {
         }
     }
 
-    // ------------------------------------------------------------------ el guion de demostración
-
-    /** Con -Dmathnova.capturar=true, el LaTeX que arman las teclas se guarda como fixture en vez de compararse. */
     private static final boolean CAPTURAR = Boolean.getBoolean("mathnova.capturar");
 
-    /** Caso, LaTeX recibido, texto traducido, resultado y estado, para el informe de target/guion-demostracion.md. */
     private static final List<String> INFORME = java.util.Collections.synchronizedList(new ArrayList<>());
 
     static Stream<Arguments> guion() {
         return Guion.casos().stream().map(Arguments::of);
     }
 
-    /** PASO 0: las teclas del guion dan el LaTeX guardado (o, al capturar, lo guardan). */
     @Order(1)
     @ParameterizedTest(name = "{0}")
     @MethodSource("guion")
@@ -188,13 +169,11 @@ class PruebaHumoTest {
             assertEquals(c.latex(), latex, c + ": las teclas ya no dan el LaTeX guardado");
         }
         if (c.latexCon() != null) {
-            // MathLive guarda \operatorname{x} como \operatorname{\mathrm{x}}: las dos formas valen.
             String plano = latex.replaceAll("\\\\operatorname\\{\\\\mathrm\\{([A-Za-z]+)\\}\\}", "\\\\operatorname{$1}");
             assertTrue(plano.contains(c.latexCon()), () -> c + ": falta " + c.latexCon() + " en " + latex);
         }
     }
 
-    /** El LaTeX del guion se pone en el editor, se pulsa Resolver y se mira lo que queda en la pantalla. */
     @Order(2)
     @ParameterizedTest(name = "{0}")
     @MethodSource("guion")
@@ -264,7 +243,6 @@ class PruebaHumoTest {
                 java.nio.charset.StandardCharsets.UTF_8);
     }
 
-    /** Lo que dice la resolución en una línea. */
     private static String resumen(Object r) {
         if (r == null) {
             return "";
@@ -283,7 +261,6 @@ class PruebaHumoTest {
         }
     }
 
-    /** Todo el texto de las tarjetas Solución, Procedimiento y Análisis (las fórmulas son imágenes). */
     private static String pantalla() {
         StringBuilder sb = new StringBuilder();
         for (String id : List.of("#tarjetaSolucion", "#tarjetaProcedimiento", "#vistaAnalisis")) {
@@ -327,7 +304,6 @@ class PruebaHumoTest {
         return r;
     }
 
-    /** Si el motor falla, el error se ve en la tarjeta Solución y también en el panel de Procedimiento. */
     @Test
     void unErrorDelMotorSeVeEnElProcedimiento() throws Exception {
         try {
@@ -344,21 +320,17 @@ class PruebaHumoTest {
         }
     }
 
-    /** Resolver, borrar y escribir algo con error: nada del ejercicio anterior queda como actual. */
     @Test
     void trasUnErrorNoQuedaNadaDelEjercicioAnterior() throws Exception {
         entrar(List.of("x^3-2x^2-x+2"));
         resolverYEsperar("x^3 - 2x^2 - x + 2");
         assertEquals(EstadoResolucion.RESUELTO, enFx(controlador::estado));
         assertTrue(enFx(() -> visible("#etiquetaVerificado")));
-        // RF71 retirado: ya no hay línea en vivo que esperar bajo el editor.
 
         entrar(List.of("x^2+*3"));
-        // Más que los 400 ms del resultado en vivo.
         Thread.sleep(900);
         enFx(() -> null);
         assertEquals(EstadoResolucion.ERROR, enFx(controlador::estado));
-        // RF71 retirado: antes se comprobaba que no quedara la línea en vivo del ejercicio anterior.
         assertFalse(enFx(() -> visible("#etiquetaVerificado")), "sigue \"Verificado\" del ejercicio anterior");
         assertTrue(enFx(() -> visible("#avisoEntrada")), "falta el mensaje de error");
         assertTrue(enFx(() -> raiz.lookup("#botonResolver").isDisabled()), "Resolver debe quedar desactivado");
@@ -366,7 +338,6 @@ class PruebaHumoTest {
                 "la tarjeta Solución debe verse atenuada");
     }
 
-    /** Parte 1: √, sqrt y raiz escritos con el teclado físico insertan la plantilla, nunca \surd. */
     @Test
     void laRaizEscritaAManoEsPlantilla() throws Exception {
         for (String atajo : List.of("√", "sqrt", "raiz")) {
@@ -376,7 +347,6 @@ class PruebaHumoTest {
         }
     }
 
-    /** Parte 3: la casilla que falta se nombra, se marca en naranja y el cursor va ahí. */
     @Test
     void laCasillaQueFaltaSeResaltaYElCursorVaAhi() throws Exception {
         entrar(List.of("[∫]", "1"));
@@ -393,12 +363,10 @@ class PruebaHumoTest {
         escribirAMano("2");
         String latex = enFx(editor::getLatex);
         assertTrue(latex.startsWith("\\int_1^2") || latex.startsWith("\\int_{1}^{2}"), latex);
-        // MathLive avisa el cambio con un setTimeout: se espera el mensaje nuevo.
         esperar(() -> "Completa el integrando".equals(textoDe("#avisoEntrada")),
                 "el mensaje no pasó a la casilla siguiente: " + latex);
     }
 
-    /** Parte 5: en una ventana angosta la barra pasa a dos filas y Resolver no se encoge a "…". */
     @Test
     void enUnaVentanaAngostaLaBarraPasaADosFilas() throws Exception {
         try {
@@ -414,7 +382,6 @@ class PruebaHumoTest {
         assertTrue(enFx(() -> raiz.lookup("#botonResolver").getLayoutBounds().getWidth()) >= 120);
     }
 
-    /** Parte 5: Q/R/C solo se activa cuando el campo importa. */
     @Test
     void elSelectorDeCampoSoloSeActivaCuandoImporta() throws Exception {
         entrar(List.of("[d/dx]", "x^2"));
@@ -423,7 +390,6 @@ class PruebaHumoTest {
         assertFalse(enFx(() -> raiz.lookup("#campoR").isDisabled()), "al factorizar el campo importa");
     }
 
-    /** Parte 4: en una tarjeta angosta la fórmula se reduce o se parte, sin barras ni cortes. */
     @Test
     void laFormulaDeLaSolucionNoSeCorta() throws Exception {
         try {
@@ -465,9 +431,6 @@ class PruebaHumoTest {
         });
     }
 
-    // ------------------------------------------------------------------ cómo entra el estudiante
-
-    /** Limpia el editor y hace los pasos; devuelve el LaTeX del editor. */
     private static String entrar(List<String> pasos) throws Exception {
         limpiarYEscribir("");
         for (String paso : pasos) {
@@ -567,7 +530,6 @@ class PruebaHumoTest {
         });
     }
 
-    /** Espera a que "Resolver" se active (los 400 ms), lo pulsa y espera a que termine. */
     private static void resolverYEsperar(String contexto) throws Exception {
         esperar(() -> !raiz.lookup("#botonResolver").isDisabled() || visible("#avisoEntrada"),
                 contexto + ": Resolver no se activó");
@@ -579,7 +541,6 @@ class PruebaHumoTest {
             ((Button) raiz.lookup("#botonResolver")).fire();
             return null;
         });
-        // La tarjeta Solución (con #carga) ya no está en la pantalla: la solución va en la pizarra.
         esperar(() -> controlador.estado() != EstadoResolucion.CALCULANDO && !visible("#carga"),
                 contexto + ": no terminó de calcular");
     }

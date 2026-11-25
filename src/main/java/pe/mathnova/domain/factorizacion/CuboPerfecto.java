@@ -4,14 +4,12 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/** F10: a³ ± 3a²b + 3ab² ± b³ = (a ± b)³. a es la raíz cúbica del primer término y b la del último, con su signo. */
 public final class CuboPerfecto extends MetodoBase {
 
     public CuboPerfecto() {
         super("F10");
     }
 
-    /** Solo con 4 términos y grado 3. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() == 4 && p.grado() == 3;
@@ -45,7 +43,6 @@ public final class CuboPerfecto extends MetodoBase {
         return resultado(justificacion, p, List.of(new Factor(binomio, 3)), trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Son cuatro términos: ¿el primero y el último son cubos y los del medio son el triple de los productos cruzados?";

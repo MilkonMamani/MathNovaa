@@ -34,7 +34,6 @@ import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.Navegador;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/** Sprint 9, parte B: la pantalla Ejemplos sobre la base de prueba de target/ (los ejemplos de V4). */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 class EjemplosPantallaTest {
 
@@ -44,7 +43,6 @@ class EjemplosPantallaTest {
     @Autowired
     private EjemplosService ejemplos;
 
-    /** Navegador de prueba: anota Resolver y Practicar. */
     private static final class NavegadorPrueba extends Navegador {
         final List<String> abiertos = new ArrayList<>();
         boolean practica;
@@ -188,7 +186,6 @@ class EjemplosPantallaTest {
             assertEquals("Cálculo 3", controlador.cursoActivo().nombre());
             assertEquals(5, temas().size());
             assertEquals("Factorización en varias variables", controlador.temaActivo().nombre());
-            // Un segundo clic en la pestaña activa no la apaga
             pestanas().get(3).fire();
             assertTrue(pestanas().get(3).isSelected());
             assertEquals("Cálculo 3", controlador.cursoActivo().nombre());
@@ -222,7 +219,6 @@ class EjemplosPantallaTest {
             assertTrue(practicar.isDisabled());
             assertEquals(EjemplosController.PRACTICA_PRONTO, practicar.getAccessibleHelp());
         });
-        // Con la pantalla Práctica (parte D), el botón abre el ejemplo allí
         abrirCon(true);
         Fx.enFx(() -> {
             Button practicar = boton(tarjetas().getFirst(), "Practicar");
@@ -243,7 +239,6 @@ class EjemplosPantallaTest {
             for (Node t : tarjetas) {
                 assertEquals(ancho, ((javafx.scene.layout.Region) t).getWidth(), 0.5, "todas del mismo ancho");
             }
-            // Dos tarjetas por fila a 1280 px (también con la pantalla escalada)
             assertEquals(tarjetas.get(0).getLayoutY(), tarjetas.get(1).getLayoutY(), 0.5);
             assertTrue(tarjetas.get(2).getLayoutY() > tarjetas.get(1).getLayoutY());
         });

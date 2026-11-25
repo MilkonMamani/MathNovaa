@@ -17,7 +17,6 @@ import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.parser.Parser;
 
-/** Cardano con la raíz real como r, la comparación Q / R / C y la expansión del resultado a la entrada. */
 class FormaLegibleTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -103,12 +102,10 @@ class FormaLegibleTest {
                 "2x^{2}\\left(x + 2\\right)\\left(x - 2\\right)\\left[\\left(x + 1\\right)\\left(x - 1\\right)\\right]^{2}",
                 "2x^{2}\\left(x^{2} - 4\\right)\\left(x^{2} - 1\\right)^{2}",
                 "2x^{2}\\left(x^{2} - 4\\right)\\left(x^{4} - 2x^{2} + 1\\right)",
-                // cada término por cada término, y después reducido: una transformación por renglón
                 "2x^{2}\\left(x^{6} - 2x^{4} + x^{2} - 4x^{4} + 8x^{2} - 4\\right)",
                 "2x^{2}\\left(x^{6} - 6x^{4} + 9x^{2} - 4\\right)",
                 "2x^{8} - 12x^{6} + 18x^{4} - 8x^{2}"), c.expresiones());
         assertTrue(c.coincide());
-        // Cada renglón es equivalente al anterior: todos se expanden a la entrada.
         for (String l : c.expresiones()) {
             assertEquals(Polinomio.desde(r.entrada()), Polinomio.desde(Parser.parse(sinLatex(l))), l);
         }
@@ -130,7 +127,6 @@ class FormaLegibleTest {
         throw new AssertionError("no está " + prefijo + " en " + l);
     }
 
-    /** Lo justo para volver a leer los renglones de la cadena con el Parser. */
     private static String sinLatex(String l) {
         return l.replace("\\left[", "(").replace("\\right]", ")").replace("\\left(", "(").replace("\\right)", ")")
                 .replace("^{", "^(").replace("}", ")").replace(")(", ")*(").replaceAll("(\\d)x", "$1*x")

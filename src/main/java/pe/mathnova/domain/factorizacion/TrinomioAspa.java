@@ -8,17 +8,12 @@ import pe.mathnova.domain.algebra.Monomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * F13: ax² + bx + c por aspa simple. Exige Δ = b² − 4ac cuadrado perfecto; las raíces
- * p/q dan los factores (qx − p), y el aspa muestra que los productos cruzados suman bx.
- */
 public final class TrinomioAspa extends MetodoBase {
 
     public TrinomioAspa() {
         super("F13");
     }
 
-    /** Solo trinomios de grado 2 en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() == 2 && p.terminos().size() == 3;
@@ -40,7 +35,6 @@ public final class TrinomioAspa extends MetodoBase {
         Racional r1 = b.negar().sumar(Racional.de(s)).dividir(dosA);
         Racional r2 = b.negar().restar(Racional.de(s)).dividir(dosA);
 
-        // Filas del aspa: (q₁x | −p₁) y (q₂x | −p₂), la de menor q arriba.
         Racional[] fila1 = {Racional.de(r1.den()), r1.negar().multiplicar(Racional.de(r1.den()))};
         Racional[] fila2 = {Racional.de(r2.den()), r2.negar().multiplicar(Racional.de(r2.den()))};
         if (fila1[0].compareTo(fila2[0]) > 0) {
@@ -76,7 +70,6 @@ public final class TrinomioAspa extends MetodoBase {
         return r.signo() < 0 ? Formato.numero(r) : "+" + r;
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "El coeficiente de x² no es 1: descompón el primero y el último término y cruza los productos para obtener el del medio.";

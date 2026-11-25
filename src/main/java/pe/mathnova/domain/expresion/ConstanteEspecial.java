@@ -2,7 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.Objects;
 
-/** e, π o la unidad imaginaria i. */
 public record ConstanteEspecial(Tipo tipo) implements Expresion {
 
     public enum Tipo { E, PI, I }

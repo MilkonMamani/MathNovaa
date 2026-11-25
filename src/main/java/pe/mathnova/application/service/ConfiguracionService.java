@@ -20,22 +20,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.infrastructure.persistence.ConfiguracionEntity;
 import pe.mathnova.infrastructure.persistence.ConfiguracionRepository;
 
-/**
- * Preferencias de la tabla configuracion (clave, valor). Cada ajuste se guarda en el momento en que cambia.
- * <ul>
- *   <li>"campo_por_defecto": Q, R o C (por defecto Q, RN27)</li>
- *   <li>"modo_pizarra": "todos" o "paso" (cómo se abre la Pizarra; por defecto "todos")</li>
- *   <li>"mostrar_explicaciones": "true" o "false" (por defecto "false"): las notas de cada paso a la vista</li>
- *   <li>"mostrar_codigos": "true" o "false" (por defecto "false", RNF09): "F16 · Ruffini"</li>
- *   <li>"tamano_letra": "normal", "grande" o "muy_grande" (la Pizarra, la hoja del Historial, Práctica y el PDF)</li>
- *   <li>"tema_interfaz": "claro" u "oscuro" (en oscuro solo cambian fondo y texto; el azul se mantiene)</li>
- *   <li>"animaciones": "true" o "false" (por defecto "true")</li>
- * </ul>
- *
- * <p>Sprint 9, parte E: cada ajuste también es una propiedad observable que se lee una vez al arrancar; las
- * pantallas la escuchan y se actualizan sin reiniciar. Las propiedades se cambian en el hilo de la interfaz. Si la
- * base falla, se usan los valores por defecto y la app sigue funcionando.
- */
 @Service
 public class ConfiguracionService {
 
@@ -47,7 +31,6 @@ public class ConfiguracionService {
     public static final String TAMANO_LETRA = "tamano_letra";
     public static final String TEMA = "tema_interfaz";
 
-    /** Cómo se abre la Pizarra con un resultado nuevo. */
     public enum ModoPizarra {
         TODOS("todos", "Todos los pasos"), PASO_A_PASO("paso", "Paso a paso");
 
@@ -68,7 +51,6 @@ public class ConfiguracionService {
         }
     }
 
-    /** El tamaño de la letra de la Pizarra, la hoja del Historial, Práctica y el PDF. */
     public enum TamanoLetra {
         NORMAL("normal", "Normal", 1.0), GRANDE("grande", "Grande", 1.2), MUY_GRANDE("muy_grande", "Muy grande", 1.4);
 
@@ -90,7 +72,6 @@ public class ConfiguracionService {
             return texto;
         }
 
-        /** Por cuánto se multiplica el tamaño normal. */
         public double factor() {
             return factor;
         }
@@ -116,7 +97,6 @@ public class ConfiguracionService {
         }
     }
 
-    /** Claves que se crean al iniciar si faltan, con su valor por defecto. */
     private static final Map<String, String> POR_DEFECTO = Map.of(ANIMACIONES, "true", MOSTRAR_CODIGOS, "false",
             MOSTRAR_EXPLICACIONES, "false", CAMPO_POR_DEFECTO, "Q", MODO_PIZARRA, ModoPizarra.TODOS.valor(),
             TAMANO_LETRA, TamanoLetra.NORMAL.valor(), TEMA, Tema.CLARO.valor());
@@ -137,7 +117,6 @@ public class ConfiguracionService {
         this.configuracion = configuracion;
     }
 
-    /** Al iniciar, crea las claves que todavía no existen (sin migración nueva). */
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void crearClavesFaltantes() {
@@ -155,27 +134,21 @@ public class ConfiguracionService {
         });
     }
 
-    // ------------------------------------------------------------------ lectura directa
-
-    /** true salvo que la clave diga "false". */
     @Transactional(readOnly = true)
     public boolean animacionesActivas() {
         return leer(ANIMACIONES, true);
     }
 
-    /** false salvo que la clave diga "true". */
     @Transactional(readOnly = true)
     public boolean mostrarCodigos() {
         return leer(MOSTRAR_CODIGOS, false);
     }
 
-    /** false salvo que la clave diga "true". */
     @Transactional(readOnly = true)
     public boolean mostrarExplicaciones() {
         return leer(MOSTRAR_EXPLICACIONES, false);
     }
 
-    /** Q salvo que la clave diga R o C. */
     @Transactional(readOnly = true)
     public Campo campoPorDefecto() {
         String v = leerTexto(CAMPO_POR_DEFECTO);
@@ -204,9 +177,6 @@ public class ConfiguracionService {
         return Tema.OSCURO.valor().equals(leerTexto(TEMA)) ? Tema.OSCURO : Tema.CLARO;
     }
 
-    // ------------------------------------------------------------------ propiedades (sin reiniciar)
-
-    /** Lee todo una vez, al pedir la primera propiedad. */
     private void cargar() {
         if (cargadas) {
             return;
@@ -255,8 +225,6 @@ public class ConfiguracionService {
         return tema;
     }
 
-    // ------------------------------------------------------------------ guardar
-
     @Transactional
     public void guardarCampoPorDefecto(Campo c) {
         cargar();
@@ -273,7 +241,6 @@ public class ConfiguracionService {
         modo.set(v);
     }
 
-    /** El interruptor "Explicaciones" de la Pizarra o de Configuración. Si la base falla, solo se avisa. */
     @Transactional
     public void guardarMostrarExplicaciones(boolean si) {
         cargar();
@@ -304,8 +271,6 @@ public class ConfiguracionService {
         tema.set(v);
     }
 
-    // ------------------------------------------------------------------ base
-
     private void guardar(String clave, boolean valor) {
         guardarTexto(clave, String.valueOf(valor));
     }
@@ -329,7 +294,6 @@ public class ConfiguracionService {
         return porDefecto ? !"false".equalsIgnoreCase(v) : "true".equalsIgnoreCase(v);
     }
 
-    /** El valor sin espacios; null si no está o si la base falla. */
     private String leerTexto(String clave) {
         if (configuracion == null) {
             return null;

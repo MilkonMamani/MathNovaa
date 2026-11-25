@@ -4,21 +4,15 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * F08: a³ + b³ = (a + b)(a² − ab + b²). F09: a³ − b³ = (a − b)(a² + ab + b²).
- * Una sola clase con dos instancias, porque la cuenta es la misma salvo el signo.
- */
 public final class SumaODiferenciaDeCubos extends MetodoBase {
 
     private final boolean suma;
 
-    /** true para F08 (suma), false para F09 (diferencia). */
     public SumaODiferenciaDeCubos(boolean suma) {
         super(suma ? "F08" : "F09");
         this.suma = suma;
     }
 
-    /** Solo con 2 términos. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() == 2;
@@ -58,7 +52,6 @@ public final class SumaODiferenciaDeCubos extends MetodoBase {
         return resultado(justificacion, p, factores, trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return codigo().equals("F08")

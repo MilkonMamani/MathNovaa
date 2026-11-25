@@ -12,11 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import pe.mathnova.domain.BancoCsv;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Definición de terminado 3, prueba fuerte de parser + álgebra: en las filas del campo Q sin
- * funciones (sen, cos, tan, ln, log, e^) y cuyo método principal no es P01 ni A4, expandir la
- * factorización esperada da la entrada.
- */
 class PolinomioBancoTest {
 
     private static final Pattern FUNCIONES = Pattern.compile("sen|cos|tan|ln|log|e\\^");

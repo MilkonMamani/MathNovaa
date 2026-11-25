@@ -36,12 +36,6 @@ import org.slf4j.LoggerFactory;
 import pe.mathnova.application.pdf.DocumentoPdf;
 import pe.mathnova.application.service.ExportacionPdfService;
 
-/**
- * "Exportar PDF" de la Pizarra y de la hoja del Historial (Sprint 9, parte C), el mismo recorrido en las dos:
- * se arma el documento (fuera del hilo de la interfaz), el diálogo pregunta si se incluye la gráfica, el
- * FileChooser propone mathnova-&lt;operación&gt;-&lt;fecha&gt;.pdf, se escribe el archivo en otro hilo y abajo
- * aparece "PDF guardado en &lt;ruta&gt;" unos segundos.
- */
 public final class ExportarPdf {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExportarPdf.class);
@@ -50,19 +44,15 @@ public final class ExportarPdf {
     static final String SIN_GRAFICA = "Esta resolución no tiene gráfica.";
     static final Duration DURACION_AVISO = Duration.seconds(4);
 
-    /** El diálogo y el FileChooser; las pruebas ponen respuestas fijas. */
     public interface Preguntas {
 
-        /** @return si se incluye la gráfica; null si se canceló */
         Boolean incluirGrafica(Window ventana, boolean hayGrafica);
 
-        /** @return dónde guardar; null si se canceló */
         Path destino(Window ventana, String nombrePropuesto);
     }
 
     private final ExportacionPdfService servicio;
     private Preguntas preguntas = new PreguntasReales();
-    /** Para las pruebas: corre las tareas (por omisión, en un hilo aparte). */
     private Consumer<Task<?>> ejecutor = t -> {
         Thread hilo = new Thread(t, "exportar-pdf");
         hilo.setDaemon(true);
@@ -76,13 +66,6 @@ public final class ExportarPdf {
         this.servicio = Objects.requireNonNull(servicio);
     }
 
-    /**
-     * Empieza la exportación.
-     *
-     * @param origen  el botón (para la ventana y para ubicar el aviso)
-     * @param armar   arma el documento; corre fuera del hilo de la interfaz
-     * @param grafica la gráfica en PNG, en el hilo de la interfaz; null si no hay gráfica
-     */
     public void exportar(Node origen, java.util.function.Function<LocalDate, DocumentoPdf> armar,
                          Supplier<byte[]> grafica) {
         if (ocupado) {
@@ -145,28 +128,17 @@ public final class ExportarPdf {
         avisar(origen, "No se pudo guardar el PDF: " + motivo);
     }
 
-    /** "ejercicio" → "ejercicio.pdf"; "ejercicio.PDF" se deja. */
     static Path conExtension(Path p) {
         String nombre = p.getFileName().toString();
         return nombre.toLowerCase(java.util.Locale.ROOT).endsWith(".pdf") ? p : p.resolveSibling(nombre + ".pdf");
     }
 
-    // ---------------------------------------------------------------- aviso abajo
-
-    /** El mensaje corto abajo, al centro de la ventana; se desvanece solo. */
     private void avisar(Node origen, String texto) {
         ultimoAviso = texto;
         AvisoBreve.mostrar(origen, texto, DURACION_AVISO);
     }
 
-    // ---------------------------------------------------------------- gráfica
-
-    /**
-     * Dibuja un nodo nuevo fuera de la pantalla (la pestaña Gráfica puede estar oculta) y lo devuelve en PNG, al
-     * doble de resolución para que se imprima bien.
-     */
     static byte[] png(Parent grafica, double ancho, double alto, java.util.List<String> estilos) {
-        // En papel no hay con qué pulsar: fuera los botones de zoom y "Restablecer vista".
         grafica.applyCss();
         for (Node control : grafica.lookupAll(".grafica-control")) {
             control.setVisible(false);
@@ -188,9 +160,6 @@ public final class ExportarPdf {
         }
     }
 
-    // ---------------------------------------------------------------- diálogo y FileChooser
-
-    /** El diálogo "Exportar PDF" con "Incluir gráfica" y el FileChooser del sistema. */
     static final class PreguntasReales implements Preguntas {
 
         @Override
@@ -247,8 +216,6 @@ public final class ExportarPdf {
         return servicio;
     }
 
-    // ---------------------------------------------------------------- pruebas
-
     void setPreguntas(Preguntas preguntas) {
         this.preguntas = preguntas;
     }
@@ -261,7 +228,6 @@ public final class ExportarPdf {
         this.hoy = hoy;
     }
 
-    /** El último mensaje de abajo ("PDF guardado en …"); null si no hubo. */
     String ultimoAviso() {
         return ultimoAviso;
     }

@@ -10,7 +10,6 @@ import pe.mathnova.domain.expresion.Raiz;
 import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.Variable;
 
-/** Reemplaza una letra por una expresión: f(2), f(−x). */
 public final class Sustitucion {
 
     private Sustitucion() {

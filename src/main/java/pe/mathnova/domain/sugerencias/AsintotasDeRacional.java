@@ -2,7 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/** RN19: una racional con denominador no constante tiene asíntotas; la tarjeta abre Análisis. */
 final class AsintotasDeRacional implements ReglaSugerencia {
 
     @Override

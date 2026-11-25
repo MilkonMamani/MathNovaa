@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import pe.mathnova.domain.expresion.IntegralMultiple;
 
-/** ∬ y ∭ con los límites separados por comas (gramática v2) o entre corchetes: el mismo árbol. */
 class IntegralMultipleFormasTest {
 
     @ParameterizedTest(name = "{1} = {0}")

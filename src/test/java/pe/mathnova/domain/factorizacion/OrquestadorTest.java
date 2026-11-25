@@ -16,7 +16,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.parser.Parser;
 
-/** Ejemplos exactos del Sprint 2 (HU04, HU05, HU07, HU18). */
 class OrquestadorTest {
 
     private final OrquestadorFactorizacion motor = new OrquestadorFactorizacion();
@@ -29,7 +28,6 @@ class OrquestadorTest {
         return pasos.stream().map(Paso::codigoTecnica).toList();
     }
 
-    /** Pasos, resultado (texto exacto y estructura) y verificación expandiendo (HU18). */
     private Resolucion comprobar(String entrada, List<String> pasos, String resultado) {
         Resolucion r = resolver(entrada);
         assertAll(entrada,
@@ -81,10 +79,6 @@ class OrquestadorTest {
         assertEquals("9x² = (3x)², 4 = 2² y 12x = 2·3x·2", r.pasos().getFirst().justificacion());
     }
 
-    /**
-     * El enunciado escribe (2x − 1)(3x + 2); RN12 ordena por raíz de menor a mayor (−2/3 antes que 1/2),
-     * igual que el banco, así que el texto es (3x + 2)(2x − 1). Por estructura son la misma forma.
-     */
     @Test
     void aspaSimple() {
         Resolucion r = comprobar("6x^2 + x - 2", List.of("F13"), "(3x + 2)(2x - 1)");
@@ -136,12 +130,10 @@ class OrquestadorTest {
         assertEquals("Ninguno de los candidatos ±1 es raíz: no tiene raíces racionales", cubica.justificacion());
         assertTrue(cubica.certificada());
 
-        // Sprint 3: con Ruffini, x³ − 2x² − 5x + 6 ya se factoriza por completo.
         Resolucion conRaiz = resolver("x^3 - 2x^2 - 5x + 6");
         assertEquals("F16", conRaiz.pasos().getFirst().codigoTecnica());
         assertTrue(conRaiz.irreducibles().stream().allMatch(i -> i.factor().grado() == 1));
 
-        // Sprint 3 (A.3): A4 certifica con Kronecker, sin mencionar sprints ni códigos.
         var cuarta = resolver("x^4 + 1").irreducibles().getFirst();
         assertEquals("No se puede factorizar en Q: no tiene raíces racionales y no se parte en factores "
                 + "de grado 2 o más.", cuarta.justificacion());
@@ -151,7 +143,6 @@ class OrquestadorTest {
         assertEquals("Δ = 8 no es un cuadrado perfecto", x2menos2.justificacion());
     }
 
-    /** RN12: el texto sale igual que en el banco. */
     @ParameterizedTest(name = "{0} → {1}")
     @CsvSource(delimiter = '|', value = {
             "2x^4 - 4x^2           | 2x^2(x^2 - 2)",
@@ -173,13 +164,6 @@ class OrquestadorTest {
         assertEquals(esperado, motor.factorizar(entrada, Campo.Q));
     }
 
-    // ================================================================== Sprint 4: R y C
-
-    /**
-     * Ejemplos exactos de la Parte B. Se compara por estructura (los mismos factores mónicos y la misma
-     * constante), se exige primero los pasos de Q y luego "Pasar a R/C" con los métodos esperados, y la
-     * verificación de la Parte E.
-     */
     @ParameterizedTest(name = "{0} en {1}")
     @CsvSource(delimiter = '|', value = {
             "x^2 - 2         | R | -               | F21           | (x − √2)(x + √2)",
@@ -255,7 +239,7 @@ class OrquestadorTest {
                 () -> assertEquals("F27", f27.codigoTecnica()),
                 () -> assertTrue(f27.trabajo().toString().contains("casus irreducibilis")),
                 () -> assertEquals(3, r.extension().resultado().factores().size()),
-                () -> assertFalse(r.texto().contains("i")), // sin complejos en el resultado final
+                () -> assertFalse(r.texto().contains("i")),
                 () -> assertTrue(r.texto().contains("cos")),
                 () -> assertTrue(v.coincide()),
                 () -> assertTrue(v.numerica()));
@@ -281,9 +265,6 @@ class OrquestadorTest {
                 () -> assertTrue(v.numerica()));
     }
 
-    // ================================================================== Sprint 3
-
-    /** Pasos y resultado por estructura (el orden del texto lo fija RN12) y verificación HU18. */
     private Resolucion comprobarEstructura(String entrada, List<String> pasos, String resultado) {
         Resolucion r = resolver(entrada);
         assertAll(entrada,
@@ -308,15 +289,9 @@ class OrquestadorTest {
                 () -> assertEquals("(x^2 - 1)(2x^2 - 5x + 2)", f04.despuesComoForma().aTexto()),
                 () -> assertEquals(List.of("2x⁴ − 2 = 2(x⁴ − 1) = 2(x² + 1)(x² − 1)", "−5x³ + 5x = −5x(x² − 1)"),
                         assertInstanceOf(TrabajoIntermedio.Agrupacion.class, f04.trabajo()).grupos()),
-                // Parte D: al inicio también aplica Ruffini.
                 () -> assertEquals(List.of("F16"), r.alternativas()));
     }
 
-    /**
-     * HU08. El enunciado dice "x = 1, luego x = −1"; con el orden de RN09 (positivos antes que
-     * negativos) el cociente 2x³ − 3x² − 3x + 2 tiene antes la raíz x = 2, como en el ejemplo
-     * siguiente. Queda (2x − 1)(x + 1) para F13.
-     */
     @Test
     void forzarRuffini() {
         Resolucion r = motor.resolver(Parser.parse("2x^4 - 5x^3 + 5x - 2"), Campo.Q, "F16");

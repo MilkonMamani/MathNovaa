@@ -17,14 +17,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-/**
- * Teclado en pantalla (HU33, RF72) para un {@link EditorMatematico}. Pestañas en forma de píldora
- * 123 | f(x) | ABC | #&¬ y "•••" a la derecha, que abre la configuración. Las teclas no toman el
- * foco: el editor lo conserva y, con las plantillas, el cursor queda en la primera casilla.
- */
 public class TecladoMatematico extends VBox {
 
-    /** El ancho de partida de cada columna de teclas, antes de repartir el ancho del panel. */
     private static final double ANCHO_COLUMNA = 64;
 
     private final EditorMatematico editor;
@@ -33,12 +27,10 @@ public class TecladoMatematico extends VBox {
     private Runnable onConfiguracion = () -> { };
     private Supplier<String> respuestaAnterior = () -> null;
     private boolean mayuscula;
-    /** true mientras se arma ABC: solo sus letras cambian con ⇧. */
     private boolean armandoLetras;
     private Node letras;
     private Node griegas;
     private final java.util.List<Button> botonesDeLetra = new java.util.ArrayList<>();
-    /** El botón de cada tecla (el primero, si la tecla está en dos pestañas). */
     private final java.util.Map<Teclas.Tecla, Button> botones = new java.util.IdentityHashMap<>();
 
     public TecladoMatematico(EditorMatematico editor) {
@@ -84,17 +76,13 @@ public class TecladoMatematico extends VBox {
         ((ToggleButton) pestanas.getChildren().getFirst()).fire();
     }
 
-    /** Lo que hace "•••". */
     public void setOnConfiguracion(Runnable accion) {
         onConfiguracion = accion == null ? () -> { } : accion;
     }
 
-    /** LaTeX de la respuesta anterior para "ans"; null si todavía no hay. */
     public void setRespuestaAnterior(Supplier<String> proveedor) {
         respuestaAnterior = proveedor == null ? () -> null : proveedor;
     }
-
-    // ------------------------------------------------------------------ armado
 
     private Node vista(Teclas.Pestana p) {
         if (p.derecha() == null) {
@@ -116,8 +104,6 @@ public class TecladoMatematico extends VBox {
         g.setVgap(6);
         int columnas = b.columnas();
         for (int c = 0; c < columnas; c++) {
-            // Todas las columnas parten del mismo ancho y crecen o se encogen por igual; al achicar el panel,
-            // la columna de "Enter" o de una plantilla se detiene en lo que mide su texto y las demás siguen.
             ColumnConstraints cc = new ColumnConstraints();
             cc.setPrefWidth(ANCHO_COLUMNA);
             cc.setHgrow(Priority.ALWAYS);
@@ -127,7 +113,6 @@ public class TecladoMatematico extends VBox {
         List<List<Teclas.Tecla>> filas = b.filas();
         for (int f = 0; f < filas.size(); f++) {
             List<Teclas.Tecla> fila = filas.get(f);
-            // Una fila más corta se estira: la última tecla ocupa lo que sobra (por ejemplo "espacio").
             int c = 0;
             for (int k = 0; k < fila.size(); k++) {
                 Teclas.Tecla t = fila.get(k);
@@ -158,10 +143,8 @@ public class TecladoMatematico extends VBox {
             b.setTooltip(tip);
         }
         b.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        // Nunca "Ent…": la tecla no baja de lo que mide su texto; el panel no deja achicar más el teclado.
         b.setMinWidth(Region.USE_PREF_SIZE);
         b.setMinHeight(40);
-        // Sin foco propio: el editor conserva el cursor.
         b.setFocusTraversable(false);
         b.setOnAction(e -> pulsar(t, b));
         botones.putIfAbsent(t, b);
@@ -172,7 +155,6 @@ public class TecladoMatematico extends VBox {
         return b;
     }
 
-    /** Pulsa la tecla como con el mouse (pruebas). */
     void pulsar(Teclas.Tecla t) {
         Button b = botones.get(t);
         if (b == null) {

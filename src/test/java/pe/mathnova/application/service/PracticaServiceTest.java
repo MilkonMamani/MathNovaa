@@ -24,11 +24,6 @@ import pe.mathnova.application.service.PracticaService.Pregunta;
 import pe.mathnova.application.service.PracticaService.Respuesta;
 import pe.mathnova.domain.factorizacion.Campo;
 
-/**
- * Sprint 9, parte D: el modo Práctica con los tres ejercicios del enunciado. En cada paso la opción correcta
- * está entre las opciones, un distractor devuelve su motivo, el conteo de aciertos a la primera es correcto y la
- * sesión queda guardada. Base de prueba de target/; cada prueba se deshace al terminar.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class PracticaServiceTest {
@@ -43,10 +38,6 @@ class PracticaServiceTest {
         practica.setAzar(new Random(7));
     }
 
-    /**
-     * Recorre la práctica: en el primer paso elige antes un distractor (falla una vez); en los demás acierta a la
-     * primera. Comprueba en cada paso que la correcta está entre las opciones y que el distractor da su motivo.
-     */
     private Practica recorrer(String texto, List<String> esperados) {
         Practica p = practica.iniciar(texto, Campo.Q);
         assertEquals(esperados.size(), p.totalPasos(), texto);
@@ -60,7 +51,6 @@ class PracticaServiceTest {
             int esperadas = PracticaService.TERMINASTE.equals(q.pregunta()) ? 2 : 3;
             assertTrue(codigos.size() >= esperadas && codigos.size() <= 4,
                     texto + ", paso " + k + ": la correcta y 2 o 3 distractores, no " + codigos);
-            // Cada distractor tiene su motivo
             Map<String, String> motivos = practica.motivos(p.sesionId(), k);
             for (String c : codigos) {
                 if (!c.equals(correcta)) {
@@ -90,7 +80,6 @@ class PracticaServiceTest {
         assertEquals(esperados.size() - 1, e.aciertos(), "el primer paso se falló una vez: no cuenta");
         assertEquals(1, e.fallidos());
 
-        // La sesión y los intentos quedaron guardados
         Map<String, Object> fila = jdbc.queryForMap("SELECT * FROM sesion_practica WHERE id = ?", p.sesionId());
         assertEquals(p.resolucionId(), ((Number) fila.get("resolucion_id")).intValue());
         assertEquals(esperados.size(), ((Number) fila.get("total_pasos")).intValue());
@@ -108,7 +97,6 @@ class PracticaServiceTest {
     void agrupacionDiferenciaDeCuadradosYTerminado() {
         Practica p = recorrer("x^3 - 2x^2 - x + 2", List.of("F04", "F05", PracticaService.CODIGO_SI));
         assertEquals("Factorizar", p.titulo());
-        // La técnica elegida se guarda con su código; "Sí, todos los factores…", sin código y con su texto
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM intento_paso WHERE sesion_id = ? AND orden_paso = 3 "
                 + "AND tecnica_propuesta IS NULL AND expresion_propuesta = ?", Integer.class, p.sesionId(),
                 PracticaService.SI_TERMINE));
@@ -128,11 +116,8 @@ class PracticaServiceTest {
     @Test
     void enElLimiteNingunDistractorEsUnMetodoQueTambienFunciona() {
         Practica p = practica.iniciar("lim(x→2, (x^2 - 4)/(x - 2))", Campo.Q);
-        // Paso 2 (0/0 en una fracción de polinomios): L'Hôpital también funciona, así que no es un error
         assertFalse(practica.motivos(p.sesionId(), 2).containsKey("L07"));
-        // Paso 1: todavía no se evaluó; cualquier transformación es prematura
         assertTrue(practica.motivos(p.sesionId(), 1).values().stream().allMatch(m -> m.contains("primero")));
-        // Paso 3: ya no hay indeterminación
         assertTrue(practica.motivos(p.sesionId(), 3).values().stream()
                 .allMatch(m -> m.contains("no queda ninguna indeterminación")), practica.motivos(p.sesionId(), 3)
                 .toString());
@@ -141,7 +126,6 @@ class PracticaServiceTest {
     @Test
     void losDistractoresDeLaFactorizacionSalenPrimeroDeLosDescartados() {
         Practica p = practica.iniciar("x^3 - 2x^2 - x + 2", Campo.Q);
-        // F01 se probó en la entrada y se descartó (HU05): es uno de los motivos del paso 1
         Map<String, String> m = practica.motivos(p.sesionId(), 1);
         assertTrue(m.containsKey("F01"), m.toString());
     }

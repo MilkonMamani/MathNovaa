@@ -13,10 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import pe.mathnova.domain.BancoCsv;
 
-/**
- * Definición de terminado 1: el parser lee las 590 expresiones del banco (columnas entrada y
- * resultado_esperado, salvo las que empiezan con "Irreducible"; se ignora lo que va después de ";").
- */
 class ParserBancoTest {
 
     static List<Arguments> expresiones() {

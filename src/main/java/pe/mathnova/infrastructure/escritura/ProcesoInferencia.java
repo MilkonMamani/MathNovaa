@@ -29,21 +29,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
-/**
- * El proceso local de inferencia (servidor_unimernet.py), siempre el mismo mientras MathNova está
- * abierto: el modelo se carga una vez. Se habla con él por entrada/salida estándar, un JSON por línea.
- *
- * <ul>
- *   <li>Arranca la primera vez que se lo necesita ({@link #iniciar}) y espera la línea {"listo": true}.</li>
- *   <li>Atiende una imagen a la vez. Si una lectura se abandona (el hilo que esperaba se interrumpe
- *       porque llegó un trazo nuevo), la respuesta se descarta cuando llega; la lectura siguiente espera a
- *       que el proceso quede libre, así nunca se acumulan imágenes viejas en la cola.</li>
- *   <li>Si el proceso muere o no responde a tiempo, la lectura falla, el proceso se detiene y el próximo
- *       pedido lo vuelve a arrancar.</li>
- *   <li>{@link #close} lo termina: primero cierra su entrada (el servidor sale solo) y, si no sale, lo
- *       mata junto con sus hijos.</li>
- * </ul>
- */
 public final class ProcesoInferencia implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProcesoInferencia.class);
@@ -65,13 +50,6 @@ public final class ProcesoInferencia implements AutoCloseable {
     private volatile long cargaMs = -1;
     private volatile boolean cerrado;
 
-    /**
-     * @param comando       el programa y sus argumentos (python.exe servidor_unimernet.py --modelo …)
-     * @param carpeta       carpeta de trabajo del proceso
-     * @param esperaCarga   cuánto puede tardar en cargar el modelo
-     * @param esperaLectura cuánto puede tardar una imagen
-     * @param registro      archivo donde va la salida de errores del proceso; null, al log de MathNova
-     */
     public ProcesoInferencia(List<String> comando, Path carpeta, Duration esperaCarga, Duration esperaLectura,
                              Path registro) {
         this.comando = List.copyOf(comando);
@@ -81,22 +59,18 @@ public final class ProcesoInferencia implements AutoCloseable {
         this.registro = registro;
     }
 
-    /** true si el modelo ya está cargado y el proceso vive. */
     public synchronized boolean listo() {
         return proceso != null && proceso.isAlive() && listo != null && listo.isDone() && !listo.isCompletedExceptionally();
     }
 
-    /** Milisegundos que tardó en cargar el modelo la última vez; -1 si todavía no cargó. */
     public long cargaMs() {
         return cargaMs;
     }
 
-    /** El PID del proceso, o -1. */
     public synchronized long pid() {
         return proceso != null && proceso.isAlive() ? proceso.pid() : -1;
     }
 
-    /** Arranca el proceso si no está vivo y espera a que cargue el modelo. Bloquea: fuera del hilo de JavaFX. */
     public void iniciar() throws IOException, InterruptedException {
         CompletableFuture<JsonNode> espera;
         synchronized (this) {
@@ -123,10 +97,9 @@ public final class ProcesoInferencia implements AutoCloseable {
         }
     }
 
-    /** El LaTeX de la imagen PNG. Bloquea; si el hilo se interrumpe, la lectura se abandona. */
     public String reconocer(byte[] png) throws IOException, InterruptedException {
         iniciar();
-        libre.acquire(); // una a la vez; se suelta cuando el proceso responde (aunque nadie espere ya)
+        libre.acquire();
         long id = ids.incrementAndGet();
         CompletableFuture<String> respuesta = new CompletableFuture<>();
         respuesta.whenComplete((r, e) -> libre.release());
@@ -152,7 +125,6 @@ public final class ProcesoInferencia implements AutoCloseable {
             detener();
             throw new IOException("El reconocedor no respondió a tiempo");
         }
-        // InterruptedException: la respuesta llegará y se descartará; el permiso se suelta entonces.
     }
 
     private synchronized void escribir(String linea) throws IOException {
@@ -255,19 +227,16 @@ public final class ProcesoInferencia implements AutoCloseable {
                 LOG.debug("[reconocedor] {}", linea);
             }
         } catch (IOException e) {
-            // el proceso terminó
         }
     }
 
-    /** Detiene el proceso (si vive); el próximo pedido lo vuelve a arrancar. */
     public synchronized void detener() {
         Process p = proceso;
         proceso = null;
         if (entrada != null) {
             try {
-                entrada.close(); // el servidor sale al ver el fin de su entrada
+                entrada.close();
             } catch (IOException e) {
-                // ya estaba cerrada
             }
             entrada = null;
         }
@@ -293,7 +262,6 @@ public final class ProcesoInferencia implements AutoCloseable {
         detener();
     }
 
-    /** Añade una línea al registro del proceso (por ejemplo, el comando con que se arrancó). */
     void anotar(String texto) {
         if (registro == null) {
             return;

@@ -5,17 +5,12 @@ import java.util.Optional;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * F11: aⁿ ± bⁿ con n impar ≥ 5 (n = 3 es F08/F09).
- * aⁿ + bⁿ = (a + b)(aⁿ⁻¹ − aⁿ⁻²b + … + bⁿ⁻¹) y aⁿ − bⁿ = (a − b)(aⁿ⁻¹ + aⁿ⁻²b + … + bⁿ⁻¹).
- */
 public final class PotenciasEnesimas extends MetodoBase {
 
     public PotenciasEnesimas() {
         super("F11");
     }
 
-    /** Solo con 2 términos y grado 5 o más. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() == 2 && p.grado() >= 5;
@@ -34,7 +29,7 @@ public final class PotenciasEnesimas extends MetodoBase {
         }
         for (int n = 5; n <= p.grado(); n += 2) {
             Optional<Termino> a = t1.raiz(n);
-            Optional<Termino> b = t2.raiz(n); // n impar: conserva el signo
+            Optional<Termino> b = t2.raiz(n);
             if (a.isPresent() && b.isPresent()) {
                 return factorizar(p, t1, t2, a.get(), b.get(), n);
             }
@@ -44,7 +39,6 @@ public final class PotenciasEnesimas extends MetodoBase {
     }
 
     private ResultadoMetodo factorizar(Polinomio p, Termino t1, Termino t2, Termino a, Termino b, int n) {
-        // aⁿ + bⁿ = (a + b)·Σ a^(n−1−k)·(−b)^k, con b con su signo
         Termino menosB = b.negar();
         Polinomio cociente = Polinomio.CERO;
         for (int k = 0; k < n; k++) {
@@ -63,7 +57,6 @@ public final class PotenciasEnesimas extends MetodoBase {
         return resultado(justificacion, p, factores, trabajo);
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Son dos términos con el mismo exponente alto: piensa en aⁿ − bⁿ o aⁿ + bⁿ.";

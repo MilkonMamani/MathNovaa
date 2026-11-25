@@ -39,17 +39,6 @@ import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * HU28 (RF52, RF53): derivadas parciales, gradiente, derivada direccional y regla de la cadena en varias
- * variables, con el derivador de una variable tratando las demás letras como constantes.
- * <ul>
- *   <li>V01: ∂/∂x(…), ∂2/∂x2(…), ∂2/∂x∂y(…) (de derecha a izquierda: ∂²f/∂x∂y = ∂/∂x(∂f/∂y));</li>
- *   <li>V02: ∇f = (f_x, f_y, …), y su valor en un punto;</li>
- *   <li>V03: D_u f(P) = ∇f(P)·u, normalizando antes el vector si no es unitario;</li>
- *   <li>V04: df/dt = f_x·x' + f_y·y' con x = x(t), y = y(t), con su diagrama de árbol.</li>
- * </ul>
- * También el dominio de f(x, y) (RF52) y la tabla de parciales con la hessiana para Análisis.
- */
 public final class MotorParciales {
 
     public static final String PARCIAL = "V01";
@@ -66,7 +55,6 @@ public final class MotorParciales {
         return ImpresoraPizarra.imprimir(e);
     }
 
-    /** Un polinomio en varias letras queda en su orden (2xy + 3y²); lo demás, con la forma final de x. */
     private static Expresion simple(Expresion e, char x) {
         try {
             pe.mathnova.domain.algebra.Polinomio q = pe.mathnova.domain.algebra.Polinomio.desde(Simplificador.simplificar(e));
@@ -74,7 +62,6 @@ public final class MotorParciales {
                 return Simplificador.simplificar(q.aExpresion());
             }
         } catch (RuntimeException noEsPolinomio) {
-            // sigue con la forma final
         }
         try {
             return FormaFinal.de(e, x);
@@ -83,7 +70,6 @@ public final class MotorParciales {
         }
     }
 
-    /** x, y, z si f usa solo esas letras; si no, las letras de f en orden alfabético. */
     public static List<Character> variables(Expresion f, int minimo) {
         SortedSet<Character> letras = Expresiones.variables(f);
         List<Character> xyz = List.of('x', 'y', 'z');
@@ -94,9 +80,6 @@ public final class MotorParciales {
         return List.copyOf(letras);
     }
 
-    // ================================================================== V01
-
-    /** Una parcial respecto de v, como paso: "y se trata como constante". */
     private static PasoLimite parcial(Expresion f, char v, List<Character> letras, Expresion[] resultado) {
         Derivador.Resultado r = Derivador.derivar(f, v);
         Expresion d = simple(r.derivada(), v);
@@ -134,8 +117,6 @@ public final class MotorParciales {
         return new ResolucionParcial(d, ResolucionParcial.Tipo.PARCIAL, f, letras, actual, List.of(), pasos, verificada,
                 dominio(f));
     }
-
-    // ================================================================== V02
 
     private record Grad(List<Expresion> componentes, List<PasoLimite> pasos, boolean verificada) {
     }
@@ -208,8 +189,6 @@ public final class MotorParciales {
         return String.join(", ", pt.entrySet().stream().map(e -> e.getKey() + " = " + p(e.getValue())).toList());
     }
 
-    // ================================================================== V03
-
     private ResolucionParcial direccional(Direccional d) {
         Expresion f = d.cuerpo();
         List<Character> letras = variables(f, d.punto().size());
@@ -257,12 +236,6 @@ public final class MotorParciales {
                 || e instanceof Cociente ? "(" + p(e) + ")" : p(e);
     }
 
-    // ================================================================== V04
-
-    /**
-     * Lee "d/dt(x^2 y); x = t^2, y = sen t": la derivada y, después de ";", las sustituciones separadas por
-     * comas. Vacío si no tiene esa forma.
-     */
     public static Optional<ReglaCadena> leerCadena(String texto) {
         int pc = texto.indexOf(';');
         if (pc < 0) {
@@ -289,7 +262,6 @@ public final class MotorParciales {
         return Optional.of(new ReglaCadena(d, sus));
     }
 
-    /** Las comas que no están dentro de paréntesis. */
     private static List<String> partir(String s) {
         List<String> r = new ArrayList<>();
         int nivel = 0;
@@ -311,7 +283,6 @@ public final class MotorParciales {
         return r;
     }
 
-    /** d/dt(f) con x = x(t), y = y(t). */
     public record ReglaCadena(Derivada derivada, Map<Character, Expresion> sustituciones) {
         public ReglaCadena {
             sustituciones = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(sustituciones));
@@ -385,11 +356,6 @@ public final class MotorParciales {
         };
     }
 
-    // ================================================================== entrada
-
-    /**
-     * @throws IllegalArgumentException si no es ∂, grad ni Du, o el punto no tiene las coordenadas de f
-     */
     public ResolucionParcial resolver(Expresion e) {
         return switch (e) {
             case DerivadaParcial d -> parcial(d);
@@ -400,9 +366,6 @@ public final class MotorParciales {
         };
     }
 
-    // ================================================================== dominio (RF52)
-
-    /** Las restricciones de f: denominador ≠ 0, raíz par ≥ 0, logaritmo > 0, arcsen y arccos entre −1 y 1. */
     public static List<String> dominio(Expresion f) {
         LinkedHashSet<String> r = new LinkedHashSet<>();
         restricciones(f, r);
@@ -465,7 +428,6 @@ public final class MotorParciales {
         }
     }
 
-    /** "Todos los (x, y) del plano" o las restricciones unidas con "y". */
     public static String textoDominio(List<String> restricciones, List<Character> letras) {
         String punto = "(" + String.join(", ", letras.stream().map(String::valueOf).toList()) + ")";
         if (restricciones.isEmpty()) {
@@ -474,15 +436,6 @@ public final class MotorParciales {
         return "Los " + punto + " con " + String.join(" y ", restricciones);
     }
 
-    // ================================================================== Análisis: parciales y hessiana
-
-    /**
-     * Las parciales de primer y segundo orden y la matriz hessiana (la usará el Sprint 8).
-     *
-     * @param primeras  "f_x" → 2xy…, en el orden de las letras
-     * @param segundas  "f_xx", "f_xy"…, en el orden de la matriz
-     * @param hessiana  H[i][j] = ∂²f/∂xᵢ∂xⱼ
-     */
     public record TablaParciales(List<Character> variables, Map<String, Expresion> primeras,
                                  Map<String, Expresion> segundas, List<List<Expresion>> hessiana) {
     }
@@ -510,8 +463,6 @@ public final class MotorParciales {
         return new TablaParciales(letras, primeras, segundas, List.copyOf(h));
     }
 
-    // ================================================================== verificación numérica
-
     private static Map<Character, ComplejoDecimal> puntoDePrueba(List<Character> letras, Expresion... es) {
         java.util.SortedSet<Character> todas = new java.util.TreeSet<>(letras);
         for (Expresion e : es) {
@@ -525,7 +476,6 @@ public final class MotorParciales {
         return r;
     }
 
-    /** ∂f/∂v en un punto, con el cociente incremental centrado, contra el resultado. */
     static boolean verificar(Expresion f, char v, Expresion derivada, List<Character> letras) {
         try {
             Map<Character, ComplejoDecimal> pt = puntoDePrueba(letras, f, derivada);

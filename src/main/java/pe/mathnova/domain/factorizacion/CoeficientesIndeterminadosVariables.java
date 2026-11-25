@@ -4,11 +4,6 @@ import java.util.List;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * M08: coeficientes indeterminados en varias letras, como respaldo cuando M01–M07 no aplican. Se
- * plantea p = P·Q con coeficientes por determinar; para hallarlos se pasa a una letra con la reducción
- * de Kronecker (y = x^d), se factoriza en Q y se regresa.
- */
 final class CoeficientesIndeterminadosVariables extends MetodoBase {
 
     CoeficientesIndeterminadosVariables() {
@@ -40,7 +35,6 @@ final class CoeficientesIndeterminadosVariables extends MetodoBase {
                 p, List.of(Factor.de(q), Factor.de(h)), new TrabajoIntermedio.Agrupacion(lineas));
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "Supón dos factores con coeficientes por hallar, multiplícalos e iguala los términos de cada grado.";

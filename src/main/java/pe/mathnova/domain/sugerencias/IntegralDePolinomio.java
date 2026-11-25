@@ -2,7 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/** RN18: un polinomio se integra término a término, sin factorizar. */
 final class IntegralDePolinomio implements ReglaSugerencia {
 
     @Override

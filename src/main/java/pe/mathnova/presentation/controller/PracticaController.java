@@ -35,12 +35,6 @@ import pe.mathnova.application.service.PracticaService.Pregunta;
 import pe.mathnova.application.service.PracticaService.Respuesta;
 import pe.mathnova.domain.factorizacion.Campo;
 
-/**
- * Pantalla "Práctica" (Sprint 9, parte D). Sin ejercicio, las tarjetas de "Elige un ejercicio". Con ejercicio, a
- * la izquierda el avance y a la derecha la pizarra: el enunciado, los pasos acertados con el formato de la
- * Pizarra y el recuadro punteado con la pregunta. Una opción equivocada queda tachada y gris, sin poder pulsarse
- * otra vez, con "⚠ No aplica." y el motivo debajo. Toda la lógica está en {@link PracticaService}.
- */
 @Component
 @Scope("prototype")
 public class PracticaController {
@@ -53,9 +47,7 @@ public class PracticaController {
     private Practica practica;
     private Pregunta pregunta;
     private final Map<String, Button> botones = new HashMap<>();
-    /** Cambia con cada ejercicio pedido: uno que llega tarde se descarta. */
     private int pedido;
-    /** Para las pruebas: corre las tareas (por omisión, en un hilo aparte). */
     private Consumer<Task<?>> ejecutor = t -> {
         Thread hilo = new Thread(t, "practica");
         hilo.setDaemon(true);
@@ -125,8 +117,6 @@ public class PracticaController {
         cargarPropuestas();
     }
 
-    // ---------------------------------------------------------------- elegir un ejercicio
-
     private void cargarPropuestas() {
         Task<List<PracticaService.Propuesta>> t = new Task<>() {
             @Override
@@ -149,7 +139,6 @@ public class PracticaController {
         ejecutor.accept(t);
     }
 
-    /** "Límites · 3 pasos", el título, la fórmula y "Empezar". */
     private Node tarjeta(PracticaService.Propuesta p) {
         Label tema = new Label(p.tema() + " · " + (p.pasos() == 1 ? "1 paso" : p.pasos() + " pasos"));
         tema.getStyleClass().add("practica-tarjeta-tema");
@@ -171,9 +160,6 @@ public class PracticaController {
         return t;
     }
 
-    // ---------------------------------------------------------------- empezar
-
-    /** Empieza (o repite) un ejercicio: lo resuelve el motor y aparece la primera pregunta. */
     public void empezar(String texto, Campo campo) {
         int este = ++pedido;
         mostrar(error, false);
@@ -216,7 +202,6 @@ public class PracticaController {
         siguiente();
     }
 
-    /** La pregunta que toca, o el final. */
     private void siguiente() {
         PracticaService.Estado e = servicio.estado(practica.sesionId());
         pintarAvance(e);
@@ -253,8 +238,6 @@ public class PracticaController {
         aciertos.setText(String.valueOf(e.aciertos()));
         fallidos.setText(String.valueOf(e.fallidos()));
     }
-
-    // ---------------------------------------------------------------- responder
 
     void elegir(Opcion o) {
         Respuesta r;
@@ -299,7 +282,6 @@ public class PracticaController {
         verPista.setDisable(true);
     }
 
-    /** "Terminaste. Acertaste 2 de 3 pasos a la primera." */
     static String resumen(int a, int n) {
         return "Terminaste. Acertaste " + a + " de " + n + (n == 1 ? " paso" : " pasos") + " a la primera.";
     }
@@ -328,8 +310,6 @@ public class PracticaController {
         n.setVisible(si);
         n.setManaged(si);
     }
-
-    // ---------------------------------------------------------------- pruebas
 
     void setEjecutor(Consumer<Task<?>> ejecutor) {
         this.ejecutor = ejecutor;

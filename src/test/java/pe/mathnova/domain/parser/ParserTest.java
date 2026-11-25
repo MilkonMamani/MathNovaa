@@ -18,7 +18,6 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/** Casos ambiguos de la gramática: se compara el árbol completo. */
 class ParserTest {
 
     private static final Variable X = new Variable('x');
@@ -41,7 +40,6 @@ class ParserTest {
 
     @Test
     void potenciaPorParentesis() {
-        // x^2(x - 3) = x²·(x - 3)
         lee("x^2(x - 3)", new Producto(new Potencia(X, n(2)), new Suma(X, new Negacion(n(3)))));
     }
 

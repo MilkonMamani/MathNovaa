@@ -12,7 +12,6 @@ import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.domain.factorizacion.OrquestadorFactorizacion;
 import pe.mathnova.domain.parser.Parser;
 
-/** RF66 (la tabla de propiedades como texto) y A.3 (la fórmula del paso se reduce hasta 14 px). */
 class PropiedadesYFilaTest {
 
     private final OrquestadorFactorizacion motor = new OrquestadorFactorizacion();
@@ -41,7 +40,6 @@ class PropiedadesYFilaTest {
         assertEquals("x = −2, x = 1 (doble)", propiedades("x^3 - 3x + 2").filas().get(2).valor());
     }
 
-    /** Antes se desplazaba al llegar a 14 px; ahora pasa a dos líneas y nunca se corta. */
     @Test
     void laFormulaSeReduceHastaCatorcePxYLuegoPasaADosLineas() {
         FormulaAjustable.Disposicion cabe = FormulaAjustable.elegir(300, 200, 0, 400, 18, 14);

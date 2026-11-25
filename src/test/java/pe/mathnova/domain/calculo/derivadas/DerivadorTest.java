@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Parte A del Sprint 5: el derivador interno que usa L'Hôpital. */
 class DerivadorTest {
 
     @ParameterizedTest(name = "({0})'' respecto de {1} = {2}")
@@ -51,7 +50,6 @@ class DerivadorTest {
         Expresion derivada = Derivador.derivar(Parser.parse(entrada), variable).derivada();
         Expresion esperada = Simplificador.simplificar(Parser.parse(esperado));
         assertEquals(esperada, derivada, () -> "salió " + ImpresoraTexto.imprimir(derivada));
-        // Comprobación numérica en cinco puntos (dos son negativos: x^x y x^(-1/2) no están definidas ahí).
         if (Expresiones.variables(esperada).size() <= 1 && !entrada.equals("x^x") && !entrada.equals("x^(1/2)")) {
             assertTrue(EvaluacionNumerica.iguales(derivada, esperada, variable));
         }

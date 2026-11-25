@@ -8,10 +8,6 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.Factor;
 
-/**
- * RN15: un valor a que anula el numerador y el denominador da 0/0 en x → a. El valor a es la raíz de un
- * factor que se canceló; si se cancelaron varios, una tarjeta por cada uno, de menor a mayor.
- */
 final class LimiteIndeterminado implements ReglaSugerencia {
 
     @Override

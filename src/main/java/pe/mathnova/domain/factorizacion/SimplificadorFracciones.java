@@ -15,12 +15,6 @@ import pe.mathnova.domain.expresion.Cociente;
 import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.expresion.Negacion;
 
-/**
- * P01 (HU09): simplificar una fracción algebraica. Se factorizan numerador y denominador con el
- * motor, se cancelan los factores comunes y se listan las restricciones x ≠ … del denominador
- * original (RN14). Si lo que queda es impropio (grado de arriba ≥ grado de abajo), P02 muestra
- * además la división: cociente + resto/divisor.
- */
 public final class SimplificadorFracciones {
 
     private final OrquestadorFactorizacion motor;
@@ -29,7 +23,6 @@ public final class SimplificadorFracciones {
         this.motor = Objects.requireNonNull(motor, "motor");
     }
 
-    /** Un cociente de polinomios con denominador no constante (también −(a/b)). */
     public static boolean esFraccion(Expresion e) {
         Cociente c = cociente(e);
         if (c == null) {
@@ -61,7 +54,6 @@ public final class SimplificadorFracciones {
         return neg;
     }
 
-    /** @throws IllegalArgumentException si no es una fracción de polinomios */
     public Simplificacion simplificar(Expresion e) {
         if (!esFraccion(e)) {
             throw new IllegalArgumentException("No es una fracción de polinomios");
@@ -116,17 +108,12 @@ public final class SimplificadorFracciones {
         return r;
     }
 
-    /** "(x − 2)" o "(x − 2) y (x + 1)²". */
     private static String texto(List<Factor> fs) {
         List<String> t = fs.stream().map(f -> Formato.parentesis(f.polinomio())
                 + (f.multiplicidad() > 1 ? Formato.superindice(f.multiplicidad()) : "")).toList();
         return t.size() == 1 ? t.getFirst() : String.join(", ", t.subList(0, t.size() - 1)) + " y " + t.getLast();
     }
 
-    /**
-     * RN14: cada factor lineal (qx − p) del denominador original da x ≠ p/q; los de grado mayor
-     * con raíces reales posibles quedan como "f ≠ 0". En el formato del banco: "x ≠ -3".
-     */
     static List<String> restricciones(FormaFactorizada denominador) {
         List<Racional> valores = new ArrayList<>();
         List<String> otras = new ArrayList<>();
@@ -142,7 +129,7 @@ public final class SimplificadorFracciones {
                 Racional a = p.coeficiente(Monomio.de(letra, 1));
                 valores.add(p.constante().negar().dividir(a));
             } else if (p.grado() == 2 && Cuadratica.de(p).discriminante().signum() < 0) {
-                continue; // nunca se anula en los reales
+                continue;
             } else {
                 otras.add(p + " ≠ 0");
             }
@@ -155,7 +142,6 @@ public final class SimplificadorFracciones {
         return r;
     }
 
-    /** P02: si arriba tiene grado ≥ abajo, "cociente + resto/divisor"; null si no hace falta. */
     private static String division(FormaFactorizada arriba, FormaFactorizada abajo) {
         if (abajo.factores().isEmpty()) {
             return null;
@@ -171,7 +157,6 @@ public final class SimplificadorFracciones {
             return null;
         }
         Univariado[] qr = un.dividir(ud);
-        // En el formato del parser, para poder dibujarlo: "x + 1/(x + 1)".
         String cociente = qr[0].aPolinomio().toString();
         if (qr[1].esCero()) {
             return cociente;

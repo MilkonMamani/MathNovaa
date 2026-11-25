@@ -8,29 +8,13 @@ import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.expresion.Ecuacion;
 import pe.mathnova.domain.factorizacion.Resolucion;
 
-/**
- * Una ecuación polinómica resuelta en Q (HU38, RF73).
- *
- * @param entrada       la ecuación tal como se escribió
- * @param variable      la incógnita
- * @param pasos         1. pasar todo a un lado (si hace falta), 2. factorizar, 3. igualar cada factor a
- *                      cero, 4. despejar
- * @param polinomio     P(x) − Q(x), el lado que queda igualado a cero
- * @param factorizacion la factorización de ese polinomio, con sus pasos de siempre; null si es constante
- * @param soluciones    raíces racionales de menor a mayor; una raíz repetida va una sola vez
- * @param sinSolucion   factores sin raíz en Q ("x^2 + 1")
- * @param tipo          si hay soluciones, si no hay ninguna o si se cumple para todo x
- */
 public record ResolucionEcuacion(Ecuacion entrada, char variable, List<PasoEcuacion> pasos, Polinomio polinomio,
                                  Resolucion factorizacion, List<Solucion> soluciones, List<Polinomio> sinSolucion,
                                  Tipo tipo) {
 
     public enum Tipo {
-        /** Hay una o más soluciones en Q. */
         CON_SOLUCIONES,
-        /** Ninguna solución en Q (por ejemplo x^2 + 1 = 0, o 0 = 5). */
         SIN_SOLUCION,
-        /** 0 = 0: se cumple para cualquier valor. */
         IDENTIDAD
     }
 
@@ -42,10 +26,8 @@ public record ResolucionEcuacion(Ecuacion entrada, char variable, List<PasoEcuac
         sinSolucion = List.copyOf(sinSolucion);
     }
 
-    /** Una raíz y cuántas veces se repite. */
     public record Solucion(Racional valor, int multiplicidad) {
 
-        /** "" si es simple; "doble", "triple"… si se repite. */
         public String nombreMultiplicidad() {
             return switch (multiplicidad) {
                 case 1 -> "";
@@ -57,13 +39,6 @@ public record ResolucionEcuacion(Ecuacion entrada, char variable, List<PasoEcuac
         }
     }
 
-    /**
-     * Un paso de la resolución.
-     *
-     * @param titulo  "Pasar todo a un lado", "Factorizar", "Igualar cada factor a cero", "Despejar"
-     * @param detalle por qué se hace
-     * @param lineas  lo que se escribe en la pizarra, una ecuación por línea, en texto de la sección 9
-     */
     public record PasoEcuacion(Tipo tipo, String titulo, String detalle, List<String> lineas) {
 
         public enum Tipo { PASAR_A_UN_LADO, FACTORIZAR, IGUALAR_A_CERO, DESPEJAR }
@@ -73,7 +48,6 @@ public record ResolucionEcuacion(Ecuacion entrada, char variable, List<PasoEcuac
         }
     }
 
-    /** "x₁ = 2, x₂ = 3", "x = 1 (doble)", "no tiene solución en Q". */
     public String resumen() {
         return switch (tipo) {
             case IDENTIDAD -> "Se cumple para cualquier valor de " + variable;
@@ -82,7 +56,6 @@ public record ResolucionEcuacion(Ecuacion entrada, char variable, List<PasoEcuac
         };
     }
 
-    /** x₁ = 2, x₂ = 3; con una sola raíz, x = 1 (sin subíndice). */
     static List<String> lineasDeSolucion(char variable, List<Solucion> soluciones) {
         List<String> r = new java.util.ArrayList<>();
         for (int i = 0; i < soluciones.size(); i++) {

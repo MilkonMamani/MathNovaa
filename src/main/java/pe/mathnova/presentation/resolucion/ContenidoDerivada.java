@@ -18,17 +18,6 @@ import pe.mathnova.presentation.grafica.CurvaExpresion;
 import pe.mathnova.presentation.grafica.DatosGrafica;
 import pe.mathnova.presentation.grafica.FuncionReal;
 
-/**
- * Una derivada (Sprint 6).
- * <ul>
- *   <li>Gráfica: f(x) en azul y f′(x) en naranja con su leyenda, los puntos críticos marcados sobre f y, al
- *       pasar el cursor por f, la recta tangente con su pendiente.</li>
- *   <li>Análisis: los puntos críticos con su tipo, los intervalos de crecimiento (recta de signos de f′) y
- *       la concavidad con los puntos de inflexión (signo de f″).</li>
- *   <li>Exploración: el camino usado y los otros ("Expandir primero…" frente a "Regla del producto"), con
- *       Probar.</li>
- * </ul>
- */
 public record ContenidoDerivada(String latexSolucion, Optional<DatosGrafica> grafica, List<SeccionAnalisis> secciones,
                                 VistaExploracion exploracion) implements ContenidoPestanas {
 
@@ -45,8 +34,6 @@ public record ContenidoDerivada(String latexSolucion, Optional<DatosGrafica> gra
     public Optional<String> comparacion() {
         return Optional.empty();
     }
-
-    // ------------------------------------------------------------------ Gráfica
 
     static Optional<DatosGrafica> grafica(ResolucionDerivada r) {
         char x = r.variable();
@@ -77,8 +64,6 @@ public record ContenidoDerivada(String latexSolucion, Optional<DatosGrafica> gra
             return Optional.empty();
         }
     }
-
-    // ------------------------------------------------------------------ Análisis
 
     static List<SeccionAnalisis> secciones(ResolucionDerivada r) {
         AnalisisDerivada a = r.analisis();
@@ -128,7 +113,6 @@ public record ContenidoDerivada(String latexSolucion, Optional<DatosGrafica> gra
         return new SeccionAnalisis(titulo, filas, marcas, t.signos(), rotulo, null);
     }
 
-    /** "(−∞, −1) ∪ (3, ∞)", o "ningún intervalo". */
     static String intervalos(AnalisisDerivada.Tramos t, int signo) {
         List<String> r = new ArrayList<>();
         List<Racional> m = t.marcas();

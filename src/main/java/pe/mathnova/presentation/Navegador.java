@@ -18,11 +18,6 @@ import pe.mathnova.presentation.controller.HistorialController;
 import pe.mathnova.presentation.controller.PrincipalController;
 import pe.mathnova.presentation.controller.ResolucionController;
 
-/**
- * Cambia la pantalla de la zona de contenido, junto a la barra lateral, dentro de la misma ventana.
- * Desde el Sprint S3b, "Resolver ejercicio" es una sola pantalla: el editor visual con su teclado,
- * la solución y el procedimiento (mockups A, F, G y H). Se carga una sola vez y conserva lo escrito.
- */
 @Component
 public class Navegador {
 
@@ -44,7 +39,6 @@ public class Navegador {
         this.contexto = contexto;
     }
 
-    /** Arma la ventana con la barra lateral y la pantalla "Resolver ejercicio". */
     public void iniciar(Stage stage) {
         FXMLLoader marco = cargar("/fxml/principal.fxml");
         principal = marco.getController();
@@ -60,10 +54,6 @@ public class Navegador {
         autoprueba();
     }
 
-    /**
-     * Sprint 9, parte E: el tema y el tamaño de letra de Configuración, en toda la app y sin reiniciar. El tema es
-     * una clase en la raíz (los colores del CSS); el tamaño, una clase para los textos y la escala de las fórmulas.
-     */
     public static void aplicarApariencia(javafx.scene.Parent raiz, pe.mathnova.application.service.ConfiguracionService c) {
         Runnable tema = () -> {
             boolean oscuro = c.temaProperty().get() == pe.mathnova.application.service.ConfiguracionService.Tema.OSCURO;
@@ -93,7 +83,6 @@ public class Navegador {
         aplicarApariencia(raiz, contexto.getBean(pe.mathnova.application.service.ConfiguracionService.class));
     }
 
-    /** {@code --mathnova.autoprueba=<muestra.json | carpeta>}: comprueba la instalación (ver AutoPrueba). */
     private void autoprueba() {
         var env = contexto.getEnvironment();
         String rutas = env.getProperty("mathnova.autoprueba");
@@ -109,7 +98,6 @@ public class Navegador {
         javafx.application.Platform.runLater(() -> new AutoPrueba(resolucionControlador, rutas, salida, salir, pid).iniciar());
     }
 
-    /** "Resolver" en la barra lateral: la pantalla con el editor, con lo último que se escribió. */
     public void mostrarEntrada() {
         principal.mostrar(pantallaResolucion());
         principal.seleccionar("Resolver");
@@ -117,7 +105,6 @@ public class Navegador {
         resolucionControlador.enfocar();
     }
 
-    /** "Configuración" en la barra lateral o el engranaje del teclado. */
     public void mostrarConfiguracion() {
         if (configuracion == null) {
             FXMLLoader loader = cargar("/fxml/configuracion.fxml");
@@ -130,7 +117,6 @@ public class Navegador {
         principal.seleccionar("Configuración");
     }
 
-    /** "Historial" en la barra lateral (HU15): se recarga cada vez, con lo último que se resolvió. */
     public void mostrarHistorial() {
         if (historial == null) {
             FXMLLoader loader = cargar("/fxml/historial.fxml");
@@ -143,10 +129,6 @@ public class Navegador {
         principal.seleccionar("Historial");
     }
 
-    /**
-     * "Ejemplos" en la barra lateral (Sprint 9, parte B). Los ejemplos son un catálogo fijo: la pantalla se arma
-     * una vez y conserva el curso y el tema elegidos.
-     */
     public void mostrarEjemplos() {
         if (ejemplos == null) {
             ejemplos = cargar("/fxml/ejemplos.fxml").getRoot();
@@ -155,30 +137,19 @@ public class Navegador {
         principal.seleccionar("Ejemplos");
     }
 
-    /**
-     * "Práctica" en la barra lateral (Sprint 9, parte D). Se arma una vez: si había un ejercicio a medias, sigue
-     * ahí.
-     */
     public void mostrarPractica() {
         pantallaPractica();
         principal.mostrar(practica);
         principal.seleccionar("Práctica");
     }
 
-    /** Si "Practicar" puede abrir este ejercicio: una factorización en Q o un límite. */
     public boolean sePuedePracticar(String texto, Campo campo) {
         if (contexto == null) {
-            return false; // pruebas sin Spring
+            return false;
         }
         return contexto.getBean(pe.mathnova.application.service.PracticaService.class).sePuedePracticar(texto, campo);
     }
 
-    /**
-     * "Practicar" de una tarjeta de Ejemplos o de la hoja del Historial: la pantalla Práctica con ese ejercicio ya
-     * iniciado.
-     *
-     * @param campo Q, R o C para una factorización; null si no aplica
-     */
     public void abrirEnPractica(String texto, Campo campo) {
         pantallaPractica();
         principal.mostrar(practica);
@@ -194,10 +165,6 @@ public class Navegador {
         }
     }
 
-    /**
-     * "Abrir en Resolver" de la hoja del Historial y "Resolver" de una tarjeta de Ejemplos: el ejercicio en el
-     * editor, en su campo y con su método, y la pizarra resuelta.
-     */
     public void abrirEnResolver(String texto, Campo campo, String forzado) {
         principal.mostrar(pantallaResolucion());
         principal.seleccionar("Resolver");
@@ -205,7 +172,6 @@ public class Navegador {
         resolucionControlador.resolver(texto, campo, forzado);
     }
 
-    /** Abre la pantalla y resuelve el texto (sección 9) con la animación en cascada. */
     public void mostrarResolucion(String texto) {
         principal.mostrar(pantallaResolucion());
         principal.seleccionar("Resolver");

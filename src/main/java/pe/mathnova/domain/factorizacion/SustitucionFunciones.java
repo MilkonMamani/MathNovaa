@@ -19,19 +19,13 @@ import pe.mathnova.domain.expresion.Suma;
 import pe.mathnova.domain.expresion.TipoFuncion;
 import pe.mathnova.domain.expresion.Variable;
 
-/**
- * Sustitución u = g(x) (RN32): cada función de x (sen x, ln x, eˣ…) pasa a una letra nueva y vuelve
- * al final. e^(kx) con k entero es (eˣ)ᵏ, así e^(2x) − 3eˣ + 2 queda u² − 3u + 2.
- */
 public final class SustitucionFunciones {
 
-    /** Letras para las funciones, en orden; nunca x. */
     private static final String LETRAS = "uvwzstpqrabcdfghjklmnoy";
 
     private SustitucionFunciones() {
     }
 
-    /** Si hay alguna función de x o una potencia con x en el exponente. */
     public static boolean tieneFunciones(Expresion e) {
         boolean[] hay = {false};
         recorrer(e, n -> {
@@ -42,11 +36,6 @@ public final class SustitucionFunciones {
         return hay[0];
     }
 
-    /**
-     * Cambia cada función por su letra. {@code letras} va de la clave de la función ("sen(x)",
-     * "e^x") a la letra y se completa con las nuevas, así dos lecturas con el mismo mapa usan las
-     * mismas letras.
-     */
     public static Expresion aLetras(Expresion e, Map<String, Character> letras) {
         return transformar(e, n -> switch (n) {
             case Funcion f when f.tipo() == TipoFuncion.EXP -> exponencial(f.argumento(), letras);
@@ -57,7 +46,6 @@ public final class SustitucionFunciones {
         });
     }
 
-    /** e^(k·a) con k entero → (letra de e^a)^k. */
     private static Expresion exponencial(Expresion exponente, Map<String, Character> letras) {
         Expresion base = exponente;
         long k = 1;
@@ -81,13 +69,10 @@ public final class SustitucionFunciones {
         return new Variable(c);
     }
 
-    /** Deshace la sustitución: cada letra vuelve a su función. */
     public static Expresion deLetras(Expresion e, Map<Character, Expresion> funciones) {
         return transformar(e, n -> n instanceof Variable v && funciones.containsKey(v.nombre())
                 ? funciones.get(v.nombre()) : n);
     }
-
-    // ------------------------------------------------------------------ recorrido
 
     static boolean esConstante(Expresion e) {
         boolean[] variable = {false};
@@ -99,7 +84,6 @@ public final class SustitucionFunciones {
         return !variable[0];
     }
 
-    /** Cada llamada a función del árbol, también las anidadas. */
     public static void recorrerFunciones(Expresion e, java.util.function.Consumer<Funcion> visita) {
         recorrer(e, n -> {
             if (n instanceof Funcion f) {
@@ -128,7 +112,6 @@ public final class SustitucionFunciones {
         };
     }
 
-    /** De abajo hacia arriba: primero los hijos, luego el nodo. */
     static Expresion transformar(Expresion e, UnaryOperator<Expresion> f) {
         Expresion r = switch (e) {
             case Suma s -> new Suma(mapa(s.terminos(), f));
@@ -137,7 +120,7 @@ public final class SustitucionFunciones {
             case Potencia p -> new Potencia(transformar(p.base(), f), transformar(p.exponente(), f));
             case Negacion n -> new Negacion(transformar(n.argumento(), f));
             case Raiz z -> new Raiz(z.indice(), transformar(z.radicando(), f));
-            case Funcion fn -> fn; // el argumento de una función no se toca: la función entera es la unidad
+            case Funcion fn -> fn;
             default -> e;
         };
         return f.apply(r);

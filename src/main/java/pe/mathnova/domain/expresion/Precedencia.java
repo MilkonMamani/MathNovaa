@@ -1,6 +1,5 @@
 package pe.mathnova.domain.expresion;
 
-/** Nivel de precedencia de cada nodo, para decidir dónde van paréntesis al imprimir. */
 final class Precedencia {
 
     static final int SUMA = 1;
@@ -24,7 +23,6 @@ final class Precedencia {
             case ConstanteEspecial c -> ATOMO;
             case Raiz r -> ATOMO;
             case Funcion f -> ATOMO;
-            // Las operaciones solo van en la raíz; si alguna vez quedaran dentro, irían entre paréntesis.
             case Limite l -> SUMA;
             case Derivada d -> SUMA;
             case DerivadaParcial d -> SUMA;

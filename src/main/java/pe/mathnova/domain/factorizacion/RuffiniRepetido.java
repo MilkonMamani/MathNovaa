@@ -8,21 +8,12 @@ import pe.mathnova.domain.algebra.Polinomio;
 import pe.mathnova.domain.algebra.Racional;
 import pe.mathnova.domain.factorizacion.TrabajoIntermedio.TablaRuffini;
 
-/**
- * F17: Ruffini con raíces repetidas. Si la raíz de un F16 vuelve a anular el cociente, se aplica
- * otra vez (las tablas se apilan como en el cuaderno) y el factor se agrupa como potencia.
- * Forzado por sí solo, busca la primera raíz racional que se repite.
- */
 public final class RuffiniRepetido extends MetodoBase {
 
     public RuffiniRepetido() {
         super("F17");
     }
 
-    /**
-     * Lo que sigue a un F16: {@code cociente} es el factor que dejó, y {@code anterior} su tabla.
-     * Vacío si la raíz no vuelve a anular el cociente.
-     */
     Optional<ResultadoMetodo> continuar(Polinomio cociente, TablaRuffini anterior) {
         TablaRuffini.Division ultima = anterior.divisiones().getLast();
         Racional r = ultima.raiz();
@@ -32,7 +23,6 @@ public final class RuffiniRepetido extends MetodoBase {
         }
         List<TablaRuffini.Division> tablas = new ArrayList<>(anterior.divisiones());
         Repeticion rep = repetir(sinEscalar, r, tablas);
-        // cociente = sinEscalar / den: se ajusta la constante del último cociente.
         Polinomio ajuste = Polinomio.constante(Racional.de(r.den()).inverso());
         Polinomio resto = rep.resto().aPolinomio().multiplicar(ajuste)
                 .multiplicar(Polinomio.constante(Racional.de(r.den()).potencia(rep.veces()).inverso()));
@@ -40,7 +30,6 @@ public final class RuffiniRepetido extends MetodoBase {
                 List.of(new TablaRuffini.Candidato(r, Racional.CERO)), tablas));
     }
 
-    /** Solo desde grado 2, en una letra. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.variables().size() == 1 && p.grado() >= 2;
@@ -77,7 +66,6 @@ public final class RuffiniRepetido extends MetodoBase {
     private record Repeticion(int veces, Univariado resto) {
     }
 
-    /** Divide entre (x − r) mientras el residuo sea 0; agrega cada tabla. */
     private static Repeticion repetir(Univariado u, Racional r, List<TablaRuffini.Division> tablas) {
         int veces = 0;
         Univariado actual = u;
@@ -90,10 +78,6 @@ public final class RuffiniRepetido extends MetodoBase {
         return new Repeticion(veces, actual);
     }
 
-    /**
-     * @param veces      cuántas veces se divide en este paso
-     * @param total      multiplicidad de la raíz contando el F16 anterior
-     */
     private ResultadoMetodo armar(Polinomio antes, char v, Racional r, int veces, int total, Polinomio resto,
                                   List<TablaRuffini.Candidato> candidatos, List<TablaRuffini.Division> tablas) {
         List<Factor> factores = new ArrayList<>();
@@ -114,7 +98,6 @@ public final class RuffiniRepetido extends MetodoBase {
         };
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "El valor que hizo cero el polinomio, ¿vuelve a hacer cero lo que quedó?";

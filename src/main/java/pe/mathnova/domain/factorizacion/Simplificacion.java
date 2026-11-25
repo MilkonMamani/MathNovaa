@@ -9,18 +9,6 @@ import pe.mathnova.domain.expresion.Expresion;
 import pe.mathnova.domain.expresion.Negacion;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * P01 (HU09): una fracción simplificada.
- *
- * @param numerador        factorización del numerador original
- * @param denominador      factorización del denominador original
- * @param arriba           lo que queda arriba (con la constante de la fracción)
- * @param abajo            lo que queda abajo (constante 1); sin factores si se canceló todo
- * @param cancelados       factores comunes que se cancelaron, con su multiplicidad
- * @param restricciones    RN14: los valores que anulan el denominador original, "x ≠ -3"
- * @param justificacion    qué se canceló
- * @param division         P02 si lo que queda es impropio: "x + 1/(x + 1)" (formato del parser); null si no
- */
 public record Simplificacion(Expresion entrada, Resolucion numerador, Resolucion denominador,
                              FormaFactorizada arriba, FormaFactorizada abajo, List<Factor> cancelados,
                              List<String> restricciones, String justificacion, String division) {
@@ -31,7 +19,6 @@ public record Simplificacion(Expresion entrada, Resolucion numerador, Resolucion
         restricciones = List.copyOf(restricciones);
     }
 
-    /** La fracción en el formato del banco, sin las restricciones: "(x + 2)/(x + 3)", "3/(x + 2)". */
     public String fraccion() {
         String num = textoArriba();
         if (abajo.factores().isEmpty()) {
@@ -55,12 +42,10 @@ public record Simplificacion(Expresion entrada, Resolucion numerador, Resolucion
         return unaSuma && !abajo.factores().isEmpty() ? "(" + t + ")" : t;
     }
 
-    /** "(x + 2)/(x + 3); x ≠ -3, x ≠ 2". */
     public String texto() {
         return restricciones.isEmpty() ? fraccion() : fraccion() + "; " + String.join(", ", restricciones);
     }
 
-    /** El árbol de la fracción simplificada, para dibujarla con ImpresoraLatex. */
     public Expresion aExpresion() {
         Expresion num = arriba.factores().isEmpty() ? Parser.parse(arriba.aTexto()) : arriba.aExpresion();
         if (abajo.factores().isEmpty()) {
@@ -72,7 +57,6 @@ public record Simplificacion(Expresion entrada, Resolucion numerador, Resolucion
         return negativo ? new Negacion(c) : c;
     }
 
-    /** HU18 para fracciones: arriba·(denominador original) = (numerador original)·abajo. */
     public boolean verifica() {
         Polinomio num = numerador.resultado().expandir();
         Polinomio den = denominador.resultado().expandir();

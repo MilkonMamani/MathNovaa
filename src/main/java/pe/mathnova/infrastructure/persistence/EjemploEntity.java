@@ -10,10 +10,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * Tabla ejemplo de V1, con nota y orden de V4 (Sprint 9). Catálogo de solo lectura: lo llena la migración y
- * EjemplosTest comprueba que el motor resuelve cada fila (RN20).
- */
 @Entity
 @Table(name = "ejemplo")
 @Getter
@@ -30,7 +26,6 @@ public class EjemploEntity {
     @Column(name = "enunciado", nullable = false)
     private String enunciado;
 
-    /** El texto de la sección 9 que se pone en el editor. */
     @Column(name = "expresion", nullable = false)
     private String expresion;
 

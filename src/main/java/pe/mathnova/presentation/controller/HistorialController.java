@@ -40,12 +40,6 @@ import pe.mathnova.application.service.HistorialService.Periodo;
 import pe.mathnova.domain.factorizacion.Campo;
 import pe.mathnova.presentation.resolucion.FormulaAjustable;
 
-/**
- * Pantalla "Historial" (HU15): buscador, curso, fecha y "Solo favoritos" arriba; la tabla en una tarjeta
- * blanca; el conteo debajo. El ojo abre la hoja de la resolución a la derecha, con el fondo oscurecido; la
- * estrella marca el favorito; la papelera pregunta antes de borrar. Toda la lógica está en
- * {@link HistorialService}; aquí solo se dibuja.
- */
 @Component
 @Scope("prototype")
 public class HistorialController {
@@ -58,21 +52,18 @@ public class HistorialController {
     static final String EXPORTAR = "Guardar esta hoja como PDF";
     static final String EXPORTAR_ESPERA = "Espera a que cargue la hoja";
 
-    /** Anchos de las columnas (Ejercicio se lleva el resto). */
     static final double ANCHO_OPERACION = 150;
     static final double ANCHO_TEMA = 180;
     static final double ANCHO_CAMPO = 60;
     static final double ANCHO_FECHA = 124;
     static final double ANCHO_ACCIONES = 3 * 44 + 2 * 4;
 
-    /** Ícono de la cuadrícula 24 × 24, trazo de 1,6 px (mathnova.css). */
     static final String ICONO_OJO = "M2.5 12 C5 7.5 8.3 5.5 12 5.5 C15.7 5.5 19 7.5 21.5 12 C19 16.5 15.7 18.5 12 18.5"
             + " C8.3 18.5 5 16.5 2.5 12 Z M12 9 A3 3 0 1 1 12 15 A3 3 0 1 1 12 9 Z";
     static final String ICONO_ESTRELLA = "M12 3.6 L14.5 8.9 L20.3 9.6 L16 13.6 L17.2 19.4 L12 16.5 L6.8 19.4"
             + " L8 13.6 L3.7 9.6 L9.5 8.9 Z";
     static final String ICONO_PAPELERA = "M4.5 7 H19.5 M9.5 7 V4.5 H14.5 V7 M6.5 7 L7.4 19.5 H16.6 L17.5 7"
             + " M10 10.5 V16 M14 10.5 V16";
-    /** La flecha de la pizarra entre el número y el título del paso. */
     private static final String FLECHA = "M0 6 H15 M10 1 L15 6 L10 11";
 
     private final HistorialService historial;
@@ -81,14 +72,11 @@ public class HistorialController {
     private final List<VistaFila> vistas = new ArrayList<>();
     private int pagina;
     private HistorialService.Hoja hojaAbierta;
-    /** Cambia con cada hoja pedida: una hoja que llega tarde se descarta. */
     private int pedidoHoja;
     private HistorialService.Fila porEliminar;
     private Node focoAntes;
-    /** Sprint 9, parte C: el PDF de la hoja; null sin el servicio (pruebas sin base). */
     private ExportarPdf exportador;
     private final Tooltip ayudaExportar = new Tooltip();
-    /** Para las pruebas: corre la carga de la hoja (por omisión, en un hilo aparte). */
     private Consumer<Task<HistorialService.Hoja>> ejecutor = t -> {
         Thread hilo = new Thread(t, "hoja-historial");
         hilo.setDaemon(true);
@@ -196,8 +184,6 @@ public class HistorialController {
         recargar();
     }
 
-    // ---------------------------------------------------------------- tabla
-
     private void armarEncabezado() {
         encabezado.getChildren().setAll(
                 columna(cabecera("Ejercicio"), -1),
@@ -214,7 +200,6 @@ public class HistorialController {
         return l;
     }
 
-    /** Una celda: ancho fijo, o el resto si {@code ancho} es negativo. */
     private static Node columna(Node contenido, double ancho) {
         StackPane celda = new StackPane(contenido);
         celda.setAlignment(Pos.CENTER_LEFT);
@@ -241,7 +226,6 @@ public class HistorialController {
                 selectorFecha.getValue() == null ? Periodo.CUALQUIERA : selectorFecha.getValue(), soloFavoritos.isSelected());
     }
 
-    /** Vuelve a la primera página con los filtros de la barra (también al entrar a la pantalla). */
     public void recargar() {
         esperaBusqueda.stop();
         pagina = 0;
@@ -286,12 +270,10 @@ public class HistorialController {
                 && !f.soloFavoritos();
     }
 
-    /** "1 ejercicio", "12 ejercicios". */
     static String conteo(long n) {
         return n == 1 ? "1 ejercicio" : n + " ejercicios";
     }
 
-    /** Una fila de la tabla, con sus tres botones. */
     private final class VistaFila {
         final HistorialService.Fila fila;
         final HBox nodo;
@@ -351,15 +333,12 @@ public class HistorialController {
             recargar();
             return;
         }
-        // El favorito es del ejercicio: todas sus filas cambian.
         for (VistaFila otra : vistas) {
             if (otra.fila.ejercicioId() == v.fila.ejercicioId()) {
                 otra.pintarEstrella(marcada);
             }
         }
     }
-
-    // ---------------------------------------------------------------- eliminar (RN26)
 
     private void pedirEliminar(HistorialService.Fila f) {
         porEliminar = f;
@@ -382,8 +361,6 @@ public class HistorialController {
         }
         recargar();
     }
-
-    // ---------------------------------------------------------------- hoja
 
     private void abrirHoja(HistorialService.Fila f) {
         int este = ++pedidoHoja;
@@ -421,7 +398,6 @@ public class HistorialController {
         ejecutor.accept(tarea);
     }
 
-    /** Arriba el verbo y la expresión; los pasos numerados; al final el resultado en el recuadro azul claro. */
     void llenarHoja(HistorialService.Hoja h) {
         hojaAbierta = h;
         verboHoja.setText(h.verbo());
@@ -465,7 +441,6 @@ public class HistorialController {
         habilitarExportar(true);
     }
 
-    /** "Practicar" de la hoja (Sprint 9, parte D): el ejercicio en la pantalla Práctica, ya iniciado. */
     @FXML
     void practicar() {
         HistorialService.Hoja h = hojaAbierta;
@@ -475,8 +450,6 @@ public class HistorialController {
         cerrarCapas();
         navegador.abrirEnPractica(h.entradaTexto(), h.campo() == null ? null : Campo.valueOf(h.campo()));
     }
-
-    // ---------------------------------------------------------------- PDF (Sprint 9, parte C)
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setExportacion(pe.mathnova.application.service.ExportacionPdfService servicio) {
@@ -493,7 +466,6 @@ public class HistorialController {
         exportarPdf.setAccessibleHelp(ayudaExportar.getText());
     }
 
-    /** "Exportar PDF" de la hoja: el mismo PDF que en Resolver. Desde aquí no hay gráfica que incluir. */
     @FXML
     void exportarPdf() {
         HistorialService.Hoja h = hojaAbierta;
@@ -503,17 +475,14 @@ public class HistorialController {
         exportador.exportar(exportarPdf, hoy -> exportador.servicio().desdeHistorial(h.id(), hoy), null);
     }
 
-    /** Para las pruebas. */
     ExportarPdf exportador() {
         return exportador;
     }
 
-    /** "1 → Factor común", la fórmula y la nota con la línea azul a la izquierda. */
     private Node paso(HistorialService.PasoHoja p) {
         return paso(p.numero(), p.nivel(), p.titulo(), p.latex(), p.nota());
     }
 
-    /** Un paso con el formato de la Pizarra; también lo usa la Práctica (Sprint 9, parte D). */
     static Node paso(String numeroPaso, int nivel, String tituloPaso, String latex, String nota) {
         Label numero = new Label(numeroPaso);
         numero.getStyleClass().add("historial-paso-numero");
@@ -557,8 +526,6 @@ public class HistorialController {
         navegador.abrirEnResolver(h.entradaTexto(), campo, h.metodoForzado());
     }
 
-    // ---------------------------------------------------------------- capas
-
     private void abrirCapa(Node capa) {
         if (!hoja.isVisible() && !dialogo.isVisible()) {
             focoAntes = raiz.getScene() == null ? null : raiz.getScene().getFocusOwner();
@@ -569,7 +536,6 @@ public class HistorialController {
         pantalla.setMouseTransparent(true);
     }
 
-    /** Cierra la hoja o el diálogo, y el velo. */
     @FXML
     void cerrarCapas() {
         boolean habiaCapa = hoja.isVisible() || dialogo.isVisible();
@@ -585,12 +551,6 @@ public class HistorialController {
         focoAntes = null;
     }
 
-    // ---------------------------------------------------------------- piezas
-
-    /**
-     * La fórmula con la misma fuente de la pizarra (jlatexmath); si no cabe, se dibuja más chica. Si el LaTeX
-     * no se puede dibujar, el texto.
-     */
     static Node formula(String latex, String texto, double maximo, double minimo) {
         if (latex != null && !latex.isBlank()) {
             try {
@@ -600,10 +560,9 @@ public class HistorialController {
                 f.setLatex(latex);
                 f.setMinWidth(0);
                 f.setMaxWidth(Double.MAX_VALUE);
-                f.setMaxHeight(Region.USE_PREF_SIZE); // centrada en la fila, como el texto
+                f.setMaxHeight(Region.USE_PREF_SIZE);
                 return f;
             } catch (RuntimeException e) {
-                // sigue con el texto
             }
         }
         Label l = new Label(texto == null ? "" : texto);
@@ -637,13 +596,10 @@ public class HistorialController {
         n.setManaged(si);
     }
 
-    // ---------------------------------------------------------------- pruebas
-
     void setEjecutor(Consumer<Task<HistorialService.Hoja>> ejecutor) {
         this.ejecutor = ejecutor;
     }
 
-    /** Las filas que se ven (pruebas). */
     List<HistorialService.Fila> filasVisibles() {
         return vistas.stream().map(v -> v.fila).toList();
     }

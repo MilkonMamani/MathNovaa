@@ -27,7 +27,6 @@ import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.parser.ErrorSintaxis;
 import pe.mathnova.domain.parser.Parser;
 
-/** Sprint 8, Parte C (HU31, RF56): integral iterada (V09), cambio de orden y cambio de coordenadas (V10). */
 class IntegralesMultiplesTest {
 
     private static final MotorIntegralesMultiples MOTOR = new MotorIntegralesMultiples(new OrquestadorFactorizacion());
@@ -37,7 +36,6 @@ class IntegralesMultiplesTest {
         return MOTOR.resolver((IntegralMultiple) Parser.parse(texto));
     }
 
-    /** El valor exacto coincide con el esperado (que puede llevar π o e) con 25 cifras. */
     private static void vale(String esperado, ResolucionIntegralMultiple r) {
         assertTrue(r.resuelta(), () -> "no se resolvió: " + r.motivo());
         BigDecimal a = EvaluacionNumerica.evaluar(Parser.parse(esperado), Map.of(), MC).re();
@@ -46,7 +44,6 @@ class IntegralesMultiplesTest {
                 () -> "esperado " + esperado + ", obtenido " + r.texto());
     }
 
-    /** Simpson da lo mismo con 4 cifras. */
     private static void comprobado(ResolucionIntegralMultiple r, int n) {
         BigDecimal s = MotorIntegralesMultiples.simpson(r, n).orElseThrow();
         BigDecimal v = MotorIntegralesMultiples.decimal(r).orElseThrow();
@@ -57,8 +54,6 @@ class IntegralesMultiplesTest {
     private static String lineas(PasoLimite p) {
         return String.join("\n", ((TrabajoIntermedio.Agrupacion) p.trabajo()).grupos());
     }
-
-    // ------------------------------------------------------------------ gramática
 
     @Test
     void seLeeElCambioDeCoordenadas() {
@@ -74,15 +69,12 @@ class IntegralesMultiplesTest {
                 () -> assertThrows(ErrorSintaxis.class, () -> Parser.parse("polares + 1")));
     }
 
-    // ------------------------------------------------------------------ los ejemplos exactos
-
     @Test
     void rectangulo() {
         ResolucionIntegralMultiple r = resolver("∬(x y, x, 0, 2, y, 0, 3)");
         vale("9", r);
         assertEquals("9", r.texto());
         assertEquals(2, r.pasos().size());
-        // cada integral interna lleva anidados los pasos del motor de una variable
         assertFalse(r.pasos().getFirst().hijos().isEmpty());
         assertTrue(r.pasos().getFirst().justificacion().contains("y se trata como constante"));
         comprobado(r, 20);
@@ -125,7 +117,6 @@ class IntegralesMultiplesTest {
                 () -> assertEquals("V10", cambio.codigo()),
                 () -> assertEquals("r³", ImpresoraPizarra.imprimir(r.integrando())),
                 () -> assertEquals("r", ImpresoraPizarra.imprimir(r.jacobiano())),
-                // RN40: el jacobiano como determinante y simplificado
                 () -> assertTrue(lineas(cambio).contains("J = ∂(x, y)/∂(r, θ)"), lineas(cambio)),
                 () -> assertTrue(lineas(cambio).contains("= r"), lineas(cambio)),
                 () -> assertEquals("π/2", r.texto()));
@@ -156,8 +147,6 @@ class IntegralesMultiplesTest {
         assertTrue(lineas(r.pasos().getFirst()).contains("J = ∂(x, y, z)/∂(ρ, φ, θ)"));
         comprobado(r, 16);
     }
-
-    // ------------------------------------------------------------------ Exploración
 
     @Test
     void forzarElCambioDeOrden() {
@@ -195,8 +184,6 @@ class IntegralesMultiplesTest {
         assertNotNull(polares.texto());
         assertEquals(CaminoCalculo.Estado.USADO, caminos.getFirst().estado());
     }
-
-    // ------------------------------------------------------------------ errores
 
     @Test
     void losLimitesSoloDependenDeLasDeAfuera() {

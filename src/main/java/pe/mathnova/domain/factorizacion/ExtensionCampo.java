@@ -26,19 +26,6 @@ import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 import pe.mathnova.domain.numeros.RaicesAproximadas;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * Factorización en R o C (sección 2.11). Se parte de la factorización en Q (RN27): cada factor
- * irreducible en Q se parte, si se puede, con radicales o con i.
- * <ul>
- *   <li>Grado 2: F21 (x² − k), F22 (completar cuadrados) o F23 (fórmula general) si Δ > 0; en C,
- *       F24 (x² + k) o F25 si Δ < 0. En R, con Δ < 0 queda como está.</li>
- *   <li>Binomios a·xⁿ + d: F26 si n = 3 en R; F30 (De Moivre) en C; F29 en R desde n = 4, que junta
- *       cada par de raíces conjugadas en un cuadrático real (RN28).</li>
- *   <li>Grado 3: F27 (Cardano). Grado 4: F28 (Ferrari) y luego cada cuadrático.</li>
- *   <li>Grado ≥ 5 sin fórmula: A5, raíces aproximadas con ≈ (RN30).</li>
- * </ul>
- * Si la entrada es un binomio, F30 (en C) o F29 (en R) se aplica de una vez a todos sus factores.
- */
 final class ExtensionCampo {
 
     private static final Racional MEDIO = Racional.de(1, 2);
@@ -94,14 +81,12 @@ final class ExtensionCampo {
         }
         FormaExtendida resultado = new FormaExtendida(constante, finales);
         if (binomio != null && !pasos.isEmpty()) {
-            // El paso de De Moivre o de las conjugadas deja ya la forma completa.
             Extension.Paso p = pasos.getFirst();
             pasos.set(0, new Extension.Paso(0, p.codigoTecnica(), p.justificacion(), p.antes(),
                     resultado.aExpresion(), p.trabajo()));
         }
         List<Extension.Paso> todos = new ArrayList<>();
         if (!pasos.isEmpty()) {
-            // Antes: lo que dejó Q. Después: solo el factor (o los factores) que se van a partir.
             String c = campo == Campo.R ? "R" : "C";
             String justificacion = motivos.isEmpty()
                     ? "Primero se factoriza en Q (RN27); ahora se parten en " + c + " los factores irreducibles en Q."
@@ -118,9 +103,6 @@ final class ExtensionCampo {
         return new Extension(campo, numerados, resultado, notas, aproximadas);
     }
 
-    // ------------------------------------------------------------------ despacho
-
-    /** Las piezas mónicas de p (sin su coeficiente principal), o null si p no se parte en el campo. */
     private List<PolinomioAlgebraico> partir(Polinomio p) {
         int g = p.grado();
         try {
@@ -146,12 +128,9 @@ final class ExtensionCampo {
                 }
             }
         } catch (ArithmeticException e) {
-            // Sin forma exacta en esta representación: se aproxima.
         }
         return aproximar(p);
     }
-
-    // ------------------------------------------------------------------ grado 2 en Q
 
     private List<PolinomioAlgebraico> cuadratica(Polinomio p) {
         char x = p.variables().first();
@@ -219,9 +198,6 @@ final class ExtensionCampo {
                 "x₁ = " + r1 + ",  x₂ = " + r2));
     }
 
-    // ------------------------------------------------------------------ cuadráticos con radicales
-
-    /** x² + Bx + C con coeficientes con radicales: F23, o F25 si Δ no es real positivo. */
     private List<PolinomioAlgebraico> cuadraticaAlgebraica(PolinomioAlgebraico q) {
         char x = q.variable();
         PolinomioAlgebraico m = q.monico();
@@ -247,13 +223,11 @@ final class ExtensionCampo {
         return piezas;
     }
 
-    // ------------------------------------------------------------------ cubos (F26)
-
     private List<PolinomioAlgebraico> cubos(Polinomio p) {
         char x = p.variables().first();
         Racional a = coef(p, 3);
         Racional d = coef(p, 0);
-        NumeroAlgebraico r = NumeroAlgebraico.raiz(3, d.negar().dividir(a)); // raíz real
+        NumeroAlgebraico r = NumeroAlgebraico.raiz(3, d.negar().dividir(a));
         PolinomioAlgebraico lineal = PolinomioAlgebraico.lineal(x, r);
         PolinomioAlgebraico cuadratico = PolinomioAlgebraico.cuadratico(x, r, r.multiplicar(r));
         List<PolinomioAlgebraico> piezas = List.of(lineal, cuadratico);
@@ -267,13 +241,6 @@ final class ExtensionCampo {
         return piezas;
     }
 
-    // ------------------------------------------------------------------ binomios (F29, F30)
-
-    /**
-     * De Moivre sobre a·xⁿ + d: cada raíz se reparte al factor que anula. En C cada raíz da un factor
-     * lineal (F30); en R las reales dan lineales y cada par conjugado un cuadrático (F29). Null si
-     * algún ángulo no tiene coseno exacto.
-     */
     private Map<Polinomio, List<PolinomioAlgebraico>> binomio(Polinomio binomio, List<Polinomio> factores,
                                                                boolean entrada) {
         if (factores.isEmpty()) {
@@ -325,7 +292,7 @@ final class ExtensionCampo {
                 }
             }
             if (piezas.size() == 1 && piezas.getFirst().equals(fa.monico())) {
-                r.put(f, null); // en R ya era el cuadrático de sus conjugadas
+                r.put(f, null);
                 if (f.grado() == 2) {
                     notas.add(f + " no se factoriza en R: sus raíces son complejas conjugadas.");
                 }
@@ -346,8 +313,6 @@ final class ExtensionCampo {
         paso(codigo, justificacion, binomio, entrada ? null : forma(a, todas), new TrabajoIntermedio.Agrupacion(lineas));
         return r;
     }
-
-    // ------------------------------------------------------------------ Cardano (F27)
 
     private List<PolinomioAlgebraico> cardano(Polinomio p) {
         char x = p.variables().first();
@@ -378,7 +343,6 @@ final class ExtensionCampo {
             lineas.add(x + "₁ = u + v" + (h.esCero() ? "" : " - " + paren(h)) + " = " + x1);
             piezas.add(PolinomioAlgebraico.lineal(x, x1));
             if (campo == Campo.R) {
-                // (x − x₁)(x² + (x₁ + a)x + (x₁² + a·x₁ + b))
                 NumeroAlgebraico bb = x1.sumar(NumeroAlgebraico.de(a));
                 NumeroAlgebraico cc = x1.multiplicar(x1).sumar(x1.multiplicar(a)).sumar(NumeroAlgebraico.de(b));
                 PolinomioAlgebraico cuadratico = PolinomioAlgebraico.cuadratico(x, bb, cc);
@@ -386,7 +350,6 @@ final class ExtensionCampo {
                 lineas.add("Al dividir entre (" + x + " - " + x1 + "): " + cuadratico);
                 notas.add(cuadratico + " no se factoriza en R: su Δ es negativo (las otras dos raíces son complejas).");
             } else {
-                // t = −(u + v)/2 ± (√3/2)(u − v)i
                 NumeroAlgebraico re = u.sumar(v).multiplicar(Racional.de(-1, 2)).sumar(menosH);
                 NumeroAlgebraico im = u.restar(v).multiplicar(NumeroAlgebraico.raiz(2, 3)).multiplicar(MEDIO)
                         .multiplicar(NumeroAlgebraico.I);
@@ -397,7 +360,6 @@ final class ExtensionCampo {
                 piezas.add(PolinomioAlgebraico.lineal(x, x3));
             }
         } else {
-            // Casus irreducibilis: tres raíces reales; con radicales habría que pasar por ∛ de complejos.
             lineas.add("Δ = (q/2)^2 + (p/3)^3 = " + delta + " < 0: casus irreducibilis");
             lineas.add("Las tres raíces son reales e irracionales, pero la fórmula de Cardano las da con raíces "
                     + "cúbicas de números complejos. Se escriben en forma trigonométrica:");
@@ -420,13 +382,11 @@ final class ExtensionCampo {
         return piezas;
     }
 
-    // ------------------------------------------------------------------ Ferrari (F28)
-
     private List<PolinomioAlgebraico> ferrari(Polinomio p) {
         char x = p.variables().first();
         PolinomioAlgebraico f = PolinomioAlgebraico.desde(p).monico();
         Racional h = f.coeficiente(3).aRacional().dividir(Racional.de(4));
-        PolinomioAlgebraico g = f.trasladar(NumeroAlgebraico.de(h.negar())); // y = x + h
+        PolinomioAlgebraico g = f.trasladar(NumeroAlgebraico.de(h.negar()));
         Racional pp = g.coeficiente(2).aRacional();
         Racional qq = g.coeficiente(1).aRacional();
         Racional rr = g.coeficiente(0).aRacional();
@@ -454,7 +414,6 @@ final class ExtensionCampo {
                 q2 = PolinomioAlgebraico.cuadratico(y, s, sr);
             }
         } else {
-            // Cúbica resolvente en S = s²: S³ + 2pS² + (p² − 4r)S − q² = 0
             Racional c2 = pp.multiplicar(Racional.de(2));
             Racional c1 = pp.multiplicar(pp).restar(rr.multiplicar(Racional.de(4)));
             Racional c0 = qq.multiplicar(qq).negar();
@@ -500,8 +459,6 @@ final class ExtensionCampo {
         return PolinomioAlgebraico.de(x, p.coeficientes());
     }
 
-    // ------------------------------------------------------------------ A5
-
     private List<PolinomioAlgebraico> aproximar(Polinomio p) {
         char x = p.variables().first();
         List<Racional> c = new ArrayList<>();
@@ -532,17 +489,7 @@ final class ExtensionCampo {
         return null;
     }
 
-    // ------------------------------------------------------------------ paso "Pasar a R/C"
-
-    /**
-     * Por qué p no se parte en Q y sí en el campo, con el dato concreto: "x^2 - 3 no se factoriza en Q
-     * porque Δ = 12 no es un cuadrado perfecto. En R sí, porque 3 = (√3)^2." o "x^2 + 4 no tiene raíces
-     * reales (Δ = -16 < 0). En C sí: ±2i."
-     *
-     * @param partido false si p no se parte y solo se aproximan sus raíces (A5)
-     */
     private String motivo(Polinomio p, boolean partido) {
-        // En la explicación, "2i" y "2√2" como se escriben a mano (NumeroAlgebraico pone "2·i").
         return motivoConPuntos(p, partido).replaceAll("(\\d)·(?=[i√])", "$1");
     }
 
@@ -578,7 +525,6 @@ final class ExtensionCampo {
                 : " En C sí se parte: sus raíces complejas se escriben con radicales e i.");
     }
 
-    /** El factor que se va a partir; si son varios, su producto. */
     private static Expresion aPartir(List<Polinomio> tratados, FormaFactorizada fq) {
         if (tratados.isEmpty()) {
             return fq.aExpresion();
@@ -589,9 +535,6 @@ final class ExtensionCampo {
         return new Producto(tratados.stream().map(Polinomio::aExpresion).toList());
     }
 
-    // ------------------------------------------------------------------ apoyo
-
-    /** antes es un Polinomio, un PolinomioAlgebraico o null. */
     private void paso(String codigo, String justificacion, Object antes, Expresion despues, TrabajoIntermedio trabajo) {
         Expresion a = switch (antes) {
             case Polinomio p -> p.aExpresion();
@@ -619,7 +562,6 @@ final class ExtensionCampo {
         return coef(p, p.grado());
     }
 
-    /** "₀", "₁₂". */
     private static String sub(int n) {
         StringBuilder sb = new StringBuilder();
         for (char c : Integer.toString(n).toCharArray()) {

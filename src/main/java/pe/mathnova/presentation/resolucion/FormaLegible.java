@@ -19,18 +19,6 @@ import pe.mathnova.domain.factorizacion.Resolucion;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 import pe.mathnova.domain.numeros.PolinomioAlgebraico;
 
-/**
- * La presentación legible de una factorización en R o C que pasó por Cardano (F27, Δ &gt; 0). La raíz real,
- * con sus radicales anidados, se define una vez como r y se reutiliza:
- *
- * <pre>
- *   R:  (x − r)[3x² + (8 + 3r)x + (3r² + 8r − 1)]
- *   C:  3(x − r)(x − z)(x − z̄),  z, z̄ = (−(8 + 3r) ± i√(27r² + 48r − 76))/6
- * </pre>
- *
- * Todo sale de los datos de la cúbica ({@link CubicaCardano}); las abreviaturas son solo de presentación: el
- * cociente en r es exacto y el valor de Cardano de r se despliega con "Ver valor exacto de r".
- */
 public final class FormaLegible {
 
     static final String VER_R = "Ver valor exacto de r";
@@ -59,10 +47,6 @@ public final class FormaLegible {
         this.entera = resto.isEmpty() && prefijo.equals(Racional.UNO);
     }
 
-    /**
-     * La forma legible si la resolución está en R o C, tiene un solo paso de Cardano con Δ &gt; 0 y sus piezas
-     * están en el resultado; si no, vacío (se muestra como siempre).
-     */
     public static Optional<FormaLegible> de(Resolucion res) {
         if (res == null || res.extension() == null || res.extension().aproximada()) {
             return Optional.empty();
@@ -114,9 +98,6 @@ public final class FormaLegible {
         return c;
     }
 
-    // ------------------------------------------------------------------ el resultado
-
-    /** El resultado con los símbolos: lo que va en el bloque celeste y en la tarjeta Solución. */
     public String latex() {
         return campo == Campo.R ? latexR() : latexC();
     }
@@ -129,7 +110,6 @@ public final class FormaLegible {
         return coef(total) + latexResto() + xr() + xz();
     }
 
-    /** Debajo del resultado: qué es r (y z) y el control para ver su valor exacto. */
     public List<Desarrollo.Renglon> pie() {
         List<Desarrollo.Renglon> l = new ArrayList<>();
         l.add(new Desarrollo.Texto("donde r es la raíz real de " + p() + (entera ? ":" : ",")));
@@ -144,7 +124,6 @@ public final class FormaLegible {
         return l;
     }
 
-    /** La frase de la tarjeta Solución, en lugar de los radicales anidados. */
     public List<String> notas() {
         String rr = "r ≈ " + aproximacion() + " es la raíz real de " + (entera ? "P" : "P(" + x + ")")
                 + " (fórmula de Cardano).";
@@ -153,12 +132,6 @@ public final class FormaLegible {
                 : rr + " z y z̄ son las raíces complejas conjugadas del factor cuadrático.");
     }
 
-    // ------------------------------------------------------------------ el paso de Cardano
-
-    /**
-     * El paso de Cardano en orden: la sustitución y la reducida, el discriminante y su signo, la raíz real r
-     * y la factorización en el campo elegido; una operación por renglón.
-     */
     public Desarrollo desarrollo() {
         List<Desarrollo.Renglon> l = new ArrayList<>();
         if (!entera) {
@@ -213,12 +186,6 @@ public final class FormaLegible {
         return new Desarrollo.Definicion(texto, uv + " \\approx " + aproximacion(), VER_R, detalle);
     }
 
-    // ------------------------------------------------------------------ comprobación
-
-    /**
-     * La comprobación algebraica: del resultado a la entrada, con expresiones completas. Vacía si hay otros
-     * factores además de la cúbica (entonces se muestra la evaluación numérica).
-     */
     public List<CadenaIgualdades.Eslabon> cadena() {
         if (!resto.isEmpty()) {
             return List.of();
@@ -231,7 +198,6 @@ public final class FormaLegible {
         }
         Polinomio rc = c.residuoSinConstante(r);
         String menosRc = " - \\left(" + polinomio(rc, false) + "\\right)";
-        // (x − r)·Q(x): cada potencia de x con lo que aporta x·Q y lo que aporta −r·Q, sin simplificar
         List<Termino> x2 = new ArrayList<>(terminos(c.coeficienteLineal(r), true));
         x2.add(new Termino(c.a3().negar(), 1));
         List<Termino> x1 = new ArrayList<>(terminos(c.coeficienteConstante(r), false));
@@ -252,17 +218,13 @@ public final class FormaLegible {
         return l;
     }
 
-    /** Lo que de verdad se calculó: (x − r)·Q = P(x) − P(r) con polinomios en x y r, y que k·P es la entrada. */
     public boolean algebraExacta() {
         return resto.isEmpty() && c.divisionExacta(r) && c.polinomio().multiplicar(prefijo).equals(entrada);
     }
 
-    /** El valor de Cardano de r anula P con 40 cifras. */
     public boolean raizComprobada() {
         return c.raizComprobada();
     }
-
-    // ------------------------------------------------------------------ piezas
 
     private String p() {
         return "P(" + x + ")";
@@ -276,7 +238,6 @@ public final class FormaLegible {
         return "\\left(" + x + " - z\\right)\\left(" + x + " - \\bar{z}\\right)";
     }
 
-    /** a₃x² + (a₂ + a₃r)x + (a₃r² + a₂r + a₁), sin corchetes. */
     private String cuadratico() {
         return sumando(Polinomio.constante(c.a3()), x + "^{2}", true) + sumando(c.coeficienteLineal(r), String.valueOf(x),
                 false, true) + sumando(c.coeficienteConstante(r), "", false);
@@ -286,7 +247,6 @@ public final class FormaLegible {
         return "\\left[" + cuadratico() + "\\right]";
     }
 
-    /** (−(a₂ + a₃r) ± i√(−Δ₂))/(2a₃), con el denominador positivo. */
     private String zFraccion() {
         Polinomio b = c.coeficienteLineal(r);
         Racional dos = c.a3().multiplicar(Racional.de(2));
@@ -341,8 +301,6 @@ public final class FormaLegible {
         return new BigDecimal(q.num()).divide(new BigDecimal(q.den()), MC);
     }
 
-    // ------------------------------------------------------------------ LaTeX de polinomios en r
-
     private record Termino(Racional coef, int exp) {
     }
 
@@ -389,7 +347,6 @@ public final class FormaLegible {
         return sumando(coefR, parteX, primero, false);
     }
 
-    /** "+ (8 + 3r)x", "− x", "+ 3rx"; vacío si el coeficiente es 0. */
     private String sumando(Polinomio coefR, String parteX, boolean primero, boolean ascendente) {
         List<Termino> l = terminos(coefR, ascendente);
         if (l.isEmpty()) {
@@ -412,7 +369,6 @@ public final class FormaLegible {
         return coef(a) + parteX;
     }
 
-    /** El coeficiente delante de un producto: nada si es 1, "−" si es −1. */
     private static String coef(Racional k) {
         if (k.equals(Racional.UNO)) {
             return "";

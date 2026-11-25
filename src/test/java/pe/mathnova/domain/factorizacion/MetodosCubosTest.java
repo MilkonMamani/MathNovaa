@@ -7,7 +7,6 @@ import static pe.mathnova.domain.factorizacion.MetodosBasicosTest.noAplica;
 
 import org.junit.jupiter.api.Test;
 
-/** F08, F09, F10 y F11. */
 class MetodosCubosTest {
 
     @Test

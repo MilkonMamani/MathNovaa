@@ -44,18 +44,6 @@ import pe.mathnova.infrastructure.persistence.SugerenciaRepository;
 import pe.mathnova.infrastructure.persistence.TecnicaEntity;
 import pe.mathnova.infrastructure.persistence.TecnicaRepository;
 
-/**
- * Guarda cada resolución en el historial (RN24): factorizaciones, fracciones simplificadas (P01) y
- * límites (Sprint 5), con sus sugerencias (HU10). RN25: si ya hay una resolución del mismo ejercicio,
- * operación y clave, solo actualiza la fecha (misma versión del motor) o reemplaza sus pasos y
- * sugerencias (otra versión).
- *
- * <p>Un límite se guarda sobre el ejercicio de su función: lim(x→2, (x² − 4)/(x − 2)) y la fracción
- * (x² − 4)/(x − 2) son el mismo ejercicio, con operaciones LIMITE y SIMPLIFICAR.
- *
- * <p>Desde el Sprint 9 lo llama {@link HistorialService}, que guarda también las demás operaciones con
- * estas mismas piezas ({@link #ejercicio}, {@link #guardarResolucion}, {@link #agregarPasoLimite}).
- */
 @Service
 public class HistorialFactorizacionService {
 
@@ -70,7 +58,6 @@ public class HistorialFactorizacionService {
     private final SugerenciaRepository sugerencias;
     private final TecnicaRepository tecnicas;
     private final String versionMotor;
-    /** Los códigos de la tabla tecnica (V2 y V3): paso.tecnica_codigo es clave foránea. */
     private volatile java.util.Set<String> catalogo;
 
     public HistorialFactorizacionService(EjercicioRepository ejercicios, ResolucionRepository resoluciones,
@@ -89,7 +76,6 @@ public class HistorialFactorizacionService {
         return versionMotor;
     }
 
-    /** Si el código está en la tabla tecnica. */
     boolean enCatalogo(String codigo) {
         java.util.Set<String> c = catalogo;
         if (c == null) {
@@ -98,8 +84,6 @@ public class HistorialFactorizacionService {
         }
         return codigo != null && c.contains(codigo);
     }
-
-    // ------------------------------------------------------------------ factorizar
 
     @Transactional
     public Optional<ResolucionEntity> guardar(String entrada, Resolucion r) {
@@ -111,11 +95,6 @@ public class HistorialFactorizacionService {
         return guardar(entrada, r, sugeridas, Instant.now(), versionMotor);
     }
 
-    /**
-     * @param ahora   fecha de la factorización (se guarda al segundo)
-     * @param version versión del motor que la produjo
-     * @return vacío si la entrada no tiene letras (una constante no se guarda: V1 exige variables)
-     */
     @Transactional
     public Optional<ResolucionEntity> guardar(String entrada, Resolucion r, Instant ahora, String version) {
         return guardar(entrada, r, List.of(), ahora, version);
@@ -130,7 +109,6 @@ public class HistorialFactorizacionService {
         }
         Instant fecha = ahora.truncatedTo(ChronoUnit.SECONDS);
         EjercicioEntity ejercicio = ejercicio(entrada, r.entrada(), variables, fecha);
-        // HU08: una resolución forzada se guarda aparte de la automática (RN25 compara la clave).
         String campo = "campo=" + r.campo().name();
         String clave = r.metodoForzado() == null ? campo : campo + ";metodo=" + r.metodoForzado();
         return Optional.of(guardarResolucion(ejercicio, OPERACION, clave, fecha, version, res -> {
@@ -144,7 +122,6 @@ public class HistorialFactorizacionService {
                 res.agregarPaso(PasoMapper.aEntidad(p, orden++));
             }
             if (r.extension() != null) {
-                // "Pasar a R/C" no es una técnica del catálogo (V2): se guardan F21–F30 y A5.
                 for (var p : r.extension().pasos()) {
                     if (!p.codigoTecnica().startsWith("P")) {
                         res.agregarPaso(PasoMapper.aEntidad(p, orden++));
@@ -157,8 +134,6 @@ public class HistorialFactorizacionService {
             agregarSugerencias(res, sugeridas);
         }));
     }
-
-    // ------------------------------------------------------------------ simplificar (P01)
 
     @Transactional
     public Optional<ResolucionEntity> guardarSimplificacion(String entrada, Simplificacion s, List<Sugerencia> sugeridas) {
@@ -191,17 +166,11 @@ public class HistorialFactorizacionService {
         }));
     }
 
-    // ------------------------------------------------------------------ límites (Sprint 5)
-
     @Transactional
     public Optional<ResolucionEntity> guardarLimite(String entrada, ResolucionLimite r) {
         return guardarLimite(entrada, r, Instant.now(), versionMotor);
     }
 
-    /**
-     * Un límite que no se pudo calcular no se guarda (RN24: solo lo resuelto). Los pasos anidados
-     * (factorización en L02, derivadas en L07) van con paso_padre_id.
-     */
     @Transactional
     public Optional<ResolucionEntity> guardarLimite(String entrada, ResolucionLimite r, Instant ahora, String version) {
         if (r.resultado() instanceof ResultadoLimite.NoCalculado) {
@@ -230,10 +199,6 @@ public class HistorialFactorizacionService {
         }));
     }
 
-    /**
-     * Un paso de los motores de cálculo con sus hijos (paso_padre_id). Un paso que no es técnica del
-     * catálogo (E01…) no se guarda, pero sus hijos sí: cuelgan del paso de más arriba.
-     */
     void agregarPasoLimite(ResolucionEntity res, PasoLimite p, PasoEntity padre, int[] orden) {
         PasoEntity e = padre;
         if (enCatalogo(p.codigo())) {
@@ -248,12 +213,6 @@ public class HistorialFactorizacionService {
         }
     }
 
-    // ------------------------------------------------------------------ común
-
-    /**
-     * RN25: si ya existe con la misma versión, solo cambia la fecha; con otra versión, se borran los
-     * pasos y las sugerencias viejos y se vuelven a llenar.
-     */
     ResolucionEntity guardarResolucion(EjercicioEntity ejercicio, String operacion, String clave, Instant fecha,
                                                String version, Consumer<ResolucionEntity> llenar) {
         Optional<ResolucionEntity> existente =
@@ -266,7 +225,6 @@ public class HistorialFactorizacionService {
         ResolucionEntity res;
         if (existente.isPresent()) {
             res = existente.get();
-            // Se borran antes de insertar los nuevos: UNIQUE (resolucion_id, orden). Los anidados primero.
             List<PasoEntity> viejos = new ArrayList<>(res.getPasos());
             Collections.reverse(viejos);
             res.getPasos().clear();
@@ -323,15 +281,10 @@ public class HistorialFactorizacionService {
         });
     }
 
-    /**
-     * La forma canónica de un ejercicio: un polinomio expandido ("x^2 - 4"), una fracción con sus dos
-     * polinomios expandidos ("(x^2 - 4)/(x - 2)") o, si no, el texto de la expresión.
-     */
     static String normalizada(Expresion e) {
         try {
             return Polinomio.desde(e).toString();
         } catch (NoEsPolinomioException | ArithmeticException noEs) {
-            // sigue
         }
         if (SimplificadorFracciones.esFraccion(e)) {
             Expresion x = e;

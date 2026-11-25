@@ -7,10 +7,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Estructura de toda la app: barra lateral a la izquierda y contenido a la derecha.
-     La barra tiene dos anchos (compacta 56 px, desplegada 184 px); el botón de tres rayas solo
-     alterna ese ancho y las etiquetas. PrincipalController arma las cinco opciones; el Navegador
-     cambia el contenido. -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.mathnova.presentation.controller.PrincipalController"
             styleClass="pantalla-principal">

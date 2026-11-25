@@ -2,10 +2,6 @@ package pe.mathnova.domain.expresion;
 
 import java.util.Objects;
 
-/**
- * ∫(cuerpo, variable) o ∫(cuerpo, variable, inferior, superior) (HU34).
- * En la indefinida los dos límites son null; en la definida, ninguno lo es.
- */
 public record Integral(Expresion cuerpo, char variable, Expresion inferior, Expresion superior)
         implements Expresion {
 
@@ -19,7 +15,6 @@ public record Integral(Expresion cuerpo, char variable, Expresion inferior, Expr
         }
     }
 
-    /** Integral indefinida. */
     public Integral(Expresion cuerpo, char variable) {
         this(cuerpo, variable, null, null);
     }

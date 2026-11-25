@@ -34,23 +34,12 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.numeros.ComplejoDecimal;
 import pe.mathnova.domain.numeros.EvaluacionNumerica;
 
-/**
- * HU12 y HU25: resuelve d/dx(f), dⁿ/dxⁿ(f) y la derivación implícita d/dx(F(x, y) = G(x, y)), con un
- * paso por regla (D01…D09, las internas anidadas y plegadas) y al final "Simplificar". Si f es una
- * fracción de polinomios de una variable, busca también los puntos críticos (RF28) con el resolvedor de
- * ecuaciones y los clasifica con f″ o con el cambio de signo de f′.
- */
 public final class MotorDerivadas {
 
-    /** El paso final que deja el resultado en su forma de pizarra. */
     public static final String SIMPLIFICAR = "SIMP";
-    /** RF28. */
     public static final String PUNTOS_CRITICOS = "PCR";
-    /** Exploración: expandir el polinomio y derivar término a término. */
     public static final String EXPANDIR = "EXP";
-    /** Exploración: f/g como f·g⁻¹. */
     public static final String COMO_PRODUCTO = "PROD";
-    /** Exploración: f^g como e^(g·ln f). */
     public static final String COMO_EXPONENCIAL = "EXPO";
 
     private final ResolvedorEcuaciones resolvedor;
@@ -65,11 +54,6 @@ public final class MotorDerivadas {
         return resolver(d, null);
     }
 
-    /**
-     * @param forzado un camino de Exploración ({@link #EXPANDIR}, {@link #COMO_PRODUCTO},
-     *                {@link #COMO_EXPONENCIAL}) con que se empieza, o null
-     * @throws IllegalArgumentException si no se puede derivar (una implícita sin y, por ejemplo)
-     */
     public ResolucionDerivada resolver(Derivada d, String forzado) {
         if (d.cuerpo() instanceof Ecuacion ec) {
             return implicita(d, ec);
@@ -81,8 +65,6 @@ public final class MotorDerivadas {
         for (int k = 1; k <= d.orden(); k++) {
             Expresion aDerivar = actual;
             if (k == 1 && forzado == null) {
-                // Un cociente de polinomios con un factor común se simplifica antes de derivar: d/dx((x² − 9)/(x − 3))
-                // es d/dx(x + 3) para x ≠ 3, sin pasar por la regla del cociente (FactorComun)
                 Optional<FactorComun.Cancelacion> c = orquestador == null ? Optional.empty()
                         : FactorComun.cancelar(f, orquestador);
                 if (c.isPresent()) {
@@ -123,7 +105,6 @@ public final class MotorDerivadas {
         return new ResolucionDerivada(d, f, actual, pasos, (char) 0, analisis, verificar(f, actual, x, d.orden()));
     }
 
-    /** RF28 para cualquier f de una variable (también fuera de una derivada, como en una sugerencia). */
     public Optional<AnalisisDerivada> analisis(Expresion f, char x) {
         return AnalisisDerivada.de(f, x, resolvedor);
     }
@@ -175,8 +156,6 @@ public final class MotorDerivadas {
                 null, new TrabajoIntermedio.Agrupacion(lineas), "Resolver f'(" + x + ") = 0", Anidados.deEcuacion(a.ecuacion()));
     }
 
-    // ------------------------------------------------------------------ D08
-
     private ResolucionDerivada implicita(Derivada d, Ecuacion ec) {
         char x = d.variable();
         SortedSet<Character> otras = new TreeSet<>(Expresiones.variables(ec));
@@ -223,17 +202,11 @@ public final class MotorDerivadas {
         return new ResolucionDerivada(d, ec, despeje, pasos, y, null, anula);
     }
 
-    // ------------------------------------------------------------------ verificación
-
     private static final java.math.BigDecimal H = java.math.BigDecimal.ONE.movePointLeft(20);
     private static final MathContext MC90 = new MathContext(90);
     private static final List<Racional> PUNTOS = List.of(Racional.de(1, 3), Racional.de(13, 11), Racional.de(17, 9),
             Racional.de(5, 2), Racional.de(3, 7));
 
-    /**
-     * (f(x + h) − f(x − h))/(2h) con h = 10⁻²⁰ y 90 cifras en tres puntos donde f está definida; en orden n
-     * se compara la derivada n − 1 con la n. Las otras letras valen 5/7.
-     */
     static boolean verificar(Expresion f, Expresion derivada, char x, int orden) {
         try {
             Expresion anterior = f;
@@ -255,7 +228,6 @@ public final class MotorDerivadas {
                     }
                     buenos++;
                 } catch (ArithmeticException fuera) {
-                    // no definida en ese punto
                 }
                 if (buenos == 3) {
                     return true;
@@ -280,7 +252,6 @@ public final class MotorDerivadas {
         return z.re();
     }
 
-    /** e vale 0 en tres puntos (x, y). */
     private static boolean cero(Expresion e, char x, char y) {
         MathContext mc = EvaluacionNumerica.MC;
         Racional[][] puntos = {{Racional.de(1, 3), Racional.de(5, 7)}, {Racional.de(13, 11), Racional.de(-3, 4)},
@@ -294,13 +265,11 @@ public final class MotorDerivadas {
                     return false;
                 }
             } catch (ArithmeticException fuera) {
-                // fuera del dominio
             }
         }
         return true;
     }
 
-    /** e(y' = 2) = a + 2b en tres puntos: y' aparece de forma lineal. */
     private static boolean lineal(Expresion e, Expresion a, Expresion b, Expresion prima, char x, char y) {
         Expresion conDos = Expresiones.reemplazar(e, prima, Constante.de(2));
         Expresion esperado = Simplificador.suma(List.of(a, Simplificador.producto(List.of(Constante.de(2), b))));
@@ -318,13 +287,10 @@ public final class MotorDerivadas {
                     return false;
                 }
             } catch (ArithmeticException fuera) {
-                // fuera del dominio en ese punto
             }
         }
         return true;
     }
-
-    // ------------------------------------------------------------------ Exploración
 
     public static String nombreCamino(String codigo) {
         return switch (codigo) {
@@ -344,7 +310,6 @@ public final class MotorDerivadas {
         };
     }
 
-    /** f escrita de otra forma para el camino forzado; vacío si ese camino no aplica. */
     private static Optional<Expresion> reescribir(Expresion f, String camino, char x) {
         switch (camino) {
             case EXPANDIR -> {
@@ -379,7 +344,6 @@ public final class MotorDerivadas {
         }
     }
 
-    /** Una suma de términos c·xⁿ: ya está expandida. */
     private static boolean sinProductos(Expresion f) {
         return ((Suma) f).terminos().stream().noneMatch(MotorDerivadas::tieneSuma);
     }
@@ -394,10 +358,6 @@ public final class MotorDerivadas {
         };
     }
 
-    /**
-     * Exploración: el camino usado (la regla de afuera, o el camino forzado), los otros que también llegan
-     * a la misma derivada (con lo que dan) y los que no aplican con su motivo.
-     */
     public List<CaminoCalculo> caminos(ResolucionDerivada r) {
         List<CaminoCalculo> caminos = new ArrayList<>();
         if (r.esImplicita()) {
@@ -434,7 +394,6 @@ public final class MotorDerivadas {
         return caminos;
     }
 
-    /** Por qué no aplica; null si no vale la pena mostrarlo. */
     private static String motivo(Expresion f, String camino, char x) {
         return switch (camino) {
             case EXPANDIR -> f instanceof Suma ? "Ya es una suma: se deriva término a término"

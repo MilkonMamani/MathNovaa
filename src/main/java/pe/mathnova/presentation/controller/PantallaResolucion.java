@@ -6,34 +6,12 @@ import pe.mathnova.application.editor.TraductorLatex;
 import pe.mathnova.application.service.ResolverService;
 import pe.mathnova.domain.parser.Parser;
 
-/**
- * El estado de la pantalla "Resolver ejercicio", sin JavaFX. El controlador le avisa lo que pasa
- * (cambió el editor, pasaron los 400 ms, empezó o terminó el cálculo) y después dibuja todos los
- * paneles con lo que dice aquí; ninguno se actualiza por su cuenta.
- *
- * <p>Cada cambio del editor sube la {@link #version()}. Lo que se calculó para una versión anterior no
- * se muestra como actual: los paneles quedan atenuados con "Pulsa Resolver para actualizar" (RF77).
- *
- * <p>La línea de resultado en vivo bajo el editor (HU37, RF71) se retiró: el resultado depende del
- * método y del campo Q/R/C, y mostrarlo antes de Resolver adelantaba la respuesta. Solo aparece al
- * final de la Pizarra.
- */
 public final class PantallaResolucion {
 
-    /** La nota sobre los paneles atenuados. */
     public static final String PULSA_RESOLVER = "Pulsa Resolver para actualizar";
 
-    /** Qué se puede hacer con lo que hay en el editor. */
     public enum Tipo { VACIO, INCOMPLETO, ERROR, LISTO }
 
-    /**
-     * Lo que se sabe de la entrada sin calcular nada.
-     *
-     * @param texto   el texto para el parser (sección 9); null si no se pudo traducir
-     * @param plan    qué hará Resolver; null si no hay texto
-     * @param mensaje el error o la casilla que falta; null si no hay
-     * @param casilla el número de la casilla que falta (TraductorLatex.CasillaVacia); -1 si no falta
-     */
     public record Analisis(Tipo tipo, String texto, ResolverService.Plan plan, String mensaje, int casilla) {
 
         static final Analisis VACIA = new Analisis(Tipo.VACIO, "", new ResolverService.Plan.Vacio(), null, -1);
@@ -43,7 +21,6 @@ public final class PantallaResolucion {
         }
     }
 
-    /** El LaTeX del editor: casilla vacía, error del traductor o lo que decida ResolverService. */
     public static Analisis analizar(String latex, ResolverService servicio) {
         if (latex == null || latex.isBlank()) {
             return Analisis.VACIA;
@@ -61,7 +38,6 @@ public final class PantallaResolucion {
         return analizarTexto(texto, servicio);
     }
 
-    /** Un texto de la sección 9 (del historial, de una sugerencia o traducido del editor). */
     public static Analisis analizarTexto(String texto, ResolverService servicio) {
         if (texto == null || texto.isBlank()) {
             return Analisis.VACIA;
@@ -80,26 +56,15 @@ public final class PantallaResolucion {
 
     private Analisis analisis = Analisis.VACIA;
     private int version;
-    /** Pasaron los 400 ms (o se pidió Resolver): el error ya se muestra. */
     private boolean confirmado;
 
     private boolean calculando;
     private int versionCalculo = -1;
 
-    /** La versión del resultado que está en los paneles; -1 si no hay. */
     private int versionResultado = -1;
     private boolean resultadoVerificado;
-    /** El cálculo falló ("No se pudo resolver: …"). */
     private String fallo;
 
-    // ------------------------------------------------------------------ eventos
-
-    /**
-     * Cambió lo que hay en el editor. Si es lo mismo que ya había (el editor avisa dos veces, o el
-     * historial puso el mismo ejercicio), no cambia nada.
-     *
-     * @return true si de verdad cambió
-     */
     public boolean cambiar(Analisis nuevo) {
         Objects.requireNonNull(nuevo, "nuevo");
         if (mismaEntrada(analisis, nuevo)) {
@@ -112,20 +77,17 @@ public final class PantallaResolucion {
         return true;
     }
 
-    /** Lo mismo, pero aunque la entrada sea igual (cambió el campo Q/R/C): todo lo anterior queda viejo. */
     public void invalidar() {
         version++;
         confirmado = false;
     }
 
-    /** Pasaron los 400 ms sin teclas: el error (si lo hay) ya se muestra. */
     public void confirmar(int deVersion) {
         if (deVersion == version) {
             confirmado = true;
         }
     }
 
-    /** Empieza "Resolver": los paneles se vacían y se ve la carga. */
     public void empezarCalculo() {
         calculando = true;
         confirmado = true;
@@ -134,12 +96,6 @@ public final class PantallaResolucion {
         fallo = null;
     }
 
-    /**
-     * Terminó el cálculo de {@code deVersion}: el resultado se pone en los paneles (atenuado si el texto
-     * cambió mientras se calculaba).
-     *
-     * @param verificado si la etiqueta es "Verificado"
-     */
     public void resultado(int deVersion, boolean verificado) {
         calculando = false;
         versionResultado = deVersion;
@@ -147,7 +103,6 @@ public final class PantallaResolucion {
         fallo = null;
     }
 
-    /** El cálculo de {@code deVersion} falló. */
     public void fallo(int deVersion, String mensaje) {
         calculando = false;
         versionResultado = deVersion;
@@ -155,12 +110,9 @@ public final class PantallaResolucion {
         fallo = mensaje;
     }
 
-    /** Se descartó un cálculo (llegó otro ejercicio mientras corría). */
     public void cancelarCalculo() {
         calculando = false;
     }
-
-    // ------------------------------------------------------------------ lo que se dibuja
 
     public EstadoResolucion estado() {
         if (calculando && versionCalculo == version) {
@@ -185,17 +137,14 @@ public final class PantallaResolucion {
         return analisis;
     }
 
-    /** Un cálculo sigue corriendo (aunque sea de una versión anterior). */
     public boolean calculando() {
         return calculando;
     }
 
-    /** La versión que se está calculando. */
     public int versionCalculo() {
         return versionCalculo;
     }
 
-    /** El mensaje rojo bajo el editor (ERROR o INCOMPLETO); null si no hay. El fallo del cálculo va en la tarjeta. */
     public String mensaje() {
         return switch (estado()) {
             case INCOMPLETO -> analisis.mensaje();
@@ -204,46 +153,36 @@ public final class PantallaResolucion {
         };
     }
 
-    /** El fallo del cálculo para la tarjeta Solución; null si no hay. */
     public String falloCalculo() {
         return versionResultado == version ? fallo : null;
     }
 
-    /** La casilla que falta (para resaltarla); -1 si no falta ninguna o no se sabe cuál. */
     public int casilla() {
         return estado() == EstadoResolucion.INCOMPLETO ? analisis.casilla() : -1;
     }
 
-    /** Resolver está habilitado. */
     public boolean botonActivo() {
         EstadoResolucion e = estado();
         return !calculando && analisis.resoluble()
                 && (e == EstadoResolucion.ESCRIBIENDO || e == EstadoResolucion.RESUELTO);
     }
 
-    /** Hay un resultado en los paneles (actual o viejo). */
     public boolean hayResultado() {
         return versionResultado >= 0;
     }
 
-    /** Los paneles muestran un resultado que no es de lo que hay ahora en el editor. */
     public boolean atenuado() {
         return versionResultado >= 0 && versionResultado != version && !(calculando && versionCalculo == version);
     }
 
-    /** Se ve "Verificado" (o la etiqueta del resultado): solo si el resultado es el actual. */
     public boolean etiquetaVisible() {
         return estado() == EstadoResolucion.RESUELTO;
     }
 
-    /** "Verificado" con su marca: el resultado actual y comprobado. */
     public boolean verificado() {
         return etiquetaVisible() && resultadoVerificado;
     }
 
-    // ------------------------------------------------------------------ apoyo
-
-    /** La misma entrada: el mismo tipo y el mismo texto (o el mismo árbol, si los textos difieren en espacios). */
     private static boolean mismaEntrada(Analisis a, Analisis b) {
         if (a.tipo() != b.tipo()) {
             return false;

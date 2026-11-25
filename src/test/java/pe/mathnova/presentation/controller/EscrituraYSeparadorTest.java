@@ -27,7 +27,6 @@ import pe.mathnova.infrastructure.escritura.ReconocedorSimulado;
 import pe.mathnova.presentation.Fx;
 import pe.mathnova.presentation.escritura.LienzoEscritura;
 
-/** Mover el separador entre las herramientas y la Pizarra no borra lo escrito en "Escribir". */
 class EscrituraYSeparadorTest {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();

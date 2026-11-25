@@ -2,10 +2,6 @@ package pe.mathnova.domain.sugerencias;
 
 import java.util.List;
 
-/**
- * RN16: fracción propia. Con denominador de grado ≥ 2 se integra por fracciones parciales; con
- * denominador lineal la integral es directamente un logaritmo (Sprint 6).
- */
 final class FraccionesParciales implements ReglaSugerencia {
 
     @Override

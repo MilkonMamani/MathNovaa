@@ -19,16 +19,11 @@ import javafx.stage.Stage;
 
 import org.junit.jupiter.api.Assumptions;
 
-/**
- * Lo que necesitan las pruebas de vista: arrancar JavaFX una vez, correr cosas en su hilo, esperar una
- * condición y mandar eventos del mouse. Mismo enfoque que PruebaHumoTest, sin TestFX.
- */
 public final class Fx {
 
     private Fx() {
     }
 
-    /** Arranca JavaFX (si no estaba) o aborta la prueba si no hay pantalla. */
     public static void arrancar() throws Exception {
         CountDownLatch arranque = new CountDownLatch(1);
         try {
@@ -39,11 +34,9 @@ public final class Fx {
             Assumptions.abort("Sin pantalla para JavaFX: " + sinPantalla);
         }
         assertTrue(arranque.await(30, TimeUnit.SECONDS));
-        // Cerrar la última ventana de una prueba no debe apagar JavaFX para las siguientes.
         Platform.setImplicitExit(false);
     }
 
-    /** Una ventana invisible con la hoja de estilos de la app. */
     public static Stage ventana(Parent raiz, double ancho, double alto) {
         Scene escena = new Scene(raiz, ancho, alto);
         var css = Fx.class.getResource("/css/mathnova.css");
@@ -81,7 +74,6 @@ public final class Fx {
         }
     }
 
-    /** Un trazo con el mouse sobre {@code n}, de punto en punto (coordenadas locales de n). En el hilo de FX. */
     public static void trazo(Node n, double[]... puntos) {
         for (int i = 0; i < puntos.length; i++) {
             var tipo = i == 0 ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_DRAGGED;
@@ -91,11 +83,6 @@ public final class Fx {
         raton(n, MouseEvent.MOUSE_RELEASED, ultimo[0], ultimo[1]);
     }
 
-    /**
-     * Un trazo con el DEDO sobre {@code n} (coordenadas locales), como lo entrega Windows: cada evento táctil
-     * (TOUCH_PRESSED, TOUCH_MOVED…, TOUCH_RELEASED) va seguido de su evento de mouse "sintetizado"
-     * ({@code isSynthesized() == true}). En el hilo de FX.
-     */
     public static void trazoTactil(Node n, int dedo, double[]... puntos) {
         for (int i = 0; i < puntos.length; i++) {
             boolean primero = i == 0;
@@ -110,7 +97,6 @@ public final class Fx {
         raton(n, MouseEvent.MOUSE_RELEASED, ultimo[0], ultimo[1], true);
     }
 
-    /** Un solo evento táctil del dedo {@code dedo} en (x, y) locales de n. */
     public static void toque(Node n, javafx.event.EventType<javafx.scene.input.TouchEvent> tipo,
                              javafx.scene.input.TouchPoint.State estado, int dedo, double x, double y) {
         Point2D escena = n.localToScene(x, y);
@@ -120,7 +106,6 @@ public final class Fx {
                 false, false, false, false));
     }
 
-    /** Un evento de mouse; {@code sintetizado} = lo generó Windows a partir de un toque. */
     public static void raton(Node n, javafx.event.EventType<MouseEvent> tipo, double x, double y, boolean sintetizado) {
         Point2D escena = n.localToScene(x, y);
         boolean apretado = tipo != MouseEvent.MOUSE_RELEASED;

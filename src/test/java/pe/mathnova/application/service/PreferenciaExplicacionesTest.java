@@ -12,15 +12,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import pe.mathnova.MathNovaApplication;
 
-/**
- * El interruptor "Explicaciones" se guarda en la tabla configuracion y se recupera al reiniciar: se
- * arranca la app dos veces sobre la misma base (aparte, en target/).
- */
 class PreferenciaExplicacionesTest {
 
     private static final Path BASE = Path.of("target", "prueba-explicaciones.db");
 
-    /** La URL va como argumento: así gana sobre application.properties y nunca toca la base del usuario. */
     private static ConfigurableApplicationContext arrancar() {
         return new SpringApplicationBuilder(MathNovaApplication.class)
                 .run("--spring.datasource.url=jdbc:sqlite:" + BASE.toString().replace('\\', '/'));

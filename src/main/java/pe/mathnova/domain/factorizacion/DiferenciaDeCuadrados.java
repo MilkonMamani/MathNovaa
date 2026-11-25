@@ -5,17 +5,12 @@ import java.util.Optional;
 
 import pe.mathnova.domain.algebra.Polinomio;
 
-/**
- * F05: a² − b² = (a + b)(a − b). Aplicado otra vez a un factor que sale de un F05 es lo que el
- * banco llama F06 (x⁴ − 16 → (x² + 4)(x² − 4) → …); el paso se sigue llamando F05.
- */
 public final class DiferenciaDeCuadrados extends MetodoBase {
 
     public DiferenciaDeCuadrados() {
         super("F05");
     }
 
-    /** Solo con 2 términos. */
     @Override
     public boolean esCandidato(Polinomio p) {
         return p.terminos().size() == 2;
@@ -50,10 +45,6 @@ public final class DiferenciaDeCuadrados extends MetodoBase {
         return resultado(justificacion, p, factores, trabajo);
     }
 
-    /**
-     * Si q = a² − b² y uno de sus factores (a + b) o (a − b) es {@code factor}, el otro. Lo usa F04
-     * en agrupaciones como 2(x⁴ − 1) − 5x(x² − 1).
-     */
     static Optional<Polinomio> conjugado(Polinomio q, Polinomio factor) {
         List<Termino> ts = Termino.de(q);
         if (ts.size() != 2 || ts.get(0).positivo() == ts.get(1).positivo()) {
@@ -77,7 +68,6 @@ public final class DiferenciaDeCuadrados extends MetodoBase {
         return Optional.empty();
     }
 
-    /** Sprint 9, parte D: orienta sin decir el nombre del método. */
     @Override
     public String pista() {
         return "¿Son dos términos restados y cada uno es el cuadrado de algo?";

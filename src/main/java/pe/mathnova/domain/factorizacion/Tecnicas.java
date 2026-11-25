@@ -2,7 +2,6 @@ package pe.mathnova.domain.factorizacion;
 
 import java.util.Map;
 
-/** Nombres de las técnicas de factorización (Q, R, C y funciones), iguales a los del catálogo de V2. */
 public final class Tecnicas {
 
     private static final Map<String, String> NOMBRES = Map.ofEntries(
@@ -98,7 +97,6 @@ public final class Tecnicas {
             Map.entry("V09", "Integral iterada"),
             Map.entry("V10", "Cambio de coordenadas con jacobiano"));
 
-    /** Nombres cortos para los títulos; el largo queda como ayuda. */
     private static final Map<String, String> CORTOS = Map.ofEntries(
             Map.entry("F01", "Factor común"),
             Map.entry("F02", "Factor común con fracciones"),
@@ -157,21 +155,14 @@ public final class Tecnicas {
     private Tecnicas() {
     }
 
-    /** Nombre de la técnica; el código mismo si no está en la lista. */
     public static String nombre(String codigo) {
         return NOMBRES.getOrDefault(codigo, codigo);
     }
 
-    /** "Ruffini", "Aspa simple", "Quita y pon"…; el nombre largo si no tiene uno corto. */
     public static String nombreCorto(String codigo) {
         return CORTOS.getOrDefault(codigo, nombre(codigo));
     }
 
-    /**
-     * Práctica (Sprint 9, parte D): la pista de las técnicas que no son un {@link MetodoFactorizacion} (las de
-     * cálculo y F03). Orienta sin decir el nombre del método. Las de los métodos de factorización están en cada
-     * método ({@link MetodoFactorizacion#pista()}).
-     */
     private static final Map<String, String> PISTAS = Map.ofEntries(
             Map.entry("F03", "¿Hay un mismo paréntesis que se repite en todos los sumandos?"),
             Map.entry("L01", "Prueba lo más simple: reemplaza la variable por el valor al que tiende y mira qué sale."),
@@ -217,7 +208,6 @@ public final class Tecnicas {
             Map.entry("T04", "Una identidad trigonométrica puede dejarlo todo en una sola función."),
             Map.entry("T05", "Aparecen ln x y sus potencias: llama u a ln x."));
 
-    /** La pista de una técnica sin clase propia; null si no tiene. */
     public static String pista(String codigo) {
         return PISTAS.get(codigo);
     }

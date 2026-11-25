@@ -26,17 +26,11 @@ import pe.mathnova.application.service.HistorialService.Filtro;
 import pe.mathnova.application.service.HistorialService.Periodo;
 import pe.mathnova.domain.factorizacion.Campo;
 
-/**
- * Sprint 9, HU14 y HU15: el guardado automático (RN24, RN25), los filtros y la paginación del Historial, el
- * borrado en cascada (RN26) y la hoja que se lee sin recalcular (RNF19). Base de prueba de target/; cada
- * prueba empieza con el historial vacío y se deshace al terminar.
- */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:sqlite:target/prueba-mathnova.db")
 @Transactional
 class HistorialServiceTest {
 
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
-    /** Un jueves: la semana empieza el lunes 23. */
     private static final ZonedDateTime AHORA = ZonedDateTime.of(2026, 11, 26, 12, 0, 0, 0, LIMA);
 
     @Autowired
@@ -75,8 +69,6 @@ class HistorialServiceTest {
                 historial.versionMotor()).orElseThrow();
     }
 
-    // ------------------------------------------------------------------ guardar (RN24)
-
     @Test
     void alResolverSeGuardanElEjercicioSusTemasLaResolucionYTodosLosPasos() {
         int id = resolver.resolverYGuardar("x^3 - 2x^2 - x + 2", Campo.Q, null).orElseThrow();
@@ -101,7 +93,6 @@ class HistorialServiceTest {
                 () -> assertEquals(List.of("Factorización en Q"), jdbc.queryForList("SELECT t.nombre FROM "
                         + "ejercicio_tema et JOIN tema t ON t.id = et.tema_id WHERE et.ejercicio_id = ?",
                         String.class, ej.get("id"))));
-        // los aplicados y los descartados, con su motivo
         List<Map<String, Object>> pasos = jdbc.queryForList("SELECT * FROM paso WHERE resolucion_id = ? ORDER BY orden", id);
         assertTrue(pasos.stream().anyMatch(p -> ((Number) p.get("es_descartado")).intValue() == 0));
         assertTrue(pasos.stream().anyMatch(p -> ((Number) p.get("es_descartado")).intValue() == 1
@@ -141,14 +132,11 @@ class HistorialServiceTest {
                 Integer.class, ecuacion) > 0, "los pasos de la factorización cuelgan de «Factorizar»");
 
         assertEquals("lim(x→2, (x^2 - 4)/(x - 2))", resolucion(limite).get("entrada_texto"));
-        // la fracción y el límite son el mismo ejercicio (V1), con dos temas
         assertEquals(resolucion(fraccion).get("ejercicio_id"), resolucion(limite).get("ejercicio_id"));
         assertEquals(List.of("Fracciones algebraicas", "Límites"), jdbc.queryForList("SELECT t.nombre FROM "
                 + "ejercicio_tema et JOIN tema t ON t.id = et.tema_id WHERE et.ejercicio_id = ? ORDER BY t.id",
                 String.class, resolucion(limite).get("ejercicio_id")));
     }
-
-    // ------------------------------------------------------------------ RN25
 
     @Test
     void repetirElMismoEjercicioNoDuplicaSoloActualizaLaFecha() {
@@ -164,14 +152,11 @@ class HistorialServiceTest {
         assertEquals(AHORA.minusHours(3).toInstant().toString(), r.get("creado_en"));
         assertEquals(AHORA.toInstant().toString(), r.get("actualizado_en"));
 
-        // otra operación o el mismo polinomio en otro campo sí son otra fila
         resolver.resolverYGuardar("x^2 - 4", Campo.R, null);
         resolver.resolverYGuardar("d/dx(x^2 - 4)", Campo.Q, null);
         assertEquals(3, contar("resolucion"));
         assertEquals(1, contar("ejercicio"));
     }
-
-    // ------------------------------------------------------------------ errores
 
     @Test
     void siTerminaEnErrorNoSeGuardaNada() {
@@ -182,13 +167,11 @@ class HistorialServiceTest {
         assertEquals(0, contar("paso"));
     }
 
-    // ------------------------------------------------------------------ filtros (HU15)
-
     private void cuatroEjercicios() {
-        guardarEn("x^2 - 4", AHORA.minusHours(2));                          // hoy
-        guardarEn("d/dx(x^3)", AHORA.minusDays(2));                         // martes: esta semana
-        guardarEn("∫(x^2, x)", AHORA.withDayOfMonth(3));                    // este mes
-        guardarEn("lim(x→1, (x^2 - 1)/(x - 1))", AHORA.minusMonths(1));     // octubre
+        guardarEn("x^2 - 4", AHORA.minusHours(2));
+        guardarEn("d/dx(x^3)", AHORA.minusDays(2));
+        guardarEn("∫(x^2, x)", AHORA.withDayOfMonth(3));
+        guardarEn("lim(x→1, (x^2 - 1)/(x - 1))", AHORA.minusMonths(1));
     }
 
     private List<String> operaciones(Filtro f) {
@@ -266,8 +249,6 @@ class HistorialServiceTest {
         assertEquals("x + 55", segunda.filas().getLast().texto());
     }
 
-    // ------------------------------------------------------------------ RN26
-
     @Test
     void borrarSeLlevaSusPasosSinDejarHuerfanos() {
         int limite = resolver.resolverYGuardar("lim(x→2, (x^2 - 4)/(x - 2))", Campo.Q, null).orElseThrow();
@@ -294,8 +275,6 @@ class HistorialServiceTest {
                 () -> assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM paso WHERE resolucion_id NOT IN "
                         + "(SELECT id FROM resolucion)", Integer.class)));
     }
-
-    // ------------------------------------------------------------------ hoja (RNF19)
 
     @Test
     void laHojaSeArmaConLoGuardadoSinRecalcular() {
@@ -338,8 +317,6 @@ class HistorialServiceTest {
         assertTrue(h.pasos().stream().anyMatch(p -> p.nivel() == 1 && p.numero().contains(".")),
                 h.pasos().toString());
     }
-
-    // ------------------------------------------------------------------ fechas
 
     @Test
     void lasFechasDicenHoyAyerOElDia() {

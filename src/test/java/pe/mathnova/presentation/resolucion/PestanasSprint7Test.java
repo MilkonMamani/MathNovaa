@@ -23,7 +23,6 @@ import pe.mathnova.domain.factorizacion.TrabajoIntermedio;
 import pe.mathnova.domain.sugerencias.Sugerencia;
 import pe.mathnova.presentation.pizarra.ModeloAspa;
 
-/** Sprint 7, Parte D: las pestañas de integrales avanzadas, factorización multivariable y parciales. */
 class PestanasSprint7Test {
 
     private static final OrquestadorFactorizacion MOTOR = new OrquestadorFactorizacion();
@@ -46,8 +45,6 @@ class PestanasSprint7Test {
                 (a, b) -> a, java.util.LinkedHashMap::new));
     }
 
-    // ------------------------------------------------------------------ integrales avanzadas
-
     @Test
     void integralPorPartesMuestraIlateEnExploracion() {
         ResolucionIntegral r = SERVICIO.resolverIntegral("∫(x ln x, x)", null, f -> { });
@@ -68,8 +65,6 @@ class PestanasSprint7Test {
         assertTrue(v.subtitulo().endsWith("Por partes (ILATE)"), v.subtitulo());
     }
 
-    // ------------------------------------------------------------------ factorización multivariable
-
     @Test
     void factorizacionMultivariable() {
         ContenidoFactorizacion c = factorizacion("x^3 - 7xy^2 + 6y^3");
@@ -79,7 +74,7 @@ class PestanasSprint7Test {
                 () -> assertTrue(c.propiedades().isEmpty()),
                 () -> assertEquals("3", f.get("Grado total")),
                 () -> assertEquals("3", f.get("Grado en x")),
-                () -> assertEquals("3", f.get("Grado en y")), // por 6y³
+                () -> assertEquals("3", f.get("Grado en y")),
                 () -> assertTrue(f.get("¿Homogéneo?").startsWith("sí"), f.get("¿Homogéneo?")),
                 () -> assertEquals("M06", c.exploracion().tarjetas().getFirst().codigo()),
                 () -> assertTrue(c.exploracion().tarjetas().stream().allMatch(t -> t.codigo().startsWith("M")
@@ -93,7 +88,7 @@ class PestanasSprint7Test {
         ContenidoFactorizacion c = factorizacion("x^3 - x^2y - xy^2 + y^3");
         List<String> codigos = c.exploracion().tarjetas().stream().map(VistaExploracion.Tarjeta::codigo).toList();
         assertEquals("M07", codigos.getFirst());
-        assertTrue(codigos.contains("M02"), codigos.toString()); // la agrupación también sirve
+        assertTrue(codigos.contains("M02"), codigos.toString());
         assertTrue(c.exploracion().tarjetas().stream().anyMatch(t -> t.codigo().equals("M06")
                 && t.estado() == VistaExploracion.Estado.NO_APLICA), codigos.toString());
     }
@@ -106,8 +101,6 @@ class PestanasSprint7Test {
         assertEquals(List.of("−y", "3y"), m.derecha());
         assertEquals("6xy − xy = 5xy ✓", m.suma());
     }
-
-    // ------------------------------------------------------------------ parciales y gradiente
 
     @Test
     void parcialesConHessiana() {
@@ -146,12 +139,9 @@ class PestanasSprint7Test {
         assertEquals(VistaResolucion.Etiqueta.VERIFICADO, v.etiqueta());
     }
 
-    // ------------------------------------------------------------------ sugerencias (RN41)
-
     @Test
     void sugerenciasDeVariasVariables() {
         List<Sugerencia> s = FACTORIZACION.sugerencias(FACTORIZACION.factorizar("x^2 - 4y^2"));
-        // Sprint 8: los extremos ya se resuelven y se agrega la integral doble
         assertEquals(List.of("Derivadas parciales", "Gradiente", "Puntos críticos y extremos", "Integral doble"),
                 s.stream().map(Sugerencia::titulo).toList());
         assertEquals(List.of(true, true, true, true), s.stream().map(Sugerencia::disponible).toList());
