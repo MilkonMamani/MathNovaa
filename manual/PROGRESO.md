@@ -34,6 +34,7 @@ Decisión 25/11/2026: la portada declara la versión que muestra la app (0.0.1-S
 
 ## Cambios autorizados en herramientas (25/11/2026)
 - `generar_docx.py`: el campo del índice de figuras usa el separador de listas de Windows (`;` en es-PE); con `,` salía vacío.
+- `generar_docx.py`: si `logo` en datos.json es un archivo PNG/JPG, va como imagen en el encabezado de la portada (no cuenta como figura). Autorizado 25/11/2026.
 - `generar_docx.py`: los párrafos justo antes de una figura (Ruta, Ejemplo, una línea) se marcan "conservar con el siguiente" (no más títulos solos al pie).
 
 ## Hallazgos de la FASE 6
@@ -63,3 +64,8 @@ python manual/herramientas/verificar_manual.py manual/salida/MathNova_Manual_de_
 ## Notas técnicas para las capturas
 - Pantalla 1536×864 lógicos, escala 125 % → proceso DPI-aware o multiplicar cajas por 1,25.
 - Harness JavaFX: se puede reutilizar el patrón de `src/test/java/.../PruebaHumoTest.java` (abre `resolucion.fxml`, escribe con el teclado, `lookup` por id/clase).
+
+## Portada completa (25/11/2026)
+- Datos de UPeU, curso, docente y ciudad puestos; logo `src/main/resources/img/logoUPeU.png`.
+- Correo de soporte quitado por decisión del equipo (cap. 13: "comunícate con los autores").
+- `verificar_manual.py`: ✅ Todo correcto, sin `[COMPLETAR]` pendientes.

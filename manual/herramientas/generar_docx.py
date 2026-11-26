@@ -156,7 +156,14 @@ def _portada(doc, d):
         p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_after = Pt(despues)
         r = p.add_run(texto); r.font.size = Pt(tam); r.bold = negrita; r.font.color.rgb = color
-    linea(d.get("logo", "[COMPLETAR: logo de la institución]"), 10, color=GRIS, despues=18)
+    logo = Path(d.get("_dir", "."), d.get("logo", ""))
+    if d.get("logo") and logo.suffix.lower() in (".png", ".jpg", ".jpeg") and logo.is_file():
+        # en el encabezado de la portada: no es una figura del manual (sin título ni índice)
+        p = doc.sections[0].header.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run().add_picture(str(logo), width=Cm(6))
+        linea("", despues=18)
+    else:
+        linea(d.get("logo", "[COMPLETAR: logo de la institución]"), 10, color=GRIS, despues=18)
     linea(d["universidad"], 14, True, despues=2)
     linea(f'{d["facultad"]} · {d["escuela"]}', 11, color=GRIS, despues=90)
     linea("MANUAL DE USUARIO", 14, color=GRIS, despues=6)
@@ -280,6 +287,7 @@ def _cuerpo(doc, md, base):
 
 def generar(datos_json, contenido_md, salida):
     d = json.loads(Path(datos_json).read_text(encoding="utf-8"))
+    d["_dir"] = Path(datos_json).resolve().parent
     md_path = Path(contenido_md)
     doc = Document()
     _estilos(doc)

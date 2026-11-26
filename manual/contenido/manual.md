@@ -401,7 +401,7 @@ Si pides ayuda, indica el número de la línea **MathNova**.
 
 # 13. Soporte y contacto
 
-Si tienes un problema que este manual no resuelve, escribe a [COMPLETAR: correo de soporte]. Indica la versión de MathNova (sección 10.4) y el mensaje que viste.
+Si tienes un problema que este manual no resuelve, comunícate con los autores. Indica la versión de MathNova (sección 10.4) y el mensaje que viste.
 
 Autores: Milkon Eddy Mamani Ccama, Diana Vanessa Huanca Cruz y Yanil Perez Foraquita.
 
