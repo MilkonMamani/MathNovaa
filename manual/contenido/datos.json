@@ -3,12 +3,6 @@
   "subtitulo": "Manual de usuario",
   "version_software": "0.0.1-SNAPSHOT",
   "version_documento": "1.0",
-  "logo": "../../src/main/resources/img/logoUPeU.png",
-  "universidad": "Universidad Peruana Unión",
-  "facultad": "Facultad de Ingeniería y Arquitectura",
-  "escuela": "Ingeniería de Sistemas",
-  "curso": "Ingeniería de Software I",
-  "docente": "Ing. Noe Wilber Tipo Mamani",
   "autores": [
     "Milkon Eddy Mamani Ccama",
     "Diana Vanessa Huanca Cruz",

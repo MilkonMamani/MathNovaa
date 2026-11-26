@@ -69,3 +69,10 @@ python manual/herramientas/verificar_manual.py manual/salida/MathNova_Manual_de_
 - Datos de UPeU, curso, docente y ciudad puestos; logo `src/main/resources/img/logoUPeU.png`.
 - Correo de soporte quitado por decisión del equipo (cap. 13: "comunícate con los autores").
 - `verificar_manual.py`: ✅ Todo correcto, sin `[COMPLETAR]` pendientes.
+
+## Versión para usuario real (25/11/2026)
+- El manual se entrega a un usuario real: portada sin universidad, facultad, escuela, curso, docente ni logo (quitados de datos.json).
+- `generar_docx.py` (autorizado): los datos institucionales de la portada son opcionales; se quitó la línea repetida "MANUAL DE USUARIO".
+- Cap. 13: contacto 73462533@upeu.edu.pe.
+- Versión del software sin cambios (0.0.1-SNAPSHOT): el código de MathNova no se toca.
+- `verificar_manual.py`: ✅ Todo correcto (55 págs., 44 figuras).
